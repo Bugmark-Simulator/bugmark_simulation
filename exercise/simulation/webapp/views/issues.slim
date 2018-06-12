@@ -1,0 +1,53 @@
+.row
+  .col-md-4
+    h2[style='margin-bottom: 15px;'] Open Issues (#{@issues.open.count})
+  .col-md-8.text-right
+    .btn-group.btn-group-toggle.btn-group-sm[data-toggle="buttons"]
+      label.btn.btn-secondary.active
+        input#allIssues[type="radio" name="options" autocomplete="off" checked] All Issues
+      label.btn.btn-secondary
+        input#myIssues[type="radio" name="options" autocomplete="off"] My Issues
+
+table.table#xtable
+  thead
+    tr
+      td ID
+      td Title
+      td Open Offers
+      td Contracts
+      td Source
+      td Action
+  tbody
+    - @issues.each do |issue|
+      tr
+        td == issue_id_link(issue)
+        td = issue.stm_title
+        td
+          = issue.offers_bu.open.count
+          '  /
+          = issue.offers_bu.open.pluck(:value).sum
+          '  tokens
+          == "<b>*</b>" if issue.offers_bu.open.pluck(:user_uuid).include?(current_user.uuid)
+        td
+          = (issue.offers.crossed.count.to_f / 2 ).to_i
+          '  /
+          = issue.offers.crossed.pluck(:value).sum
+          '  tokens
+          == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
+        td == tracker_btn(issue)
+        td
+          a[href="/issues/#{issue.uuid}"] View Offers
+.row
+  .col-md-12.text-center
+    small <b>*</b> issues where you have an offer or contract
+
+- content_for :page_js do
+  coffee:
+    table = $('#xtable').DataTable();
+    setMyIssues  = -> table.search("*").draw()
+    setAllIssues = -> table.search("").draw()
+    $('document').ready ->
+      $('#myIssues').on  "focus", setMyIssues
+      $('#allIssues').on "focus", setAllIssues
+
+

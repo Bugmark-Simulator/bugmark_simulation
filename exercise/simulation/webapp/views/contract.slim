@@ -1,0 +1,46 @@
+h2 #{@contract.xid.capitalize}
+.row
+  .col-md-4
+    p
+      b Contract Value: #{ic_link('/help#contracts').html_safe}<br/>
+      == @contract.total_value.to_s + " tokens"
+    p
+      b Contract Maturation: #{ic_link('/help#maturation').html_safe}<br/>
+      = @contract.maturation.strftime("%b-%d")
+      |  at midnight #{BugmTime.now.strftime('%Z')}<br/>
+      |  (#{contract_maturation_words(@contract)})
+    p
+      b Contract Status:<br/>
+      = @contract.status
+  .col-md-8
+    p
+      b Issue ID:<br/>
+      == issue_id_link(@contract.issue)
+    p
+      b Issue Title:<br/>
+      == @contract.issue.stm_title
+      br
+      '  ( view issue source at
+      == tracker_link(@contract.issue)
+      |  )
+    p
+      b Issue Body:<br/>
+      == @contract.issue.stm_body.gsub("\n", "<br/>").sans_hexid
+.row
+  .col-md-12
+    table.table.table-sm[style='margin-top: 10px;']
+      thead
+        tr
+          th Position ID
+          th Trader
+          th Worker
+          th Value
+          th Awardee
+      tbody
+        - @contract.escrows.each do |escrow|
+          tr
+            td = escrow.id
+            td = user_name(escrow.positions.unfixed.first.user)
+            td = user_name(escrow.positions.fixed.first.user)
+            td = escrow.value
+            td = escrow_awardee(escrow)

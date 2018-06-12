@@ -1,0 +1,22 @@
+.row[style='margin-bottom: 15px;']
+  .col-md-6
+    h2 Admin
+  .col-md-6.text-right
+    small Users: #{@users.count} Offers: #{@offers.count} Contracts: #{@contracts.count}
+
+table.table#xtable
+  thead
+    tr
+      td ID
+      td Username
+      td Balance
+  tbody
+    - @users.each do |user|
+      tr
+        td = user.xid
+        td = user.name
+        td = user.balance
+
+- content_for :page_js do
+  javascript:
+    $('#xtable').DataTable();

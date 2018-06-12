@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+Dir.chdir File.expand_path(__dir__)
+
+require_relative '../../Base/lib/dotenv'
+
+dotenv_trial_data(__dir__).split(",").each do |dataset|
+  builder = "#{dataset}_build"
+  system "../../../data/#{builder} #{dotenv_trial_dir(__dir__)}"
+end
+
+# TODO: 
+# 1) create Settings_app.yml with application-specific configs
+# 2) modify the TrialSettings class to incorporate Settings_app.yml
+system "cp X Y 2> /dev/null" if File.exist?("Settings_app.yml")
+

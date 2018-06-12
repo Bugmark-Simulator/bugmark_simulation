@@ -1,0 +1,29 @@
+h1 YAML-Track Issue #{@exid}
+p This issue is stored in file <code>#{TS.tracker_name}</code>.
+table.table.table-small
+  tr
+    td <b>Issue Sequence</b>
+    td == @issue["sequence"]
+  tr
+    td <b>Issue EXID</b>
+    td == @issue["exid"]
+  tr
+    td <b>Issue Status</b>
+    td
+      == @issue["stm_status"]
+      span[style='margin-left: 120px;']
+        == ytrack_action_btn(@issue)
+  tr
+    td <b>Issue Title</b>
+    td == @issue["stm_title"]
+  tr
+    td <b>Issue Labels</b>
+    td == @issue["stm_labels"]
+  tr
+    td <b>Issue Body</b>
+    td == @issue["stm_body"].gsub("\n", "<br/>")
+  tr
+    td <b>Issue Comments</b>
+    td
+      - @issue["stm_comments"].each do |comment|
+        == comment["body"] + "<hr/>"

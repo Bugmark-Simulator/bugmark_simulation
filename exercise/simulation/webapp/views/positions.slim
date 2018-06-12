@@ -1,0 +1,54 @@
+h2 Positions
+
+p <b>Your Sellable Positions</b> #{@sellable.count}
+- if @sellable.count > 0
+  table.table.table-sm
+    thead
+      th Issue
+      th Owner
+      th Position UUID
+      th Purchased At
+      th Action
+    tbody
+    - @sellable.each do |pos|
+      tr
+        td.align-middle = issue_id_link(pos.offer.issue).html_safe
+        td.align-middle #{user_name(pos.user)}
+        td.align-middle #{pos.uuid[0..5]}
+        td.align-middle #{pos.value.to_i} tokens
+        td
+          .align[style="padding-top: 6px;"]
+            form.form-inline[action="/position_sell/#{pos.uuid}" method="post"]
+              label.mb-2.mr-sm-2 offer to sell for:
+              select.form-control.mb-2.mr-sm-2[name='value']
+                option[value="2"]                      2
+                option[value="4"]                      4
+                option[value="6"]                      6
+                option[value="8"]                      8
+                option[value="10" selected="selected"] 10
+                option[value="12"]                     12
+                option[value="14"]                     14
+                option[value="16"]                     16
+                option[value="18"]                     18
+              button.btn.btn-primary.mb-2[type="submit"] create offer to sell
+hr
+p <b>Open Offers to Sell</b> #{@buyable.count}
+- if @buyable.count > 0
+  table.table.table-sm
+    thead
+      th Issue
+      th Offered By
+      th Offer UUID
+      th Purchase Cost
+      th Action
+      th Payout
+    tbody
+    - @buyable.each do |offer|
+      tr
+        td.align-middle = issue_id_link(offer.issue).html_safe
+        td.align-middle #{user_name(offer.user)}
+        td.align-middle #{offer.uuid[0..5]}
+        td.align-middle #{(offer.volume - offer.value).to_i} tokens
+        td
+          a[href="/position_buy/#{offer.uuid}"] ACCEPT OFFER (cost: #{(offer.volume - offer.value).to_i} tokens)</a>
+        td.align-middle 20 tokens

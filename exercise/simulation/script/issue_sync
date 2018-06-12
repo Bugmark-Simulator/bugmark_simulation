@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+# ----- setup -----
+
+Dir.chdir File.expand_path(__dir__)
+require_relative '../../Base/lib/dotenv'
+TRIAL_DIR = dotenv_trial_dir(__dir__)
+
+# ----- libraries -----
+
+require_relative '../../Base/lib/exchange'
+require_relative '../../Base/lib/trial_settings'
+require 'awesome_print'
+
+# ----- info -----
+
+puts "EXCHANGE_DIR=#{Exchange.src_dir}"
+puts 'EXERCISE SETTINGS'
+ap TrialSettings.settings
+
+# ----- load -----
+
+puts 'LOADING RAILS'
+Exchange.load_rails
+
+puts 'LOADING IORA'
+require 'iora'
+
+# ----- expired offers -----
+
+puts 'MARK ALL EXPIRED OFFERS'
+Offer.open.expired_by_time.each do |offer|
+  offer.update_attribute(:status, 'expired')
+  print "."
+end
+puts ""
+
+# ----- sync -----
+
+puts 'SYNC ALL ISSUES TO BUGMARK'
+iora = Iora.new(TS.tracker_type, TS.tracker_name)
+tracker_uuid = Tracker.first.uuid
+iora.issues.each do |el|
+  base = {"stm_tracker_uuid" => tracker_uuid}
+  pkg  = el.merge(base)
+  print '.'
+  IssueCmd::Sync.new(pkg).project
+end
+puts ''

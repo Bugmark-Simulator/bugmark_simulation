@@ -1,0 +1,174 @@
+#!/usr/bin/env ruby
+
+require 'securerandom'
+require 'iora'
+
+# ----- command line -----
+
+CMD = __FILE__.split("/").last
+DIR = File.expand_path(ARGV[0])
+USAGE = "Usage: #{CMD} <trial_dir>"
+
+abort USAGE if ARGV.length != 1
+abort "#{USAGE}\nERROR: #{ARGV[0]} not a directory" unless File.directory?(DIR)
+
+# ----- filepaths -----
+
+TRIAL_DIR       = DIR
+DOC_DIR         = "Scramword"
+TIMESTAMP       = Time.now.strftime("%d%H%M%S")
+ANSWER_FILE     = "./.trial_data/scram_answers_#{TIMESTAMP}.txt"
+TASKS_FILE      = "./.trial_data/scram_tasks_#{TIMESTAMP}.yml"
+TERMS_FILE      = "./.trial_data/scram_terms_#{TIMESTAMP}.yml"
+PAIR_TASKS_FILE = "./.trial_data/scram_pair_tasks_#{TIMESTAMP}.yml"
+LCL_SETTINGS    = File.expand_path(__dir__) + "/scram_settings.yml"
+
+puts "TRIAL DIR IS #{TRIAL_DIR}"
+puts "DOC DIR IS #{DOC_DIR}"
+
+# ----- settings and libraries -----
+
+puts "ESTABLISH SCRAMWORD SETTINGS FOR #{TRIAL_DIR}"
+
+Dir.chdir TRIAL_DIR
+system "mkdir -p #{DOC_DIR}"
+system "mkdir -p .trial_data/archive"
+system "mv .trial_data/*scram* .trial_data/archive 2> /dev/null"
+system "cp #{LCL_SETTINGS} #{TRIAL_DIR}/.trial_data"
+
+require_relative '../../exercise/Base/lib/trial_settings'
+require_relative './scram_data'
+
+SCRAMBLES = ScramData.scrambles(1000)
+
+# ----- methods -----
+
+def body_base(scramble, level)
+  base = "#{scramble.quiz}"
+  hint = "HINT: the unscrambled word starts with '#{scramble.hint(level)}'"
+  return (base + "\n\n") if level == 0
+  "#{base}\n\n#{hint}\n\n"
+end
+
+def pair_doc_body(scramble, level)
+  instructions = <<~EOF.gsub("\n", " ")
+  TO RESOLVE THIS ISSUE: unscramble the word, and add it to the document.
+  Then submit a pull-request.  Make sure to reference the correct issue 
+  number (using the `#NNN` syntax) in your pull-request.
+  EOF
+  body_base(scramble, level) + "\n\n#{instructions}"
+end
+
+def pair_task_body(scramble, level)
+  url  = "https://#{TS.repo_url}/blob/master/#{DOC_DIR}/#{scramble.quiz_fn(level)}"
+  link = "( view document on <a href='#{url}'>GitHub</a> )"
+  pair_doc_body(scramble, level) + "\n\n#{link}\n\n/#{SecureRandom.hex(3)}"
+end
+
+def pair_task_tag_body(scramble, level)
+  pair_task_body(scramble, level).gsub("\n\n", "<p></p>")
+end
+
+def task_body(scramble, level)
+  instructions = <<~EOF.gsub("\n", " ")
+  TO RESOLVE THIS ISSUE: post the unscrambled word
+  in the issue comments.
+  EOF
+  body_base(scramble, level) + "#{instructions}\n\n/#{SecureRandom.hex(3)}"
+end
+
+def task_tag_body(scramble, level)
+  task_body(scramble, level).gsub("\n\n", "<p></p>")
+end
+
+# ----- writers -----
+
+def write_answer_line(scramble)
+  File.open(ANSWER_FILE, 'a') {|f| f.puts scramble.answer_line}
+end
+
+def write_pair_doc(scramble, level)
+  fn = "./#{DOC_DIR}/#{scramble.quiz_fn(level)}"
+  File.open(fn, 'w') {|f| f.puts(pair_doc_body(scramble, level))}
+end
+
+def write_pair_task(scramble, level)
+  write_answer_line(scramble)
+  File.open(PAIR_TASKS_FILE, 'a') do |f|
+    f.puts "- title:  #{scramble.quiz_level(level, 'p')}"
+    f.puts "  labels: EXERCISE,SCRAMWORDS,RESOLVE_WITH_PR,HINTLEVEL_#{level}"
+    f.puts "  body:   \"#{pair_task_tag_body(scramble, level)}\""
+    f.puts ""
+  end
+end
+
+def write_task(scramble, level)
+  write_answer_line(scramble)
+  File.open(TASKS_FILE, 'a') do |f|
+    f.puts "- title:  #{scramble.quiz_level(level, 'c')}"
+    f.puts "  labels: EXERCISE,SCRAMWORDS,RESOLVE_WITH_COMMENT,HINTLEVEL_#{level}"
+    f.puts "  body:   \"#{task_tag_body(scramble, level)}\""
+    f.puts ""
+  end
+end
+
+# ----- loops -----
+
+def write_pairs(numpairs, maxlevel)
+  (0..maxlevel).each do |level|
+    SCRAMBLES.sample(numpairs).each do |scramble|
+      write_pair_doc(scramble, level)
+      write_pair_task(scramble, level)
+      print "."
+    end
+  end
+  puts ""
+end
+
+def write_tasks(numtasks, maxlevel)
+  (0..maxlevel).each do |level|
+    SCRAMBLES.sample(numtasks).each do |scramble|
+      write_task(scramble, level)
+      print "."
+    end
+  end
+  puts ""
+end
+
+def write_terms(task_file, term_file)
+  tasks = YAML.load_file(task_file)
+  File.open(term_file, 'w') do |f|
+    f.puts "---"
+    tasks.each do |task|
+      cat   = task["title"].split("_").last
+      hexid = Iora.hexid_for(task)
+      f.puts "- price:  #{TS.settings.fetch("scram_#{cat}_price".to_sym, 1.00)}"
+      f.puts "  volume: #{TS.settings.fetch("scram_#{cat}_volume".to_sym, 10)}"
+      f.puts "  hexid:  #{hexid}"
+      print '.'
+    end
+  end
+  puts ''
+end
+
+# ----- execution -----
+
+Dir.chdir TS.trial_dir
+system "mkdir -p #{DOC_DIR}"
+system "rm -f #{DOC_DIR}/*.md"
+system "mkdir -p .trial_data"
+system "rm -f #{ANSWER_FILE}"
+system "echo --- > #{TASKS_FILE}"
+system "echo --- > #{PAIR_TASKS_FILE}"
+
+puts "WRITING PAIRS"
+write_pairs(TS.scram_num_pairs, TS.scram_max_hint_level)
+
+puts "WRITING TASKS"
+write_tasks(TS.scram_num_tasks, TS.scram_max_hint_level)
+
+puts "WRITING TASK TERMS"
+write_terms(TASKS_FILE     , TASKS_FILE.gsub("task", "term"))
+
+puts "WRITING PAIR TERMS"
+write_terms(PAIR_TASKS_FILE, PAIR_TASKS_FILE.gsub("task", "term"))

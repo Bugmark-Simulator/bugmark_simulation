@@ -1,0 +1,9 @@
+- unless consented?
+  .row.align-middle[style='padding-top: 20px;']
+    .col-md-7.text-center.align-middle
+      div[style='padding-top: 10px;'] You must agree to this consent form to participate
+    .col-md-5.text-center
+      a.btn.btn-primary[type="button" href="/consent_register"] Click Here to Agree
+  hr
+small
+  == markdown(:consent)

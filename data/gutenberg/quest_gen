@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+class Array
+  def in_groups_of(number, fill_with = nil)
+    if number.to_i <= 0
+      raise ArgumentError,
+        "Group size must be a positive integer, was #{number.inspect}"
+    end
+
+    if fill_with == false
+      collection = self
+    else
+      padding = (number - size % number) % number
+      collection = dup.concat(Array.new(padding, fill_with))
+    end
+
+    if block_given?
+      collection.each_slice(number) { |slice| yield(slice) }
+    else
+      collection.each_slice(number).to_a
+    end
+  end
+end
+
+
+data = File.read("./Beowulf.txt").gsub(/\W+/, " ").gsub("_", " ").split(" ").select {|el| el.length > 7 && el.length < 9}.map {|x| x.capitalize}.sort.uniq
+
+# File.open("code_lines.txt", 'w') do |f| 
+#   f.puts(data.join("\n")) 
+# end
+
+File.open("quest_groups.txt", 'w') do |f|
+  data.shuffle.in_groups_of(3, "Abandons") do |grp|
+    f.puts grp.join(",") unless grp.length != 3
+  end
+end
+
+

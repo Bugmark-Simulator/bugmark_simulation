@@ -1,0 +1,57 @@
+css:
+  .spc {
+    margin: 10px;
+  }
+  .menucol {
+    background: #e6e6e6;
+    padding: 10px;
+  }
+
+h2 Wordquest #{@hexid&.upcase}
+
+.row
+
+  .col-md-4
+    .menucol
+      p.text-center
+        b Codewords assigned to #{user_name(current_user)}
+      table.table.table-sm#xtable
+        thead
+          tr
+            th Issue
+            th Codeword
+        tbody
+          - @issues.each do |seq, issue|
+            tr
+              td == issue_id_link(Issue.find_by_sequence(seq))
+              td
+                == link_uc("#{Issue.find_by_sequence(seq).hexid.upcase} / #{issue.codeword_for(current_user.uuid)}", "/wordquest/#{Issue.find_by_sequence(seq)&.hexid}")
+    p.text-center[style='margin-top: 10px;']
+      == link_uc("Learn more", "/wordquest", hide: true)
+
+  .col-md-8
+    - if @hexid
+      p Wordquest #{@hexid.upcase} is used in #{issue_id_link(@issue).html_safe}
+      - if @kwd
+        p Your codeword for #{@hexid} is <b>#{@kwd}</b>.
+        p The other codeword for #{@hexid} is held by another trader.
+      - else
+        p You have no codeword for #{@hexid.upcase}
+      hr
+      p To view the solution, enter both codewords:
+
+      form.form-inline[method="post" action="/wordquest/#{@hexid}"]
+        input.form-control.spc[type="text" placeholder="Codeword 1" name="codeword1" value='#{@kwd}']
+        input.form-control.spc[type="text" placeholder="Codeword 2" name="codeword2"]
+        button.btn.btn-primary.spc VIEW SOLUTION
+      - if flash[:solution]
+        p
+          div.alert.alert-success[role='alert'] == flash[:solution]
+    - else
+      h3 Using Codewords
+      p Wordquest issues require two people to work together to find a solution.
+      p Each Wordquest issue has two codewords and a solution.
+      p Codewords are randomly assigned to workers.
+      p To view the solution, both codewords must be entered into a form.
+      p Once the solution is posted to the issue comments, the maintainer will close the issue.
+

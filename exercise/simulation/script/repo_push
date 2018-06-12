@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+Dir.chdir File.expand_path(__dir__)
+
+require_relative '../../Base/lib/dotenv'
+
+Dir.chdir(File.expand_path(dotenv_trial_dir(__dir__)))
+
+system "git pull"
+system "git add ."
+system "git commit -am'Repo update'"
+system "git push"
+

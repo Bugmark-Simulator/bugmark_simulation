@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+# ----- command line -----
+
+CMD = __FILE__.split("/").last
+DIR = File.expand_path(ARGV[0])
+USAGE = "Usage: #{CMD} <trial_dir>"
+
+abort USAGE if ARGV.length != 1
+abort "#{USAGE}\nERROR: #{ARGV[0]} not a directory" unless File.directory?(DIR)
+
+# ----- filepaths -----
+
+TRIAL_DIR       = DIR
+DOC_DIR         = "Scram"
+DATA_FILE       = "scram"
+
+# ----- setup -----
+
+puts "Clean #{DOC_DIR} Data"
+
+Dir.chdir TRIAL_DIR
+system "rm -rf #{DOC_DIR}*"
+system "rm -f  .trial_data/*#{DATA_FILE}*"
+system "rm -f  .trial_data/archive/*#{DATA_FILE}*"
+

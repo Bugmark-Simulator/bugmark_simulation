@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+system "./issue_sync && ./contract_resolve && ./data_build && ./system_build"
+
+

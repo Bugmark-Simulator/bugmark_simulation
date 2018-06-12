@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+
+# ----- setup -----
+
+Dir.chdir File.expand_path(__dir__)
+require_relative '../../Base/lib/dotenv'
+TRIAL_DIR = dotenv_trial_dir(__dir__)
+
+# ----- libraries -----
+
+require_relative '../../Base/lib/exchange'
+require_relative '../../Base/lib/trial_settings'
+require 'awesome_print'
+
+# ----- info -----
+
+puts "EXCHANGE_DIR=#{Exchange.src_dir}"
+puts 'EXERCISE SETTINGS'
+ap TrialSettings.settings
+
+# ----- load -----
+
+puts 'LOADING RAILS'
+Exchange.load_rails
+
+puts 'LOADING IORA'
+require 'iora'
+
+# ----- issues -----
+
+puts 'LOAD EXERCISE TASKS INTO TRACKER'
+iora = Iora.new(TS.tracker_type, TS.tracker_name, labels: "EXERCISE")
+task_files = Dir.glob("#{File.expand_path TS.trial_dir}/.trial_data/*task*.yml")
+task_files.each do |file|
+  tasks = YAML.load_file(file)
+  tasks.each do |task|
+    iora.create(task["title"], task["body"], labels: task["labels"])
+    print '.'
+  end
+end
+puts ''
+
+puts 'SYNC ALL ISSUES TO BUGMARK'
+tracker_uuid = Tracker.first.uuid
+iora2 = Iora.new(TS.tracker_type, TS.tracker_name, status: 'open', labels: "EXERCISE")
+iora2.issues.each do |el|
+  base = {"stm_tracker_uuid" => tracker_uuid}
+  pkg  = el.merge(base)
+  IssueCmd::Sync.new(pkg).project
+  print '.'
+end
+puts ''
+
+# ----- offers -----
+
+puts 'MARK ALL EXPIRED OFFERS'
+Offer.open.expired_by_time.each do |offer|
+  offer.update_attribute(:status, 'expired')
+  print "."
+end
+puts ""
+
+@build_offers = true
+
+if @build_offers
+  puts 'CREATE A BUY-UNFIXED OFFER FOR EACH OPEN ISSUE'
+  funder = User.find_by_email(TS.funder_email)
+  term_files = Dir.glob("#{File.expand_path TS.trial_dir}/.trial_data/**/*term*.yml")
+  term_files.each do |file|
+    terms = YAML.load_file(file)
+    terms.each do |term|
+      uuid = Issue.by_hexid(term["hexid"]).open.first&.uuid
+      opts = {
+        price:          term["price"]       ,
+        volume:         term["volume"]      ,
+        user_uuid:      funder.uuid         ,
+        maturation:     BugmTime.end_of_day ,
+        expiration:     BugmTime.end_of_day ,
+        poolable:       false,
+        stm_issue_uuid: uuid
+      }
+      if uuid
+        FB.create(:offer_bu, opts).project
+        print '.'
+      else
+        print 'x'
+      end
+    end
+  end
+  puts ''
+end
+
+puts 'CROSS THE FIRST OFFER AND FORM A CONTRACT'
+user      = User.find_by_email('andy@r210.com')
+user_uuid = user.uuid
+offer     = Offer.first
+counter   = OfferCmd::CreateCounter.new(offer, poolable: false, user_uuid: user_uuid).project.offer
+contract  = ContractCmd::Cross.new(counter, :expand).project.contract
+puts  "OK"
+
+puts 'CREATE A OFFER TO SELL FIXED'
+position = user.positions.fixed.first
+result   = OfferCmd::CreateSell.new(position)
+osf      = result.project.offer
+puts 'OK'
+
+puts 'CROSS THE OSF AND FORM ANOTHER ESCROW'
+result    = OfferCmd::CreateCounter.new(osf, poolable: false, user_uuid: user.uuid)
+counter   = result.project.offer
+obj       = ContractCmd::Cross.new(counter, :transfer)
+contract  = obj.project
+puts "DONE"

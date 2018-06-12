@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+#
+# to preview cronfile  : `whenever -f CronJobs`
+# to generate cronfile : `whenever -f CronJobs --update-crontab`
+# to clear cronfile    : `whenever -f CronJobs --clear-crontab`
+# for help on whenever : `whenever -h`
+# to see cron settings : `crontab -l`
+#
+# Learn more:
+# - http://github.com/javan/whenever  | cron processor
+# - http://en.wikipedia.org/wiki/Cron | cron instructions
+
+BASEDIR = File.expand_path(__dir__)
+
+job_type :runscript, "cd #{BASEDIR} && :task" 
+
+every 15.minutes do
+  runscript 'script/issue_sync_all'
+end
+
+every '10,20,40,50 * * * *' do
+  runscript 'script/resolve_contracts'
+end
+
+# every 1.day at '12:35am' do
+#   runscript 'script/reset_nightly'
+# end
+

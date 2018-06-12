@@ -1,0 +1,44 @@
+h2 Offer #{@offer.xid}
+.row
+  .col-md-4
+    p
+      b Trader: #{ic_link('/help#trader').html_safe}<br/>
+      == user_name(@offer.user)
+    p
+      b Offer Value: #{ic_link('/help#offers').html_safe}<br/>
+      == @offer.value.to_s + " tokens"
+    p
+      b Offer Maturation: #{ic_link('/help#maturation').html_safe}<br/>
+      == @offer.maturation_date.to_s + " at midnight Eastern Time<br/>"
+      |  (in #{eod_words})
+  .col-md-8
+    p
+      b Issue Title:<br/>
+      == @offer.issue.stm_title
+      br
+      '  ( view issue at
+      == tracker_link(@offer.issue)
+      |  )
+    p
+      b Issue Body:<br/>
+      == @offer.issue.stm_body.gsub("\n", "<br/>").sans_hexid
+hr[style='margin-bottom: 28px;']
+.row
+  .col-md-12
+    - case @offer.status
+    - when 'open'
+      p This offer is currently open.
+        If you accept the offer and the issue is closed before the
+        maturation date you will earn #{@offer.value} tokens.
+      p
+        a.btn.btn-primary[role="button" href="/offer_accept/#{@offer.uuid}"]
+          | ACCEPT OFFER AND FORM CONTRACT
+    - when 'crossed'
+      p
+        b This offer has been crossed.<br/>
+        a[href="/contracts/#{@offer.position.contract.uuid}"] Click here
+        '  to view the contract.
+    - when 'expired'
+      p This offer has expired.
+    - else
+      p Offer Unknown Status #{@offer.status}.

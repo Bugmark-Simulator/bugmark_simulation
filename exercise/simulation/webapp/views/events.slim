@@ -1,0 +1,28 @@
+.row
+  .col-md-6
+    h2 Events
+  .col-md-6.text-right
+    = @title
+
+table.table#xtable
+  thead
+    tr
+      td ID
+      td TYPE
+      td PAYLOAD
+      td USER UUIDS
+  tbody
+    - @events.each do |event|
+      tr
+        td = event.id
+        td = clean_type(event)
+        td <small>#{clean_payload(event)}</small>
+        td
+          small
+            == user_links(event)
+
+- content_for :page_js do
+  coffee:
+    $('#xtable').DataTable();
+
+

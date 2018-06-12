@@ -1,0 +1,20 @@
+---
+scram_num_pairs:      1
+scram_num_tasks:      1
+scram_max_hint_level: 3
+scram_c3_price:    1.00
+scram_c3_volume:   5
+scram_c2_price:    1.00
+scram_c2_volume:   10
+scram_c1_price:    1.00
+scram_c1_volume:   20
+scram_c0_price:    1.00
+scram_c0_volume:   30
+scram_p3_price:    1.00
+scram_p3_volume:   10
+scram_p2_price:    1.00
+scram_p2_volume:   20
+scram_p1_price:    1.00
+scram_p1_volume:   40
+scram_p0_price:    1.00
+scram_p0_volume:   60

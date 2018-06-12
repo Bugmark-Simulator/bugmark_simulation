@@ -1,0 +1,119 @@
+h2 Bugmark Trader Exercise
+
+p The Trader Exercise is the second in a series of studies:
+
+ul
+  li in the <b>Worker Exercise</b> participants complete simple tasks
+
+  li in the <b>Funder Exercise</b> participants take the Funder role
+
+  li in the <b>Trader Exercise</b> participants perform arbitrage, sell
+     partial work and set prices
+
+p The objective of the Trader Exercise is for participants to trade partial
+  work and earn money.  We also want feedback to improve the experience for
+  follow-on studies.  In this study, everyone will
+  fund tasks and then work on tasks.
+
+p The Trader Exercise will run over a period of 3-5 days.
+
+a[name='trader']
+h3 The Funder Role
+
+p Our Exercise Leader, #{TS.leader_name} (#{TS.leader_email}) may fund an
+  initial set of Offers to pay a reward if an
+  <a href='http://#{TS.tracker_url}' target='_blank'>Issue</a> closed
+  before a specific time.
+
+p <b>ALSO</b> each Participant will fund offers.  Participants are given a seed
+  fund of 200 tokens to create Offers.
+
+p About the <b>FUNDING HOLD:</b> each participant must fund <b>five</b>
+  offers before being able to accept offers as a Worker.
+
+a[name='worker']
+h3 The Worker Role
+
+p Once five offers have been created, all participants will act as Workers.
+  As a Worker, you can browse the <a href='/issues'>open issues</a> and select
+  one or more that fit
+  your interest.  When you select an open offer, you form a
+  <a href='/contract' target='_blank'>Contract</a> that will pay a reward if the
+  <a href='http://#{TS.tracker_url}'>Issue</a> is closed before the maturation date.
+
+a[name='trader']
+h3 The Trader Role
+
+p Once five offers have been created, all participants will act as Workers.
+  As a Worker, you can browse the <a href='/issues'>open issues</a> and select
+  one or more that fit
+  your interest.  When you select an open offer, you form a
+  <a href='/contract' target='_blank'>Contract</a> that will pay a reward if the
+  <a href='http://#{TS.tracker_url}'>Issue</a> is closed before the maturation date.
+
+a[name='offers']
+h3 Issues and Offers
+
+p New issues are created every day after midnight Eastern time.  Every offer has an
+  associated issue.  If an open offer is not accepted, it expires at midnight.
+
+a[name='contracts']
+h3 Contracts
+
+p When you accept an offer, a contract is formed.  If the issue is closed
+  before the maturation date, the Worker gets the reward.  If a
+  contract is formed and the Issue is not closed before the maturation
+  date, the Contract proceeds are delivered to the Trader.
+
+a[name='maturation']
+h3 Contract Maturation Cycle
+
+p All offers mature daily at midnight #{timezone}. (#{eod_words} from now)
+p New issues are automatically generated after midnight.
+p To get your local maturation time, click
+  <a target='_blank' href='https://www.timeanddate.com/worldclock/fixedtime.html?iso=#{eod_iso}&p1=2416'>here</a>.
+
+a[name='currency']
+h3 Exercise Currency
+
+p The experiment will be run using tokens, which map to real money (U.S.
+  dollars). At the end of the experiment participants will receive their total
+  earnings in U.S. dollars paid in the form of Amazon gift cards. The exchange
+  rate is 1 USD = 10 tokens.
+
+h3 Exercise Setup
+
+p The setup of the experiments is as follows.
+
+ul
+  li
+    | The issues in the repository consist of a mix of different task
+      types such as python programming questions, documentation issues, essay
+      questions, html tag removal, and scrambled words. This set of task
+      types has been chosen to reflect the kinds of work done in an open source
+      ecosystem.
+  li
+    | Each issue is listed in Bugmark as a pre-funded open offer worth 20 tokens.
+  li
+    | Workers must simply decide which offers to accept and work on.
+  li
+    | In order to get paid, the work must be satisfactorily completed by the
+      maturation date which is always set to midnight Eastern Time.
+  li
+    | The merit of the work submitted is judged by the repository maintainers
+      (as in any open source project).
+  li
+    | After the maturation is reached, if the issue is closed, the worker account
+      balance is paid 20 tokens. Note that it may take time for
+      the submitted work to be evaluated by the repo maintainer.
+  li
+    | Metrics measured in this experiment are: number of issues opened, number
+      of issues closed, average earnings, top earnings, time taken to complete
+      issues.
+
+- content_for :page_js do
+  javascript:
+    var shiftWindow = function() { scrollBy(0, -65) };
+    window.addEventListener("hashchange", shiftWindow);
+    function load() { if (window.location.hash) shiftWindow(); }
+    $(document).ready(load);

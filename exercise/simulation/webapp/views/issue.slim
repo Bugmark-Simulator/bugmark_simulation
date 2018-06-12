@@ -1,0 +1,126 @@
+css:
+  .ttip {
+    background: lightgray;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+.row
+  .col-md-12
+    h2 #{@issue.xid.capitalize}
+.row
+  .col-md-5
+    p
+      b Issue Title:<br/>
+      == @issue.stm_title
+    p
+      b Status:<br/>
+      == @issue.stm_status
+    p
+      b Issue Source:<br/>
+      == tracker_link(@issue)
+      == "<br/>(last synced at #{@issue.synced_at&.strftime("%b-%d %H:%M:%S %Z") || 'TBD'})"
+  .col-md-7
+    b Issue Body:<br/>
+    == @issue.stm_body.gsub("\n", "<br/>").sans_hexid
+hr
+.row
+  .col-md-6
+    b Offers ( #{@issue.offers_bu.count} )
+    span[style='margin-left: 20px;margin-right:10px;'] == offer_fund_link(current_user, @issue)
+  .col-md-6[style='padding: 0; margin: 0;']
+    small[style='padding: 0; margin: 0;']
+      == offer_fund_message(current_user, @issue)
+
+table.table.table-sm[style='margin-top: 10px;']
+  thead
+    tr
+      th Funder
+      th Funder cost
+      th Worker
+      th Worker cost
+      th Payout
+      th Maturation
+      th Resolution
+  tbody
+    - @issue.offers_bu.each do |offer|
+      tr
+        td = user_name(offer.user)
+        td #{offer.value.to_i} tokens
+        td == offer_worker_link(current_user, offer)
+        td #{(offer.volume * (1 - offer.price)).to_i} tokens
+        td #{offer.volume} tokens
+        td == offer_maturation_date(offer)
+        td == offer_awardee(offer)
+    - @issue.offers_sf.each do |offer|
+      tr
+        td > #{user_name(offer.user)}
+        td #{offer.value.to_i} tokens
+        td == offer_worker_link(current_user, offer, "position_buy")
+        td #{20 - offer.value.to_i} tokens
+        td #{offer.volume} tokens
+        td == offer_maturation_date(offer)
+        td == offer_awardee(offer)
+hr
+.row
+  .col-md-6
+    - if funding_hold?(current_user)
+      .alert.alert-warning
+        | <b>FUNDING HOLD</b> you must fund five offers
+          before you can accept an offer as a Worker
+          (funded #{funding_count(current_user)} of 5)
+  .col-md-6.text-right
+    small Open offers mature at midnight #{BugmTime.now.strftime("%Z")}
+          (in #{eod_words} #{ic_link('/help#maturation').html_safe})
+
+.modal#modal
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h5.modal-title Create an Offer To Sell Your Position
+        button.close[type="button" data-dismiss="modal"]
+          span &times;
+      .modal-body
+        p You purchased a position on <span id='ixid'>TBD</span> for
+          <span id='oval'>TBD</span> tokens.
+        p Use this dialog to create an offer to sell your position.
+        form.form-inline#mform[action="/position_sell/TBD" method="post"]
+          label.mb-2.mr-sm-2 Offer to sell your position for
+          select.form-control.mb-2.mr-sm-2[name='value']
+            option[value="2"]                      2
+            option[value="4"]                      4
+            option[value="6"]                      6
+            option[value="8"]                      8
+            option[value="10" selected="selected"] 10
+            option[value="12"]                     12
+            option[value="14"]                     14
+            option[value="16"]                     16
+            option[value="18"]                     18
+          label.mb-2.mr-sm-2 tokens
+          button.btn.btn-primary.mb-2[type="submit"] Create
+
+      .modal-footer
+        button.btn.btn-secondary[type="button" data-dismiss="modal"] Cancel
+
+- content_for :page_js do
+  coffee:
+    launchModal = ->
+      $('.ttip').tooltip('hide')
+      $('#modal').modal {
+        keyboard: true
+        focus:    true
+        show:     true
+      }
+    $('.ttip').tooltip(title: "Click to sell your position", data_placement: "top")
+    $('.ttip').click (event) ->
+      pos_uuid = $(event.target).attr('id')
+      ixid = $(event.target).data('ixid')
+      oval = $(event.target).data('oval')
+      $('#mform').attr('action', "/position_sell/#{pos_uuid}")
+      $('#ixid').text(ixid)
+      $('#oval').text(oval)
+      console.log $(event.target)
+      console.log ixid
+      console.log oval
+      launchModal()
+

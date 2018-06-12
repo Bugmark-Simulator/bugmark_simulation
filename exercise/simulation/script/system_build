@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+
+# ----- setup -----
+
+Dir.chdir File.expand_path(__dir__)
+require_relative '../../Base/lib/dotenv'
+TRIAL_DIR = dotenv_trial_dir(__dir__)
+
+# ----- libraries -----
+
+require_relative '../../Base/lib/exchange'
+require_relative '../../Base/lib/trial_settings'
+require 'awesome_print'
+
+# ----- info -----
+
+puts "EXCHANGE_DIR=#{Exchange.src_dir}"
+puts 'EXERCISE SETTINGS'
+ap TrialSettings.settings
+
+# ----- load -----
+
+puts 'LOADING RAILS'
+Exchange.load_rails
+
+puts 'LOADING IORA'
+require 'iora'
+
+# ----- issues -----
+
+puts 'LOAD EXERCISE TASKS INTO TRACKER'
+iora = Iora.new(TS.tracker_type, TS.tracker_name, labels: "EXERCISE")
+task_files = Dir.glob("#{File.expand_path TS.trial_dir}/.trial_data/*task*.yml")
+new_issues = task_files.map do |file|
+  tasks = YAML.load_file(file)
+  tasks.map do |task|
+    print '.'
+    iora.create(task["title"], task["body"], labels: task["labels"])
+  end
+end.flatten.map {|el| el.stringify_keys}
+puts ''
+
+puts 'CREATE COMMENTS FOR ALL NEW ISSUES'
+new_issues.each do |issue|
+  exid    = issue["exid"]
+  url     = "http://#{TS.webapp_url}/issues_ex/#{exid}"
+  burl    = "http://#{TS.webapp_url}/badge_ex/#{exid}.svg"
+  comment = "Bugmark is trading this issue. "
+  img     = "<img src='#{burl}' alt='Click to View on Bugmark' style='max-width: 100%;'> "
+  link    = "<a target='_blank' href='#{url}'>#{img}</a>"
+  iora.create_comment(issue["sequence"], comment + "<br/>" + link)
+  print '.'
+end
+puts ''
+
+puts 'CREATE KEYWORD STRUCTURE WITH ALL NEW ISSUE DATA'
+timestamp = BugmTime.now.strftime("%d%H%M%S")
+KEY_FILE  = File.expand_path(TS.trial_dir + "/.trial_data/quest_hash_#{timestamp}.yml")
+GROUPS    = File.readlines(TS.trial_dir + "/.trial_data/quest_groups.txt").map {|line| line.chomp.strip.split(",")}.shuffle
+users     = User.all.pluck(:uuid).map {|el| el.gsub("'", "")}.shuffle
+utake     = ( users.length / 3 ) + 1
+hash = {}
+flt_issues = new_issues.select {|el| /^Wordquest/ =~ el["title"]}
+flt_issues.each_with_index do |issue, idx|
+  ele = {}
+  ele["solution"]  = GROUPS[idx][0]
+  ele["codeword1"] = GROUPS[idx][1]
+  ele["codeword2"] = GROUPS[idx][2]
+  ele["users1"]    = users.shift(utake)
+  users            = users + ele["users1"]
+  ele["users2"]    = users.shift(utake)
+  users            = users + ele["users2"]
+  hash[issue["sequence"]] = ele
+end
+File.open(KEY_FILE, 'w') {|kf| kf.puts hash.to_yaml}
+
+puts 'SYNC ALL ISSUES TO BUGMARK'
+tracker_uuid = Tracker.first.uuid
+iora2 = Iora.new(TS.tracker_type, TS.tracker_name, status: 'open', labels: "EXERCISE")
+iora2.issues.each do |el|
+  base = {"stm_tracker_uuid" => tracker_uuid}
+  pkg  = el.merge(base)
+  IssueCmd::Sync.new(pkg).project
+  print '.'
+end
+puts ''
+
+# ----- offers -----
+
+puts 'MARK ALL EXPIRED OFFERS'
+Offer.open.expired_by_time.each do |offer|
+  offer.update_attribute(:status, 'expired')
+  print "."
+end
+puts ""
+
+@build_offers = true
+
+def can_fund(email, idx)
+  idx <= 5 || email == TS.funder_email
+end
+
+if @build_offers
+  puts 'CREATE A BUY-UNFIXED OFFER FOR EACH OPEN ISSUE'
+  [TS.funder_email, 'andy@r210.com', 'sstruble@mozilla.com'].each do |funder_email|
+    funder = User.find_by_email(funder_email)
+    term_files = Dir.glob("#{File.expand_path TS.trial_dir}/.trial_data/**/*term*.yml")
+    idx = 0
+    term_files.each_with_index do |file|
+      terms = YAML.load_file(file)
+      terms.each do |term|
+        uuid = Issue.by_hexid(term["hexid"]).open.first&.uuid
+        opts = {
+          price:          term["price"]       ,
+          volume:         term["volume"]      ,
+          user_uuid:      funder.uuid         ,
+          maturation:     BugmTime.end_of_day ,
+          expiration:     BugmTime.end_of_day ,
+          poolable:       false,
+          stm_issue_uuid: uuid
+        }
+        idx += 1
+        if uuid
+          if can_fund(funder_email, idx)
+            FB.create(:offer_bu, opts).project
+            print '.'
+          end
+        else
+          print 'x'
+        end
+      end
+    end
+  end
+  puts ''
+end
+
+puts 'DONE'

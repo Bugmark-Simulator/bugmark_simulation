@@ -1,0 +1,12 @@
+.row
+  .col-md-2[style="border-right: 1px solid lightgrey;"]
+    div[style='height: 40px;']
+    == help_nav("Overview"   , "/help")
+    == help_nav("Workflow"   , "/help/workflow")
+    == help_nav("FAQ"        , "/help/faq")
+    == help_nav("Markets"    , "/help/markets")
+    == help_nav("Research"   , "/help/research")
+    == help_nav("Design"     , "/help/design")
+    == help_nav("About"      , "/help/about")
+  .col-md-10
+    == slim(:"help/#{@page}")

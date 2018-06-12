@@ -1,0 +1,31 @@
+h2 #{@title} (#{@contracts.length})
+div
+  == base_link("My Contracts", "/contracts")
+  '  |
+  == base_link("All Contracts", "/contracts_all")
+div &nbsp;
+table.table#xtable
+  thead
+    tr
+      /td ID
+      td Issue
+      td Accepted Offers
+      td Value
+      td Matures
+      td Status
+      td My Earnings
+  tbody
+    - @contracts.each do |contract|
+      tr
+        /td == contract_id_link(contract)
+        td == issue_id_link(contract.issue)
+        td = contract.positions.unfixed.count
+        td = contract.total_value
+        td == contract_mature_date(contract)
+        td == contract_status(contract)
+        td == contract_earnings(current_user, contract)
+
+- content_for :page_js do
+  javascript:
+    $('#xtable').DataTable();
+
