@@ -1,3 +1,3 @@
-# Bugmark Trader Exercise
+# Bugmark Simulation Excercise
 
 Content TBD
