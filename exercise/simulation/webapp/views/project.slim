@@ -4,12 +4,20 @@ hr
   .col-md-6.d-flex.align-items-start.flex-column
     .p-2.mt-auto[style='width: 100%']
       table.table.table-sm.table-bordered.table-hover
-        tbody
+        thead
           tr
             th <b>Project Description</b>
             th <b>Open Issues</b>
             th <b>Open Offers</b>
             th <b>Active Contracts</b>
+        tbody
+        - @trackers.each do |tracker|
+          tr
+            td = tracker.name
+            td = Issue.open.where(stm_tracker_uuid: tracker.uuid).count
+            td = @openoffers
+            td = @activecontract
+
 .row[style='margin-top: 20px;']
   .col-md-6.d-flex.align-items-start.flex-column
     .p-2 <b>Project: Python Challenge</b>
