@@ -19,6 +19,15 @@ module AppHelpers
     Offer::Sell::Fixed.open
   end
 
+  # ----- date formatting -----
+  def dvis(time = BugmTime.now)
+    time.strftime("%b %d")
+  end
+
+  def dstr(time = BugmTime.now)
+    time.strftime("%Y-%m-%d")
+  end
+
   # ----- investment -----
 
   def invested_tokens(user)

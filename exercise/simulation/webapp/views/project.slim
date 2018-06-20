@@ -15,9 +15,9 @@ hr
           tr
             td = tracker.name
             td = Issue.open.where(stm_tracker_uuid: tracker.uuid).count
-            td = @openoffers
-            td = @activecontract
+            td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
+            td = Contract.open.where(stm_tracker_uuid: tracker.uuid).count
 
 .row[style='margin-top: 20px;']
   .col-md-6.d-flex.align-items-start.flex-column
-    .p-2 <b>Project: Python Challenge</b>
+    .p-2 <b>Project: #{@trackers.name}  </b>

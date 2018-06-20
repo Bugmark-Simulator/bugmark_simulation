@@ -1,0 +1,8 @@
+---
+tracker_type: github
+repo_list:
+  - bugmark/exchange
+  - bugmark/test_bench
+  - bugmark/website
+  - bugmark/outreachy
+  - bugmark/iora

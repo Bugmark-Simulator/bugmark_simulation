@@ -148,6 +148,43 @@ get "/offers" do
   slim :offers
 end
 
+# cancel an offer
+get "/offer_cancel/:offer_uuid" do
+  offer = Offer.find_by_uuid(params['offer_uuid'])
+  issue = offer.issue
+  OfferCmd::Cancel.new(offer).project
+  flash[:success] = "Offer was cancelled"
+  redirect "/issues/#{issue.uuid}"
+end
+
+# create an offer
+post "/offer_create/:issue_uuid" do
+  protected!
+  uuid  = params['issue_uuid']
+  issue = Issue.find_by_uuid(uuid)
+  opts = {
+    aon:            params['side'] == 'unfixed' ? true : false ,
+    price:          params['side'] == 'unfixed' ? 0.80 : 0.20  ,
+    volume:         params['value'].to_i                       ,
+    user_uuid:      current_user.uuid,
+    maturation:     Time.parse(params['maturation']).change(hour: 23, min: 55),
+    expiration:     Time.parse(params['expiration']).change(hour: 23, min: 50),
+    poolable:       false,
+    stm_issue_uuid: uuid,
+    stm_tracker_uuid: issue.stm_tracker_uuid
+  }
+  if issue
+    type = params['side'] == 'unfixed' ? :offer_bu : :offer_bf
+    result = FB.create(type, opts).project
+    offer = result.offer
+    flash[:success] = "You have funded a new offer (#{offer.xid})"
+  else
+    flash[:danger] = "Something went wrong"
+  end
+  redirect "/issues/#{uuid}"
+end
+
+
 # fund an offer
 get "/offer_fund/:issue_uuid" do
   protected!
@@ -160,7 +197,8 @@ get "/offer_fund/:issue_uuid" do
     maturation:     BugmTime.end_of_day,
     expiration:     BugmTime.end_of_day,
     poolable:       false,
-    stm_issue_uuid: uuid
+    stm_issue_uuid: uuid,
+    stm_tracker_uuid: issue.stm_tracker_uuid
   }
   if issue
     offer = FB.create(:offer_bu, opts).project.offer
@@ -395,6 +433,15 @@ get "/admin/resolve" do
   flash[:success] = "You have resolved mature contracts"
   redirect '/admin'
 end
+
+# ----- coffeescript -----
+
+get "/coffee/*.js" do
+  filename = params[:splat].first
+  coffee "coffee/#{filename}".to_sym
+end
+
+
 
 # ----- misc / testing -----
 

@@ -12,15 +12,17 @@ table.table#xtable
   thead
     tr
       td ID
+      td Project
       td Title
       td Open Offers
-      td Contracts
-      td Source
-      td Action
+      td Active Contracts
+      td Percentage Complete
+      td Skills required
   tbody
     - @issues.each do |issue|
       tr
         td == issue_id_link(issue)
+        td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
         td = issue.stm_title
         td
           = issue.offers_bu.open.count
@@ -34,9 +36,8 @@ table.table#xtable
           = issue.offers.crossed.pluck(:value).sum
           '  tokens
           == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
-        td == tracker_btn(issue)
-        td
-          a[href="/issues/#{issue.uuid}"] View Offers
+        td = "abc"
+        td = "abc"
 .row
   .col-md-12.text-center
     small <b>*</b> issues where you have an offer or contract
@@ -44,10 +45,11 @@ table.table#xtable
 - content_for :page_js do
   coffee:
     table = $('#xtable').DataTable();
+    # table = $('#xtable').DataTable({
+    #   "lengthMenu": [[-1, 50 100 200], ["All", 50, 100, 200]]
+    # });
     setMyIssues  = -> table.search("*").draw()
     setAllIssues = -> table.search("").draw()
     $('document').ready ->
       $('#myIssues').on  "focus", setMyIssues
       $('#allIssues').on "focus", setAllIssues
-
-

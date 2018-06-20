@@ -4,6 +4,16 @@ css:
     padding-left: 2px;
     padding-right: 2px;
   }
+  .btn-xs {
+    padding: 0 5px 0 5px;
+    margin: 0;
+    margin-left: 5px;
+  }
+  .bxs {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1;
+  }
 
 .row
   .col-md-12
@@ -18,66 +28,112 @@ css:
       == @issue.stm_status
     p
       b Issue Source:<br/>
-      == tracker_link(@issue)
+      /== tracker_link(@issue)
       == "<br/>(last synced at #{@issue.synced_at&.strftime("%b-%d %H:%M:%S %Z") || 'TBD'})"
   .col-md-7
     b Issue Body:<br/>
     == @issue.stm_body.gsub("\n", "<br/>").sans_hexid
-hr
-.row
-  .col-md-6
-    b Offers ( #{@issue.offers_bu.count} )
-    span[style='margin-left: 20px;margin-right:10px;'] == offer_fund_link(current_user, @issue)
-  .col-md-6[style='padding: 0; margin: 0;']
-    small[style='padding: 0; margin: 0;']
-      == offer_fund_message(current_user, @issue)
-
 table.table.table-sm[style='margin-top: 10px;']
   thead
     tr
-      th Funder
+      th
+        ' Funder
+        a.obu[href="#"]
+          i.fa.fa-file-o
       th Funder cost
-      th Worker
+      th
+        ' Worker
+        a.obf[href="#"]
+          i.fa.fa-file-o
       th Worker cost
       th Payout
       th Maturation
+      th
       th Resolution
+      th
   tbody
     - @issue.offers_bu.each do |offer|
       tr
         td = user_name(offer.user)
         td #{offer.value.to_i} tokens
         td == offer_worker_link(current_user, offer)
-        td #{(offer.volume * (1 - offer.price)).to_i} tokens
+        td #{offer.fixer_cost.to_i} tokens
         td #{offer.volume} tokens
         td == offer_maturation_date(offer)
+        /td
+          i.fa.fa-calendar-times.exDate[title="offer expires<br/>#{offer_expiration_date(offer)}"]
         td == offer_awardee(offer)
-    - @issue.offers_sf.each do |offer|
-      tr
-        td > #{user_name(offer.user)}
-        td #{offer.value.to_i} tokens
-        td == offer_worker_link(current_user, offer, "position_buy")
-        td #{20 - offer.value.to_i} tokens
-        td #{offer.volume} tokens
-        td == offer_maturation_date(offer)
-        td == offer_awardee(offer)
+        td
+          - if offer.user.uuid == current_user.uuid
+            a.cancelOffer[href="/offer_cancel/#{offer.uuid}"]
+              i.fa.fa-window-close-o
+    / - @issue.offers_sf.without_branch_position.each do |offer|
+    /   tr
+    /     td > #{user_name(offer.user)}
+    /     td #{offer.value.to_i} tokens
+    /     td == offer_worker_link(current_user, offer, "position_buy")
+    /     td #{20 - offer.value.to_i} tokens
+    /     td #{offer.volume} tokens
+    /     td == offer_maturation_date(offer)
+    /     td == offer_awardee(offer)
 hr
 .row
-  .col-md-6
-    - if funding_hold?(current_user)
-      .alert.alert-warning
-        | <b>FUNDING HOLD</b> you must fund five offers
-          before you can accept an offer as a Worker
-          (funded #{funding_count(current_user)} of 5)
-  .col-md-6.text-right
-    small Open offers mature at midnight #{BugmTime.now.strftime("%Z")}
-          (in #{eod_words} #{ic_link('/help#maturation').html_safe})
+  .col-md-12.text-center
+    small All times in #{BugmTime.now.strftime("%Z")} #{ic_link('/help#maturation').html_safe}
 
-.modal#modal
+.modal#modalOb
+  .modal-dialog.modal-lg
+    form.form-inline[action="/offer_create/#{@issue.uuid}" method="post"]
+      .modal-content
+        .modal-header
+          h5.modal-title Create offer to <b id='titleType'>TBD</b> #{@issue.xid.capitalize}
+          button.close[type="button" data-dismiss="modal"]
+            span &times;
+        .modal-body
+          .row
+            .col-md-6
+              p <b>Payout</b><br/>
+              select.form-control#valueSel>[name='value']
+                option[value="20" selected="selected"]  20
+                option[value="40"]                      40
+                option[value="60"]                      60
+                option[value="80"]                      80
+                option[value="100"]                     100
+                option[value="120"]                     120
+                option[value="140"]                     140
+                option[value="160"]                     160
+                option[value="180"]                     180
+                option[value="200"]                     200
+              ' tokens
+            .col-md-6
+              p[style='margin-bottom: 23px;'] <b>Your contribution</b><br/>
+              span#contribution> TBD
+              | tokens
+          .row
+            .col-md-12
+              hr
+          .row
+            .col-md-6
+              p[style='margin-bottom: 20px;'] <b>Matures</b><br/>
+              .btn-group.btn-group-toggle#maturation[data-toggle="buttons"]
+                - BugmTime.next_week_ends.each_with_index do |date, idx|
+                  label.btn.btn-secondary.btn-sm
+                    input[type="radio" value="#{dstr(date)}" name="maturation" id="mat#{idx}"] #{dvis(date)}
+            .col-md-6
+              p <b>Expires</b><br/>
+              input#today[type='hidden' value='#{dstr(BugmTime.now)}']
+              input#side[type='hidden' name='side' value='']
+              select.form-control.mb-2.mr-sm-2#expSel[name='expiration']
+
+        .modal-footer
+          button.btn.btn-primary[type="submit"] Create
+          button.btn.btn-secondary[type="button" data-dismiss="modal"] Cancel
+
+.modal#modalOs
   .modal-dialog
     .modal-content
       .modal-header
-        h5.modal-title Create an Offer To Sell Your Position
+        h5.modal-title create an offer to sell your position
         button.close[type="button" data-dismiss="modal"]
           span &times;
       .modal-body
@@ -98,29 +154,8 @@ hr
             option[value="18"]                     18
           label.mb-2.mr-sm-2 tokens
           button.btn.btn-primary.mb-2[type="submit"] Create
-
       .modal-footer
         button.btn.btn-secondary[type="button" data-dismiss="modal"] Cancel
 
 - content_for :page_js do
-  coffee:
-    launchModal = ->
-      $('.ttip').tooltip('hide')
-      $('#modal').modal {
-        keyboard: true
-        focus:    true
-        show:     true
-      }
-    $('.ttip').tooltip(title: "Click to sell your position", data_placement: "top")
-    $('.ttip').click (event) ->
-      pos_uuid = $(event.target).attr('id')
-      ixid = $(event.target).data('ixid')
-      oval = $(event.target).data('oval')
-      $('#mform').attr('action', "/position_sell/#{pos_uuid}")
-      $('#ixid').text(ixid)
-      $('#oval').text(oval)
-      console.log $(event.target)
-      console.log ixid
-      console.log oval
-      launchModal()
-
+  script[src="/coffee/issue.js"]

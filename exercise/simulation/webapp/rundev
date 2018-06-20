@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+gemfile() {
+  gem1=~/src/bugmark/exchange/Gemfile
+  gem2=~/src/exchange/Gemfile
+  [ -f $gem1 ] && echo "$gem1" || echo "$gem2"
+}
+
+echo "GEMFILE IS $(gemfile)"
+
+export BUNDLE_GEMFILE=$(gemfile)
+
+rerun 'rackup -p 4567 -o 0.0.0.0'
