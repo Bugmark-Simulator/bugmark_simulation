@@ -303,6 +303,22 @@ post "/set_username" do
   redirect "/account"
 end
 
+# ------------ create user account ------------
+get "/account_creation" do
+  slim :account_creation
+end
+
+post "/account_creation" do
+  opts = {
+    balance: 200,
+    name: params["username"],
+    email: params["useremail"],
+    password:  SecureRandom.hex(2),
+    jfields: '{"skill": "Java"}'
+  }
+  FB.create(:user, opts).user
+end
+
 # ----- login/logout -----
 
 get "/login" do
