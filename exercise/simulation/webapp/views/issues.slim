@@ -37,7 +37,7 @@ table.table#xtable
           '  tokens
           == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
         td = "abc"
-        td = "abc"
+        td = issue.jfields["skill"]
 .row
   .col-md-12.text-center
     small <b>*</b> issues where you have an offer or contract

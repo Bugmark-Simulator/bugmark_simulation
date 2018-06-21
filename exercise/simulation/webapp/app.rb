@@ -100,6 +100,23 @@ end
 
 # ----- issues -----
 
+# Generate Issue
+get "/issue_generation" do
+  slim :issue_generation
+end
+
+post "/issue_generation" do
+  opts = {
+    stm_title: params["issuename"],
+    #stm_tracker_uuid: ,
+    stm_body: params["issuedetail"],
+    jfields: '{"skill": "Java"}'
+  }
+  FB.create(:Issue, opts).issue
+end
+
+
+
 # show one issue
 get "/issues/:uuid" do
   protected!
