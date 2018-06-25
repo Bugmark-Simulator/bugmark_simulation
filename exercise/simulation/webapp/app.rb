@@ -110,9 +110,9 @@ post "/issue_generation" do
     stm_title: params["issuename"],
     #stm_tracker_uuid: ,
     stm_body: params["issuedetail"],
-    jfields: '{"skill": "Java"}'
+    #jfields: '{"skill": "Java"}'
   }
-  FB.create(:Issue, opts).issue
+  FB.create(:issue, opts).issue
 end
 
 
