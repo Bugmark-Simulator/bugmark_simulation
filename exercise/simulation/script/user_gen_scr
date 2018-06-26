@@ -12,6 +12,8 @@ require_relative '../../Base/lib/exchange'
 require_relative '../../Base/lib/trial_settings'
 require 'awesome_print'
 require 'securerandom'
+require './user_gen_scr_setting'
+include UserGenerationSettings
 
 # ----- info -----
 
@@ -27,46 +29,21 @@ Exchange.load_rails
 # ----- accounts -----
 puts 'CREATE A BUGMARK USER ACCOUNT'
 
-##### Modify you input for users to be generated###
-#Insert number of users to create
-numberofusers = 5    
 
-# Select type of user to create
-usertype="funder"
-#usertype="worker"
-#usertype="admin"
-
-# Select the balance to assign
-userbalance = 100
-
-#Skills available
-skills = ["java","ruby","python","HTML","SQL","c","GO","R"]
-
-# Select number of skills to assign
-numberofskills = 3
-
-# Select user treatment
-usertreatment = "no"
-#usertreatment = "market"
-#usertreatment = "health"
-#usertreatment = "both"
-
-
-
-(0..numberofusers).each do |i|
+(1..$numberofusers).each do |i|
   username= SecureRandom.hex(2)
   userpassword = SecureRandom.hex(2)
   opts = {
-    balance: userbalance,
+    balance: $userbalance,
     name: username,
     email: username+'@test.com',
     password: userpassword
   }
   userid = FB.create(:user, opts).user.id
   # update user jfields through sql
-  sql = "UPDATE users SET jfields = '{\"skill\":#{skills.sample(numberofskills)},
-  \"password\":\"#{userpassword}\",\"type\":\"#{usertype}\",
-  \"treatment\":\"#{usertreatment}\"}' WHERE id='#{userid}';"
+  sql = "UPDATE users SET jfields = '{\"skill\":#{$skills.sample($numberofskills)},
+  \"password\":\"#{userpassword}\",\"type\":\"#{$usertype}\",
+  \"treatment\":\"#{$usertreatment}\"}' WHERE id='#{userid}';"
   ActiveRecord::Base.connection.execute(sql).to_a
 end
 puts 'DONE'
