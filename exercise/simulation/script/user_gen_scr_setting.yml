@@ -1,0 +1,39 @@
+---
+skills_per_user: 3
+create_users:
+  - treatment: "no-metrics"
+    group: "funder"
+    budget: 100000
+    number_of_new_users: 2
+  - treatment: no-metrics
+    group: "worker"
+    budget: 100
+    number_of_new_users: 10
+  - treatment: "health-metrics"
+    group: "funder"
+    budget: 100000
+    number_of_new_users: 2
+  - treatment: "health-metrics"
+    group: "worker"
+    budget: 100
+    number_of_new_users: 10
+  - treatment: "market-metrics"
+    group: "funder"
+    budget: 100000
+    number_of_new_users: 2
+  - treatment: "market-metrics"
+    group: "worker"
+    budget: 100
+    number_of_new_users: 10
+  - treatment: "both-metrics"
+    group: "funder"
+    budget: 100000
+    number_of_new_users: 2
+  - treatment: "both-metrics"
+    group: "funder"
+    budget: 100
+    number_of_new_users: 10
+  - treatment: "admin"
+    group: ""
+    budget: 10000000
+    number_of_new_users: 1
