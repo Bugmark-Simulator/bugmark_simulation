@@ -395,7 +395,7 @@ get "/consent_register" do
   session[:consent] = true
   path = session[:tgt_path]
   session[:tgt_path] = nil
-  redirect path || "/"
+  redirect path || "/account"
 end
 
 # ----- help -----
