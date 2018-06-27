@@ -31,8 +31,8 @@ css:
       /== tracker_link(@issue)
       == "<br/>(last synced at #{@issue.synced_at&.strftime("%b-%d %H:%M:%S %Z") || 'TBD'})"
   .col-md-7
-    b Issue Body:<br/>
-    == @issue.stm_body.gsub("\n", "<br/>").sans_hexid
+    b <br/>
+
 table.table.table-sm[style='margin-top: 10px;']
   thead
     tr
