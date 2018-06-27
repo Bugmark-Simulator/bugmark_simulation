@@ -46,10 +46,19 @@ settings['create_users'].each do |users|
         password: userpassword
       }
       userid = FB.create(:user, opts).user.id
+      tracker = ""
+      if(users['group']=='funder') then
+        # generate a new tracker
+        opts = {
+          type: "Tracker::Test",
+          name: "#{username}"
+        }
+        tracker = FB.create(:tracker, opts).tracker.uuid
+      end
       # update user jfields through sql
       sql = "UPDATE users SET jfields = '{\"skill\":#{settings1['skills'].sample(settings['skills_per_user'])},
       \"password\":\"#{userpassword}\",\"type\":\"#{users['group']}\",
-      \"treatment\":\"#{users['treatment']}\"}' WHERE id='#{userid}';"
+      \"treatment\":\"#{users['treatment']}\",\"tracker\":\"#{tracker}\"}' WHERE id='#{userid}';"
       ActiveRecord::Base.connection.execute(sql).to_a
     end
   end
