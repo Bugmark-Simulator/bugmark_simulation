@@ -26,12 +26,22 @@ css:
     p
       b Status:<br/>
       == @issue.stm_status
-    p
-      b Issue Source:<br/>
-      /== tracker_link(@issue)
-      == "<br/>(last synced at #{@issue.synced_at&.strftime("%b-%d %H:%M:%S %Z") || 'TBD'})"
+
   .col-md-7
-    b <br/>
+    table.table.table-sm[style='margin-top: 5px;']
+      thead
+        tr
+          th Skills Required
+          th Action
+      tbody
+      - @issue.jfields["skill"].each do |skill|
+        tr
+          td = @issue.jfields["skill"].first
+          td
+            form.form-work[method='post']
+              button.btn.btn-sm.btn-skill1 type="submit"  Click to start work on #{@issue.jfields["skill"].first}
+
+
 
 table.table.table-sm[style='margin-top: 10px;']
   thead
