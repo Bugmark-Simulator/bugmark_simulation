@@ -34,12 +34,13 @@ css:
           th Skills Required
           th Action
       tbody
-      - @issue.jfields["skill"].each do |skill|
+      - @issue.jfields["skill"].each_slice(3).each_with_index do |slice, i|
         tr
-          td = @issue.jfields["skill"].first
-          td
-            form.form-work[method='post']
-              button.btn.btn-sm.btn-skill1 type="submit"  Click to start work on #{@issue.jfields["skill"].first}
+          -slice.each do |item|
+            td = item
+            td
+              form.form-work[method='post']
+                button.btn.btn-sm.btn-primary type="submit"  Click to start work on #{item}
 
 
 
