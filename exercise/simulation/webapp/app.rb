@@ -124,6 +124,20 @@ get "/issues/:uuid" do
   slim :issue
 end
 
+# Additing task to queue
+post "/issues/:uuid" do
+  protected!
+  @issue = Issue.find_by_uuid(params['uuid'])
+  sql = "INSERT INTO work_queue (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
+  values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}','#{BugmTime.now.to_s.slice(0..18)}', 1, now()+ '1 minutes',now()) ;"
+  ActiveRecord::Base.connection.execute(sql).to_a
+  @issue = Issue.find_by_uuid(params['uuid'])
+  slim :issue
+end
+
+
+
+
 # show one issue
 get "/issues_ex/:exid" do
   protected!

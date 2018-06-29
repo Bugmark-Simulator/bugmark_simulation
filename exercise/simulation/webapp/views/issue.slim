@@ -35,13 +35,12 @@ css:
           th Action
       tbody
       - @issue.jfields["skill"].each_slice(3).each_with_index do |slice, i|
-        tr
-          -slice.each do |item|
+        -slice.each do |item|
+          tr
             td = item
             td
               form.form-work[method='post']
-                button.btn.btn-sm.btn-primary type="submit"  Click to start work on #{item}
-
+                button.btn.btn-sm.btn-primary type="submit" value='#{item}' name="task"  Add to Work Queue
 
 
 table.table.table-sm[style='margin-top: 10px;']
