@@ -128,11 +128,12 @@ end
 post "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
-  sql = "INSERT INTO work_queue (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
+  sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
   values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}','#{BugmTime.now.to_s.slice(0..18)}', 1, now()+ '1 minutes',now()) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
-  @issue = Issue.find_by_uuid(params['uuid'])
-  slim :issue
+  #@issue = Issue.find_by_uuid(params['uuid'])
+  #slim :issue
+  redirect "/issues/#{params['uuid']}"
 end
 
 
@@ -318,9 +319,22 @@ end
 
 get "/account" do
   protected!
-  @events = Event.for_user(current_user)
+#  @events = Event.for_user(current_user)
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(canceled: FALSE)
   slim :account
 end
+
+post "/account" do
+  protected!
+  cancelsql = "UPDATE work_queues SET canceled = TRUE WHERE id=#{params["Cancel"]} ;"
+  ActiveRecord::Base.connection.execute(cancelsql).to_a
+  #binding.pry
+  redirect "/account"
+
+end
+
+
+
 
 post "/set_username" do
   protected!

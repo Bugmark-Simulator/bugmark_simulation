@@ -494,6 +494,18 @@ module AppHelpers
     "<code>#{name}@#{comp.gsub(/./, '*')}.#{ext}</code>"
   end
 
+#------work Queue ------
+
+def taskaction(task,issue_uuid)
+  user_uuid = current_user.uuid
+#  Work_queue.where(user_uuid: user_uuid).all, 
+  out ="<form class='form-work' method='post'>
+  <button class='btn btn-sm btn-primary' type='submit' value='#{item}' name='task'>Add to Work Queue</button>
+  </form>"
+end
+
+
+
   # ----- testing -----
 
   def hello
