@@ -121,6 +121,7 @@ end
 get "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
+  @tasks = @issue.jfields["skill"].each_slice(3)
   slim :issue
 end
 
