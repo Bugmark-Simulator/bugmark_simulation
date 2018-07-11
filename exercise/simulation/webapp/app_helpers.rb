@@ -496,14 +496,37 @@ module AppHelpers
 
 #------work Queue ------
 
-def taskaction(task,issue_uuid)
-  user_uuid = current_user.uuid
-#  Work_queue.where(user_uuid: user_uuid).all, 
-  out ="<form class='form-work' method='post'>
-  <button class='btn btn-sm btn-primary' type='submit' value='#{item}' name='task'>Add to Work Queue</button>
-  </form>"
+def task_action(task,issue_uuid)
+  if Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""]).present?
+    out2 = "Task is already added to list"
+  else
+    out2 = "<form class='form-work' method='post'>
+              <button class='btn btn-sm btn-primary' type='submit' value='#{task}' name='task'>Add to Work Queue</button>
+            </form>"
+  end
+  return out2
 end
 
+#-------work Queue Progress -------
+
+def progress(startwork, endwork)
+  if DateTime.now.to_time.to_i < startwork.to_time.to_i
+    return "In queue"
+  elsif DateTime.now.to_time.to_i < endwork.to_time.to_i
+    return "#{endwork.to_time.to_i - DateTime.now.to_time.to_i} Seconds"
+  else
+    return "completed"
+  end
+  #time_difference_in_sec = (DateTime.now.to_time.to_i - startwork.to_time.to_i).abs
+  #if time_difference_in_sec <= 180
+    # time_difference_in_sec_output = 180 - time_difference_in_sec
+#  elsif updated_issue = FALSE
+#    time_difference_in_sec_output = "In queue"
+  #else
+  #  time_difference_in_sec_output = "In queue"
+  #end
+  #return time_difference_in_sec_output
+end
 
 
   # ----- testing -----

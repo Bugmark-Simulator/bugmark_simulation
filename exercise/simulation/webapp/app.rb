@@ -7,6 +7,11 @@ require 'sinatra/content_for'
 
 require 'securerandom'
 
+#persing json
+require 'rubygems'
+require 'json'
+
+
 set :bind, '0.0.0.0'
 set :root, File.dirname(__FILE__)
 enable :sessions
@@ -121,7 +126,6 @@ end
 get "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
-  @tasks = @issue.jfields["skill"].each_slice(3)
   slim :issue
 end
 
@@ -129,15 +133,24 @@ end
 post "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
+  datesql = "Select max(completed) from work_queues where user_uuid = '#{current_user.uuid}'
+  and completed > now()
+  and removed IS NULL;"
+  maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
+  #maxdate = JSON.parse(maxdate1)['max']
+  if maxdate[0]["max"].nil?
+    startdate = 'now()'
+  else
+   startdate = "(timestamp '#{maxdate[0]["max"]}')"
+  end
   sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
-  values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}','#{BugmTime.now.to_s.slice(0..18)}', 1, now()+ '1 minutes',now()) ;"
+  values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}',
+    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
   #@issue = Issue.find_by_uuid(params['uuid'])
   #slim :issue
   redirect "/issues/#{params['uuid']}"
 end
-
-
 
 
 # show one issue
@@ -321,13 +334,13 @@ end
 get "/account" do
   protected!
 #  @events = Event.for_user(current_user)
-  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(canceled: FALSE)
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""])
   slim :account
 end
 
 post "/account" do
   protected!
-  cancelsql = "UPDATE work_queues SET canceled = TRUE WHERE id=#{params["Cancel"]} ;"
+  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
   ActiveRecord::Base.connection.execute(cancelsql).to_a
   #binding.pry
   redirect "/account"

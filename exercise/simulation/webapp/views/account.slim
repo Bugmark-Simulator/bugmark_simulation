@@ -63,14 +63,15 @@ hr
           tr
             td <b>Issue No</b>
             td <b>Task</b>
-            td <b>Progress</b>
-            td <b>Cancel</b>
+            td <b>Progress (Time Remaining to finish the task in Seconds)</b>
+            td <b>Action</b>
         tbody
           - @work_queues.each do |work_queue|
             tr
               td = Issue.where(uuid: work_queue.issue_uuid).first.id
               td = work_queue.task
-              td = work_queue.completed
+              /td = work_queue.completed
+              td = progress(work_queue.startwork, work_queue.completed)
               td
                 form.form-work[method='post']
-                  button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Cancel Work
+                  button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue
