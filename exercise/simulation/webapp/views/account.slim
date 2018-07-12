@@ -68,7 +68,8 @@ hr
         tbody
           - @work_queues.each do |work_queue|
             tr
-              td = Issue.where(uuid: work_queue.issue_uuid).first.id
+              td
+                a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
               td = work_queue.task
               /td = work_queue.completed
               td = progress(work_queue.startwork, work_queue.completed)
