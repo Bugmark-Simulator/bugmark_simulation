@@ -47,8 +47,15 @@ Tracker.all.each do |i|
     }
     issueid = FB.create(:issue, opts).issue.id
     # update user jfields through sql
-    sql = "UPDATE issues SET jfields = '{\"skill\":#{settings1['skills'].sample(settings['number_of_skills_issue'])}
-    }' WHERE id='#{issueid}';"
+
+    # {\"skill\":{#{settings1['skills'].sample(settings['number_of_skills_issue'])}:0}}
+    skill_array = settings1['skills'].sample(settings['number_of_skills_issue'])
+    myhash = {"skill"=> {}}
+    skill_array.each do |i|
+      myhash["skill"]["#{i}"] = 0
+    end
+    sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
+    #binding.pry
     ActiveRecord::Base.connection.execute(sql).to_a
   end
 end

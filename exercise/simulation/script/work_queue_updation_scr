@@ -23,13 +23,33 @@ Exchange.load_rails
 
 
 # ----- accounts -----
-puts 'Update a Work Queue Table in Database'
+puts 'Update a Work Queue Table and Issue Table for the task completed'
+
 loop do
-	sql = "UPDATE work_queues
-		SET updated_issue = true
-		WHERE completed < now() and
-		updated_issue = false;"
-		ActiveRecord::Base.connection.execute(sql).to_a
-		sleep 1
+	# Selects the list of issues for work queue to update
+	un_marked_list_sql = "Select id, issue_uuid, task from work_queues
+		where updated_issue = false
+		and completed < now()
+		and (removed > completed OR removed IS NULL); "
+	un_marked_lists = ActiveRecord::Base.connection.execute(un_marked_list_sql).to_a
+
+	# Update Issue table J-field for issue/task completed
+	updated_ids = []
+	un_marked_lists.each do |i|
+		updated_ids.push(i['id'])
+		puts i["issue_uuid"]
+		issue_update = "UPDATE issues
+		SET jfields = replace(jfields::TEXT, '\"#{i["task"]}\": 0','\"#{i["task"]}\": 1')::jsonb
+		WHERE uuid='#{i["issue_uuid"]}'
+		;"
+		#binding.pry
+		ActiveRecord::Base.connection.execute(issue_update)
+	end
+	if updated_ids.length > 0
+		work_queue_update_sql = "update work_queues SET updated_issue = TRUE WHERE id IN (#{updated_ids * ","});"
+		ActiveRecord::Base.connection.execute(work_queue_update_sql)
+	end
+	# keep the loop running after every second
+	sleep 1
 end
 puts 'DONE'

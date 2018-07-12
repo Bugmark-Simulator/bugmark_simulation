@@ -147,8 +147,6 @@ post "/issues/:uuid" do
   values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}',
     '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
-  #@issue = Issue.find_by_uuid(params['uuid'])
-  #slim :issue
   redirect "/issues/#{params['uuid']}"
 end
 
@@ -334,7 +332,7 @@ end
 get "/account" do
   protected!
 #  @events = Event.for_user(current_user)
-  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""])
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
   slim :account
 end
 
@@ -342,6 +340,23 @@ post "/account" do
   protected!
   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
   ActiveRecord::Base.connection.execute(cancelsql).to_a
+#  cancelsql = "SELECT startwork, age(completed, startwork) as full, age(completed,current_timestamp) as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+  cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+  shifts = ActiveRecord::Base.connection.execute(cancelsql).first
+  # if partial is less than full, shift by partial
+  #try this sql
+  #  SELECT EXTRACT(EPOCH FROM (completed - startwork)), EXTRACT(EPOCH FROM (completed - current_timestamp)) FROM work_queues
+  if shifts['partial'] > 0
+    if shifts['partial'] < shifts['full']
+      shift = "'#{shifts['partial']} seconds'"
+    elsif
+      shift = "'#{shifts['full']} seconds'"
+    end
+    cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+    WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
+    shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
+  end
+
   #binding.pry
   redirect "/account"
 
