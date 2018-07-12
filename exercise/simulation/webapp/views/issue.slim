@@ -26,6 +26,9 @@ css:
     p
       b Status:<br/>
       == @issue.stm_status
+    p
+      b Project:<br/>
+      == Tracker.where(uuid: @issue.stm_tracker_uuid).first.name
 
   .col-md-7
     table.table.table-sm[style='margin-top: 5px;']

@@ -16,7 +16,7 @@ table.table#xtable
       td Title
       td Open Offers
       td Active Contracts
-      td Percentage Complete
+      td Progress
       td Skills required
   tbody
     - @issues.each do |issue|
@@ -36,8 +36,8 @@ table.table#xtable
           = issue.offers.crossed.pluck(:value).sum
           '  tokens
           == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
-        td = "abc"
-        td = issue.jfields["skill"].keys
+        td = "#{issue.jfields["skill"].inject(0){|sum, tuple| sum+= tuple[1]}} / 3"
+        td = issue.jfields["skill"].keys * ", "
 .row
   .col-md-12.text-center
     small <b>*</b> issues where you have an offer or contract
