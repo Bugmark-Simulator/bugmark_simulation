@@ -496,8 +496,10 @@ module AppHelpers
 
 #------work Queue ------
 
-def task_action(task,issue_uuid)
-  if Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""]).present?
+def task_action(task,issue_uuid,status)
+  if status == 1
+    out2 = "Task is already completed"
+  elsif Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""]).present?
     out2 = "Task is already added to list"
   else
     out2 = "<form class='form-work' method='post'>

@@ -34,11 +34,11 @@ css:
           th Skills Required
           th Action
       tbody
-        - @issue.jfields["skill"].each do |slice, i|
-          /- slice.each do |item|
+        - @issue.jfields["skill"].each do |task, status|
           tr
-            td = slice
-            td == task_action(slice, @issue.uuid)
+            td = task
+            td == task_action(task, @issue.uuid, status)
+
 
 table.table.table-sm[style='margin-top: 10px;']
   thead
