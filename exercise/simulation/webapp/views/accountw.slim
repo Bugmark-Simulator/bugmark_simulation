@@ -1,0 +1,79 @@
+h2 This is Worker account dashboard testing
+h2 Account information for #{current_user.email}
+hr
+.row[style='margin-top: 20px;']
+  .col-md-6.d-flex.align-items-start.flex-column
+    .p-2
+      p Your current balance is <b>#{current_user.token_available}</b> tokens.
+      p
+        | You currently have <b>#{current_user.open_contracts.length}</b> open contracts.
+        - if current_user.open_contracts.length > 0
+          span
+            '  (
+            a[href='/contracts'] View
+            '  )
+      p
+        | You funded <b>#{funding_count(current_user)}</b> offers.
+        - if funding_hold?(current_user)
+          | You are on #{funding_hold_link.html_safe}, ineligible to accept
+            offers until you fund <b>five</b> offers.
+      - if funding_count(current_user) > 0
+        p
+          | Of your funded offers, <b>#{successful_fundings(current_user)}</b>
+            have resolved sucessfully.  You will earn #{TS.fee_funding} tokens
+            for each successful resolution.
+            <a href='/help#funding' target='_blank'>Learn More</a>
+      p
+        ' You accepted the
+        a[href="/consent_form"] UNO Consent Form
+        '  on #{AccessLog.new(current_user.email).formatted_consent_date}
+    .p-2.mt-auto[style='width: 100%']
+      table.table.table-sm.table-bordered.table-hover
+        tbody
+          tr
+            td[colspan=3] <b>Earnings</b>
+          tr
+            td[style='width: 170px;'] Participation Bonus
+            td #{TS.fee_participation}.0 tokens
+            td <small>For participating</small>
+          tr
+            td Account Balance
+            td #{current_user.token_available} tokens
+            td <small>You must have funds to trade.</small>
+          tr
+            td Underactivity Penalty
+            td #{underactivity_penalty(current_user)} tokens
+            td <small>Reduce to zero by funding more offers.</small>
+          tr
+            td <b>TOTAL EARNINGS</b>
+            td #{TS.fee_participation + current_user.token_available + underactivity_penalty(current_user)} tokens
+            td <small>Conversion rate: 10 tokens = $1USD.</small>
+  .col-md-6.d-flex.align-items-start.flex-column
+    .p-2
+      | Your current username is <b>#{user_name}</b>.
+        Your username is visible to other exercise participants.
+      form.form-inline[action="/set_username" method="post" style='margin-top: 10px;']
+        .form-group.mx-sm-3.mb-2
+          input[type="text" class="form-control" name="newName" placeholder="enter a new username"]
+        button.btn.btn-primary.mb-2[type="submit"] Change
+    .p-2.mt-auto[style='width: 100%']
+      table.table.table-sm.table-bordered.table-hover
+        thead
+          tr
+            td[colspan=4] <b>Work Queue</b>
+          tr
+            td <b>Issue No</b>
+            td <b>Task</b>
+            td <b>Progress (Time Remaining to finish the task in Seconds)</b>
+            td <b>Action</b>
+        tbody
+          - @work_queues.each do |work_queue|
+            tr
+              td
+                a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
+              td = work_queue.task
+              /td = work_queue.completed
+              td = progress(work_queue.startwork, work_queue.completed)
+              td
+                form.form-work[method='post']
+                  button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue

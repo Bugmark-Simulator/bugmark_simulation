@@ -329,23 +329,29 @@ end
 
 # ----- user account -----
 
+# account as per dash board
 get "/account" do
   protected!
-#  @events = Event.for_user(current_user)
-  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
-  slim :account
+  if current_user["jfields"]["type"] == "funder"
+    redirect "/accountf"
+  elsif current_user["jfields"]["type"] == "worker"
+    redirect "/accountw"
+  end
 end
 
-post "/account" do
+# funder account
+get "/accountf" do
+  protected!
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
+  slim :accountf
+end
+
+post "/accountf" do
   protected!
   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
   ActiveRecord::Base.connection.execute(cancelsql).to_a
-#  cancelsql = "SELECT startwork, age(completed, startwork) as full, age(completed,current_timestamp) as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
   cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
   shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-  # if partial is less than full, shift by partial
-  #try this sql
-  #  SELECT EXTRACT(EPOCH FROM (completed - startwork)), EXTRACT(EPOCH FROM (completed - current_timestamp)) FROM work_queues
   if shifts['partial'] > 0
     if shifts['partial'] < shifts['full']
       shift = "'#{shifts['partial']} seconds'"
@@ -356,11 +362,70 @@ post "/account" do
     WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
     shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
   end
-
-  #binding.pry
-  redirect "/account"
-
+  redirect "/accountf"
+  #slim :accountf
 end
+
+# Worker account
+get "/accountw" do
+  protected!
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
+  slim :accountw
+end
+
+post "/accountw" do
+  protected!
+  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
+  ActiveRecord::Base.connection.execute(cancelsql).to_a
+  cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+  shifts = ActiveRecord::Base.connection.execute(cancelsql).first
+  if shifts['partial'] > 0
+    if shifts['partial'] < shifts['full']
+      shift = "'#{shifts['partial']} seconds'"
+    elsif
+      shift = "'#{shifts['full']} seconds'"
+    end
+    cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+    WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
+    shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
+  end
+  redirect "/accountw"
+end
+
+
+
+#-----account original
+# get "/account" do
+#   protected!
+#   binding.pry
+#   #  @events = Event.for_user(current_user)
+#   @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
+#   slim :account
+# end
+#
+#
+# post "/account" do
+#   protected!
+#   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
+#   ActiveRecord::Base.connection.execute(cancelsql).to_a
+# #  cancelsql = "SELECT startwork, age(completed, startwork) as full, age(completed,current_timestamp) as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+#   cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+#   shifts = ActiveRecord::Base.connection.execute(cancelsql).first
+#   # if partial is less than full, shift by partial
+#   #try this sql
+#   #  SELECT EXTRACT(EPOCH FROM (completed - startwork)), EXTRACT(EPOCH FROM (completed - current_timestamp)) FROM work_queues
+#   if shifts['partial'] > 0
+#     if shifts['partial'] < shifts['full']
+#       shift = "'#{shifts['partial']} seconds'"
+#     elsif
+#       shift = "'#{shifts['full']} seconds'"
+#     end
+#     cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+#     WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
+#     shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
+#   end
+#   redirect "/account"
+# end
 
 
 
