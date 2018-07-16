@@ -126,11 +126,13 @@ end
 get "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
+  @comments = Issue_Comment.where(issue_uuid: params['uuid']).where(:comment_delete => nil).order(comment_date: :asc)
+  #binding.pry
   slim :issue
 end
 
 # Additing task to queue
-post "/issues/:uuid" do
+post "/issue_task_queue/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
   datesql = "Select max(completed) from work_queues where user_uuid = '#{current_user.uuid}'
@@ -149,6 +151,31 @@ post "/issues/:uuid" do
   ActiveRecord::Base.connection.execute(sql).to_a
   redirect "/issues/#{params['uuid']}"
 end
+
+# Adding comments to the issue
+post "/issue_comments/:uuid" do
+  protected!
+#  binding.pry
+  @issue = Issue.find_by_uuid(params['uuid'])
+  issue_comment_sql = "Insert into issue_comments (issue_uuid, user_uuid, user_name, comment, comment_date)
+    values ('#{@issue.uuid}', '#{current_user.uuid}', '#{current_user.name}', '#{params["Comments"]}', '#{BugmTime.now.to_s.slice(0..18)}');"
+  ActiveRecord::Base.connection.execute(issue_comment_sql)
+  redirect "/issues/#{params['uuid']}"
+end
+
+# Deleting comments of an issue
+post "/issue_comments_delete" do
+  protected!
+#  binding.pry
+#  @issue = Issue.find_by_uuid(params['uuid'])
+  issue_uuid = Issue_Comment.where(id: params["id"]).first.issue_uuid
+  issue_comment_delete_sql = "Update issue_comments
+    set comment_delete = '#{BugmTime.now.to_s.slice(0..18)}'
+    where id = #{params["id"]} ;"
+  ActiveRecord::Base.connection.execute(issue_comment_delete_sql)
+  redirect "/issues/#{issue_uuid}"
+end
+
 
 
 # show one issue

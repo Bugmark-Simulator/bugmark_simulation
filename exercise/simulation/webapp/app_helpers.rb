@@ -502,7 +502,7 @@ def task_action(task,issue_uuid,status)
   elsif Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""]).present?
     out2 = "Task is already added to list"
   else
-    out2 = "<form class='form-work' method='post'>
+    out2 = "<form class='form-work' method='post' action='/issue_task_queue/#{issue_uuid}'>
               <button class='btn btn-sm btn-primary' type='submit' value='#{task}' name='task'>Add to Work Queue</button>
             </form>"
   end
@@ -530,6 +530,17 @@ def progress(startwork, endwork)
   #return time_difference_in_sec_output
 end
 
+# ------ Delete Comment on an issue----
+def delete_comment(id, user_uuid)
+  if user_uuid == current_user.uuid
+    output = "<form class='form-work' method='post' action='/issue_comments_delete'>
+              <button class='btn btn-sm btn-primary' type='submit' value='#{id}' name='id'>Delete</button>
+            </form>"
+  else
+   output = "You can not delete other user's comments"
+  end
+  return output
+end
 
   # ----- testing -----
 

@@ -86,6 +86,33 @@ table.table.table-sm[style='margin-top: 10px;']
     /     td #{offer.volume} tokens
     /     td == offer_maturation_date(offer)
     /     td == offer_awardee(offer)
+
+h2 Issue Comments
+table.table.table-sm[style='margin-top: 10px;']
+  thead
+    tr
+      th User
+      th Comments
+      th Posted on
+      th Action
+  tbody
+    - @comments.each do |comment|
+      tr
+        td == comment.user_name
+        td == comment.comment
+        td == comment.comment_date.strftime("%m/%d/%Y %I:%M%p")
+        td == delete_comment(comment.id, comment.user_uuid)
+
+h2 Post Your Comments
+.col-md-6
+  .wrapper
+    form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
+      textarea.form-control[autofocus="" name="Comments" placeholder=("Comments") required=""]
+      p
+      button.btn.btn-lg.btn-primary.btn-block type="Comments"  Comments
+
+
+
 hr
 .row
   .col-md-12.text-center
