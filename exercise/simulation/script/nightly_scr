@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+# ----- setup -----
+
+Dir.chdir File.expand_path(__dir__)
+require_relative '../../Base/lib/dotenv'
+TRIAL_DIR = dotenv_trial_dir(__dir__)
+
+# ----- libraries -----
+
+require_relative '../../Base/lib/exchange'
+require_relative '../../Base/lib/trial_settings'
+require 'awesome_print'
+require 'securerandom'
+# require ./user_gen_scr_setting
+require 'yaml'
+#require 'whenever'
+# ----- info -----
+
+puts "EXCHANGE_DIR=#{Exchange.src_dir}"
+#puts 'EXERCISE SETTINGS'
+#ap TrialSettings.settings
+
+# ----- load -----
+
+puts 'LOADING RAILS'
+Exchange.load_rails
+
+# ----- read settings -----
+
+settings = YAML.load_file('nightly_scr_setting.yml')
+
+# ----- accounts -----
+puts 'Running Nightly script'
+#binding.pry
+
+
+BugmTime.set_day_offset(settings['time_back_days'])
+speed = -1 * (settings['time_back_days'] / 5)
+puts speed
+for i in 0..speed
+  BugmTime.go_past_end_of_day
+  sleep(1.minutes)
+end
+
+# every 1.minute do
+#   break
+# end
+
+puts 'DONE'

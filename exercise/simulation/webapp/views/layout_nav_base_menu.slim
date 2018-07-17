@@ -4,6 +4,15 @@ ul.navbar-nav.mr-auto
     == nav_link("Issues"                 , "/issues")
     == nav_link("Contracts" , "/contracts")
 
+ul.navbar-nav.navbar-text.mx-auto
+  - if logged_in?
+    == (-1 * (BugmTime.now.to_date - Time.now.to_date).round)
+    = "Days passed "
+    = "/"
+    = "Out of "
+    == layout_nav_base()
+    = " Days"
+
 ul.navbar-nav.flex-row
   - if logged_in?
     == nav_btn(account_lbl(current_user), "/account") if consented?

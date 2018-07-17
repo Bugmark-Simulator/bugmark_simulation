@@ -1,4 +1,5 @@
 require 'time'
+require 'yaml'
 
 module AppHelpers
 
@@ -542,6 +543,13 @@ def delete_comment(id, user_uuid)
   return output
 end
 
+
+# nevigation bar dat time settings
+
+def layout_nav_base()
+  settings = YAML.load_file('/home/vahuja/bugmark_simulation/exercise/simulation/script/nightly_scr_setting.yml')
+  return -1 * settings['time_back_days']
+end
   # ----- testing -----
 
   def hello
