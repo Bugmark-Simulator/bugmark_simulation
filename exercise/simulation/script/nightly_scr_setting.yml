@@ -2,3 +2,6 @@
 #time back in days
 # insert the days in negative numbers
 time_back_days: -365
+
+# Speed in minutes with which day changes
+minutes_for_day_switching: 1

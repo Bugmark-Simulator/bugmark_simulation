@@ -29,6 +29,9 @@ Exchange.load_rails
 # ----- read settings -----
 
 settings = YAML.load_file('nightly_scr_setting.yml')
+settings_issue_gen = YAML.load_file('issue_gen_scr_setting.yml')
+settings_skill = YAML.load_file('skill.yml')
+
 
 # ----- accounts -----
 puts 'Running Nightly script'
@@ -36,15 +39,50 @@ puts 'Running Nightly script'
 
 
 BugmTime.set_day_offset(settings['time_back_days'])
-speed = -1 * (settings['time_back_days'] / 5)
+speed = -1 * (settings['time_back_days'] / settings['minutes_for_day_switching'])
 puts speed
 for i in 0..speed
-  BugmTime.go_past_end_of_day
-  sleep(1.minutes)
-end
 
-# every 1.minute do
-#   break
-# end
+  # Change day
+  BugmTime.go_past_end_of_day
+
+  # resolve mature contracts
+  Contract.pending_resolution.each do |contract|
+       ContractCmd::Resolve.new(contract).project
+  end
+
+  # Expire expired offers
+  Offer.open.expired_by_time.each do |offer|
+    offer.update_attribute(:status, 'expired')
+  end
+
+  # Generate new issues
+  id =1
+  id = Issue.last.id unless Issue.last.nil?
+  Tracker.all.each do |i|
+    settings_issue_gen['number_of_issues_tracker'].times do
+      id = id+1
+      opts = {
+        stm_title: SecureRandom.hex(2),
+        stm_tracker_uuid: i.uuid,
+        stm_status: 'open',
+        stm_body: ' ',
+        exid: id
+      }
+      issueid = FB.create(:issue, opts).issue.id
+      skill_array = settings_skill['skills'].sample(settings_issue_gen['number_of_skills_issue'])
+      myhash = {"skill"=> {}}
+      skill_array.each do |i|
+        myhash["skill"]["#{i}"] = 0
+      end
+      sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
+      ActiveRecord::Base.connection.execute(sql).to_a
+    end
+  end
+
+  # Wait time before switching day
+  sleep(settings['minutes_for_day_switching'].minutes)
+
+end
 
 puts 'DONE'
