@@ -6,12 +6,11 @@ ul.navbar-nav.mr-auto
 
 ul.navbar-nav.navbar-text.mx-auto
   - if logged_in?
-    == (-1 * (BugmTime.now.to_date - Time.now.to_date).round)
-    = " Days passed "
-    = "/"
-    = "Out of "
-    == layout_nav_base()
-    = " Days"
+    = " Simulation Day "
+    == days_out()
+    = "; Day will changes in "
+    == seconds_out()
+    = " Seconds"
 
 ul.navbar-nav.flex-row
   - if logged_in?

@@ -546,10 +546,16 @@ end
 
 # nevigation bar dat time settings
 
-def layout_nav_base()
+def days_out()
   settings = YAML.load_file('/home/vahuja/bugmark_simulation/exercise/simulation/script/nightly_scr_setting.yml')
-  return -1 * settings['time_back_days']
+  day_out = settings['time_back_days_start'] - (Time.now.to_date - BugmTime.now.to_date ).round
 end
+
+def seconds_out()
+  settings = YAML.load_file('/home/vahuja/bugmark_simulation/exercise/simulation/script/nightly_scr_setting.yml')
+  second_out = settings['seconds_for_day_switching']
+end
+
   # ----- testing -----
 
   def hello

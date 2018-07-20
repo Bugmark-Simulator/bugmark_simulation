@@ -1,7 +1,7 @@
 ---
-#time back in days
-# insert the days in negative numbers
-time_back_days: -365
-
-# Speed in minutes with which day changes
-minutes_for_day_switching: 1
+running_script_first_time: 0
+time_back_days_start: 365
+seconds_for_day_switching: 10
+days_passed_after_session: 0
+closing_bugmtime: 2018-07-22 00:27:59.049585823 -07:00
+closing_timestamp: 2018-07-20 15:27:59.049719133 -07:00

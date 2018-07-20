@@ -35,13 +35,23 @@ settings_skill = YAML.load_file('skill.yml')
 
 # ----- accounts -----
 puts 'Running Nightly script'
+
+# Setting the bugum time in past
+if settings['running_script_first_time'] == 1
+  new_val = 0
+  hours = 0
+  File.open("/tmp/bugm_day_jump", 'w') {|f| f.puts new_val}
+  File.open("/tmp/bugm_hour_jump", 'w') {|f| f.puts hours}
+  BugmTime.set_day_offset(-1 * settings['time_back_days_start'])
+  counter = settings['time_back_days_start']
+else
+  time_back_days = (Time.now.to_date - settings['closing_bugmtime'].to_date).round - 1
+  BugmTime.set_day_offset(-1 * time_back_days)
+  settings['days_passed_after_session'] += 1
+end
 #binding.pry
-
-
-BugmTime.set_day_offset(settings['time_back_days'])
-speed = -1 * (settings['time_back_days'] / settings['minutes_for_day_switching'])
-puts speed
-for i in 0..speed
+# Running the loop for time and different scripts
+for i in settings['days_passed_after_session']..counter
 
   # Change day
   BugmTime.go_past_end_of_day
@@ -57,32 +67,49 @@ for i in 0..speed
   end
 
   # Generate new issues
-  id =1
-  id = Issue.last.id unless Issue.last.nil?
-  Tracker.all.each do |i|
-    settings_issue_gen['number_of_issues_tracker'].times do
-      id = id+1
-      opts = {
-        stm_title: SecureRandom.hex(2),
-        stm_tracker_uuid: i.uuid,
-        stm_status: 'open',
-        stm_body: ' ',
-        exid: id
-      }
-      issueid = FB.create(:issue, opts).issue.id
-      skill_array = settings_skill['skills'].sample(settings_issue_gen['number_of_skills_issue'])
-      myhash = {"skill"=> {}}
-      skill_array.each do |i|
-        myhash["skill"]["#{i}"] = 0
-      end
-      sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
-      ActiveRecord::Base.connection.execute(sql).to_a
-    end
-  end
+  # id =1
+  # id = Issue.last.id unless Issue.last.nil?
+  # Tracker.all.each do |i|
+  #   settings_issue_gen['number_of_issues_tracker'].times do
+  #     id = id+1
+  #     opts = {
+  #       stm_title: SecureRandom.hex(2),
+  #       stm_tracker_uuid: i.uuid,
+  #       stm_status: 'open',
+  #       stm_body: ' ',
+  #       exid: id
+  #     }
+  #     issueid = FB.create(:issue, opts).issue.id
+  #     skill_array = settings_skill['skills'].sample(settings_issue_gen['number_of_skills_issue'])
+  #     myhash = {"skill"=> {}}
+  #     skill_array.each do |i|
+  #       myhash["skill"]["#{i}"] = 0
+  #     end
+  #     sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
+  #     ActiveRecord::Base.connection.execute(sql).to_a
+  #   end
+  # end
+
+  #Store the days passed after the last session and timestamp
+  settings['days_passed_after_session'] =  i
+  settings['closing_bugmtime'] = BugmTime.now
+  settings['closing_timestamp'] = Time.now
+  File.open('nightly_scr_setting.yml', 'w') {|f| f.write settings.to_yaml}
+
+  # # Breaking the scripts
+  # trap("SIGINT") { throw :ctrl_c }
+  #
+  # catch :ctrl_c do
+  #   begin
+  #     settings['days_passed_after_session'] =  settings['time_back_days'] - (Time.now.to_date - BugmTime.now.to_date).round
+  #     File.open('nightly_scr_setting.yml', 'w') {|f| f.write settings.to_yaml}
+  #   rescue Exception
+  #     puts "Values stored"
+  #   end
+  # end
 
   # Wait time before switching day
-  sleep(settings['minutes_for_day_switching'].minutes)
-
+  sleep(settings['seconds_for_day_switching'])
 end
 
 puts 'DONE'
