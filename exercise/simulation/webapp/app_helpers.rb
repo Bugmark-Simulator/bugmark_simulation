@@ -3,7 +3,11 @@ require 'yaml'
 
 module AppHelpers
 
-  include ActionView::Helpers::DateHelper
+  # trying to exclude line but have it available when useful
+  if defined? ActionView
+    # this line caused an error when including App Helpers as part of my script
+    include ActionView::Helpers::DateHelper
+  end
 
   # ----- positions -----
 
@@ -348,7 +352,7 @@ module AppHelpers
     "<a href='/ytrack_#{lbl}/#{issue["exid"]}' class='btn btn-sm btn-primary'>click to #{lbl}</a>"
   end
 
-  # -----
+  # ----- navigation
 
   def help_nav(label, path)
     href = "<a href='#{path}'>#{label}</a>"
@@ -496,6 +500,21 @@ module AppHelpers
   end
 
 #------work Queue ------
+
+def queue_add_task(user_uuid, issue_uuid, task)
+  datesql = "Select max(completed) from work_queues where user_uuid = '#{user_uuid}' and completed > now() and removed IS NULL;"
+  maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
+  #maxdate = JSON.parse(maxdate1)['max']
+  if maxdate[0]["max"].nil?
+    startdate = 'now()'
+  else
+   startdate = "(timestamp '#{maxdate[0]["max"]}')"
+  end
+  sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
+  values ('#{user_uuid}','#{issue_uuid}','#{task}',
+    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
+  ActiveRecord::Base.connection.execute(sql).to_a
+end
 
 def task_action(task,issue_uuid,status)
   if status == 1

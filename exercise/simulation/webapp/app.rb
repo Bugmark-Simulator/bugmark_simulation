@@ -134,21 +134,23 @@ end
 # Additing task to queue
 post "/issue_task_queue/:uuid" do
   protected!
-  @issue = Issue.find_by_uuid(params['uuid'])
-  datesql = "Select max(completed) from work_queues where user_uuid = '#{current_user.uuid}'
-  and completed > now()
-  and removed IS NULL;"
-  maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
-  #maxdate = JSON.parse(maxdate1)['max']
-  if maxdate[0]["max"].nil?
-    startdate = 'now()'
-  else
-   startdate = "(timestamp '#{maxdate[0]["max"]}')"
-  end
-  sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
-  values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}',
-    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
-  ActiveRecord::Base.connection.execute(sql).to_a
+  # moved logic to app_helper to reuse it in the simulation.
+  queue_add_task(current_user.uuid,params['uuid'],params['task'])
+  # @issue = Issue.find_by_uuid(params['uuid'])
+  # datesql = "Select max(completed) from work_queues where user_uuid = '#{current_user.uuid}'
+  # and completed > now()
+  # and removed IS NULL;"
+  # maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
+  # #maxdate = JSON.parse(maxdate1)['max']
+  # if maxdate[0]["max"].nil?
+  #   startdate = 'now()'
+  # else
+  #  startdate = "(timestamp '#{maxdate[0]["max"]}')"
+  # end
+  # sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
+  # values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}',
+  #   '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
+  # ActiveRecord::Base.connection.execute(sql).to_a
   redirect "/issues/#{params['uuid']}"
 end
 
