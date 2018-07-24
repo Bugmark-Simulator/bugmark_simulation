@@ -135,11 +135,13 @@ Exchange and run the simulation on top of Exchange.
 
 5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercises/script/work_queue_table_scr`
 
-6. Go to the simulation application folder `cd bugmark_simulation/exercises/simulation/webapp/`  
+6. Run script issue_comments to create issue comments table `./bugmark_simulation/exercises/script/issue_comment_table_scr`
 
-7. Start the simulation platform `./run`
+7. Go to the simulation application folder `cd bugmark_simulation/exercises/simulation/webapp/`  
 
-5. On your local machine, browse to `http://<hostname>:4567`
+8. Start the simulation platform `./run`
+
+9. On your local machine, browse to `http://<hostname>:4567`
 
 Your platform is ready to go.
 
