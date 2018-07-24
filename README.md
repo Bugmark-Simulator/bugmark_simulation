@@ -22,10 +22,7 @@ _TODO:_ write the doc
 ## How to Install
 ### 1. Installation of Bugmark Exchange
 This covers the config and install of software components for Bugmark
-development.
-
-NOTE: you don't need the full development environment to contribute
-documentation fixes!  Just clone the tracker, edit text files and submit PR's.
+Exchange.
 
 #### Required Skills
 
@@ -121,50 +118,30 @@ Follow these steps to bootstrap the app in your development environment.
 
 2. On your local machine, add the VM IP Address to `/etc/hosts`
 
-3. On your local machine, browse to `http://<hostname>:4567`
+3. On your local machine, browse to `http://<hostname>:3000`
 
-#### Online Collaboration
 
-##### SSH-Chat
+### 2. Installation of Simulation Platform
+This covers the installation of simulation platform to access Bugmark
+Exchange and run the simulation on top of Exchange.
 
-Connect to the SSH-Chat server from the command line.
-`script/util/sshchat`
+1. On the server, go to `src` directory: `cd ~/src`
 
-##### File Transfer
+2. Git clone the Bugmark Simulator: `git clone https://github.com/Bugmark-Simulator/bugmark_simulation.git`
 
-Sender:
-- type `wormhole send <filename>`
-- note the wormhole code
+3. Create `.env` setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-Receiver:
-- type `wormhole receive`
-- get the wormhole code from the sender
-- enter the wormhole code
+4. Check which directory the `.env` links to and change if desired, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
 
-##### Terminal Sharing
+5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercises/script/work_queue_table_scr`
 
-Session host:
-- start a tmate session `script/tmate/start`
-- publish the session address `script/tmate/address`
-  the session address is published onto SSH-Chat
+6. Go to the simulation application folder `cd bugmark_simulation/exercises/simulation/webapp/`  
 
-Session participant:
-- enter the ssh command with session address on your command line
+7. Start the simulation platform `./run`
 
-##### Desktop Sharing
+5. On your local machine, browse to `http://<hostname>:4567`
 
-Use Google Hangouts.
-
-##### SSHFS
-
-There is a remote-mount utility "sshfs" installed on your server.
-
-With this, you can mount a directory from your server to your local desktop.
-
-That way you can use a Desktop GUI editor like Atom or VsCode.
-
-Here are [SSHFS usage instructions](https://www.digitalocean.com/community/tutorials/how-to-use-sshfs-to-mount-remote-file-systems-over-ssh)
-
+Your platform is ready to go.
 
 ## Roadmap
 
