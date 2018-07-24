@@ -20,14 +20,14 @@ _TODO:_ write the doc
     * Activity Diagrams
 
 ## How to Install
-1. Installation of Bugmark Exchange
+### 1. Installation of Bugmark Exchange
 This covers the config and install of software components for Bugmark
 development.
 
 NOTE: you don't need the full development environment to contribute
 documentation fixes!  Just clone the tracker, edit text files and submit PR's.
 
-# Required Skills
+#### Required Skills
 
 To be successful, you'll need good skills with the following tools:
 - Git
@@ -38,7 +38,7 @@ To be successful, you'll need good skills with the following tools:
 - Vim, Emacs or some command-line editor
 - Tmux (nice to have)
 
-# Host Machine
+#### Host Machine
 
 We assume that you're using Ubuntu 16.04 as your host machine.  If you're Mac
 savvy, you'll be able to get things running on a Mac.
@@ -60,7 +60,7 @@ user configuration, including:
 
 In this case, it is ususally best to use a dedicated user-id.
 
-# Development VM Configuration
+#### Development VM Configuration
 
 Follow these steps to set up a working development environment running on an
 Ubuntu Virtual machine.
@@ -76,14 +76,14 @@ Let's get started:
 
 4. Login to your virtual machine using `vagrant ssh`
 
-# Cloning the Bugmark Exchange
+#### Cloning the Bugmark Exchange
 
 1. Clone the tracker
    `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
 
 2. CD to the tracker directory `cd exchange`
 
-# Development Environment Provisioning
+#### Development Environment Provisioning
 
 On the host machine:
 
@@ -99,7 +99,7 @@ On the host machine:
 
 6. Start a new shell: `bash` (required to load your new user configuration)
 
-# Application Bootstrap
+#### Application Bootstrap
 
 Follow these steps to bootstrap the app in your development environment.
 
@@ -115,7 +115,7 @@ Follow these steps to bootstrap the app in your development environment.
 
    A cheat-sheet for tmux navigation is in `~/.tmux.conf`.
 
-## Host Web Access
+#### Host Web Access
 
 1. Get the host IP address `ifconfig`  
 
@@ -123,14 +123,14 @@ Follow these steps to bootstrap the app in your development environment.
 
 3. On your local machine, browse to `http://<hostname>:4567`
 
-## Online Collaboration
+#### Online Collaboration
 
-### SSH-Chat
+##### SSH-Chat
 
 Connect to the SSH-Chat server from the command line.
 `script/util/sshchat`
 
-### File Transfer
+##### File Transfer
 
 Sender:
 - type `wormhole send <filename>`
@@ -141,7 +141,7 @@ Receiver:
 - get the wormhole code from the sender
 - enter the wormhole code
 
-### Terminal Sharing
+##### Terminal Sharing
 
 Session host:
 - start a tmate session `script/tmate/start`
@@ -151,11 +151,11 @@ Session host:
 Session participant:
 - enter the ssh command with session address on your command line
 
-### Desktop Sharing
+##### Desktop Sharing
 
 Use Google Hangouts.
 
-### SSHFS
+##### SSHFS
 
 There is a remote-mount utility "sshfs" installed on your server.
 
