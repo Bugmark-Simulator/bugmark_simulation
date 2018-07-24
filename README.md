@@ -145,7 +145,7 @@ Exchange and run the simulation on top of Exchange.
 
 Your platform is ready to go.
 
-### 2. Reseting Bugmark Exchange and all the database
+## Reseting Bugmark Exchange and all the database
 
 Run script reset_scr to reset exchange and all database `./bugmark_simulation/exercises/script/reset_scr`
 
