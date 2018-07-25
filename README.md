@@ -182,4 +182,4 @@ Mozilla Public License Version 2.0
 
 We chose this license because the Bugmark Exchange uses it.
 
-Please add the license at the top of every source code file, like this: `SPDX-License-Identifier: Apache-2.0`
+Please add the license at the top of every source code file, like this: `SPDX-License-Identifier: MPL-2.0`
