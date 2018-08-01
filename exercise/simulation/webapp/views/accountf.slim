@@ -77,3 +77,15 @@ hr
               td
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue
+
+div[id="graphdiv"]
+javascript:
+  g = new Dygraph(
+
+    // containing div
+    document.getElementById("graphdiv"),
+
+    // CSV or path to a CSV file.
+    // "/metrics/temperatures.csv"
+    "/csv/graph1.csv"
+  );

@@ -1,5 +1,6 @@
 require 'time'
 require 'yaml'
+require 'csv'
 
 module AppHelpers
 
@@ -575,6 +576,21 @@ def seconds_out()
   second_out = settings['seconds_for_day_switching']
 end
 
+
+# generating data for graphs
+
+def graph1()
+  sql = "SELECT id, to_date(created_at, 'MM-DD-YYYY') from users;"
+  graphdata = ActiveRecord::Base.connection.execute(sql).to_a
+  path = File.expand_path("./public/csv/graph1.csv", __dir__)
+  CSV.open(path,"wb") do |csv|
+    csv << ["id", "to_char"]
+    graphdata.each do |i|
+      csv << [i["id"], i["to_char"]]
+    end
+  end
+  # File.write(path, graphdata)
+end
   # ----- testing -----
 
   def hello

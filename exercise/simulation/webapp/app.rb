@@ -10,7 +10,7 @@ require 'securerandom'
 #persing json
 require 'rubygems'
 require 'json'
-
+require 'chartkick'
 
 set :bind, '0.0.0.0'
 set :root, File.dirname(__FILE__)

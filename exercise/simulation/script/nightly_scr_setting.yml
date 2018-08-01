@@ -1,7 +1,7 @@
 ---
-running_script_first_time: 0
+running_script_first_time: 1
 time_back_days_start: 365
 seconds_for_day_switching: 10
-days_passed_after_session: 0
-closing_bugmtime: 2018-07-22 00:27:59.049585823 -07:00
-closing_timestamp: 2018-07-20 15:27:59.049719133 -07:00
+days_passed_after_session: 365
+closing_bugmtime: 2017-08-02 00:14:54.211043432 -07:00
+closing_timestamp: 2018-08-01 13:14:54.211202528 -07:00

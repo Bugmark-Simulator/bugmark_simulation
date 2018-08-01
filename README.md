@@ -180,7 +180,7 @@ We do not plan on adding repository maintainers.
 
 ## Contributors
 
-* Vindo Ahuja (Repository Maintainer)
+* Vinod Ahuja (Repository Maintainer)
 * Georg Link (Repository Maintainer)
 
 
