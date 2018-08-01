@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-system "./data_clean && ./system_clean"
-
-
