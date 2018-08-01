@@ -43,8 +43,10 @@ settings_skill = YAML.load_file('skill.yml')
 # ----- accounts -----
 puts 'Running Nightly script'
 
-# Setting the bugum time in past
+# Setting BugmTime in past
+# TODO: move to a separate script, not part of the nightly logic
 if settings['running_script_first_time'] == 1
+  puts "set server in past for first time"
   new_val = 0
   hours = 0
   File.open("/tmp/bugm_day_jump", 'w') {|f| f.puts new_val}
@@ -52,26 +54,30 @@ if settings['running_script_first_time'] == 1
   BugmTime.set_day_offset(-1 * settings['time_back_days_start'])
   counter = settings['time_back_days_start']
 else
+  puts "set server time to continue from last run"
   time_back_days = (Time.now.to_date - settings['closing_bugmtime'].to_date).round - 1
   BugmTime.set_day_offset(-1 * time_back_days)
   settings['days_passed_after_session'] += 1
 end
-#binding.pry
-# Extracting data for graphs
-AppHelpers.graph1()
 
 # Running the loop for time and different scripts
 for i in settings['days_passed_after_session']..counter
 
   # Change day
+  STDOUT.write "\rStep 1: go past end of day                                  "
+  STDOUT.flush
   BugmTime.go_past_end_of_day
 
   # resolve mature contracts
+  STDOUT.write "\rStep 2: resolve matured contracts                           "
+  STDOUT.flush
   Contract.pending_resolution.each do |contract|
        ContractCmd::Resolve.new(contract).project
   end
 
   # Expire expired offers
+  STDOUT.write "\rStep 3: expire expired offers                               "
+  STDOUT.flush
   Offer.open.expired_by_time.each do |offer|
     offer.update_attribute(:status, 'expired')
   end
@@ -101,6 +107,8 @@ for i in settings['days_passed_after_session']..counter
   # end
 
   #Store the days passed after the last session and timestamp
+  STDOUT.write "\rStep 4: store in file progress of simulation                "
+  STDOUT.flush
   settings['days_passed_after_session'] =  i
   settings['closing_bugmtime'] = BugmTime.now
   settings['closing_timestamp'] = Time.now
@@ -117,6 +125,12 @@ for i in settings['days_passed_after_session']..counter
   #     puts "Values stored"
   #   end
   # end
+
+
+  STDOUT.write "\rStep 5: generate data for graphs                            "
+  STDOUT.flush
+  # Extracting data for graphs
+  AppHelpers.graph1()
 
   # Wait time before switching day
   sleep(settings['seconds_for_day_switching'])
