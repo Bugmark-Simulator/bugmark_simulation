@@ -149,6 +149,14 @@ Your platform is ready to go.
 
 Run script reset_scr to reset exchange and all database `./bugmark_simulation/exercises/script/reset_scr`
 
+## Running the experiment
+Following are the steps to run the experiment
+1. Run the script to clean the bugmark excange `./bugmark_simulation/exercises/script/reset_scr`
+  (Note: This step is not needed if you have setup a clean environment for the first time)
+2. Run the script to set the BugmTime
+3. Run the script to create users
+4. Run the script nightly
+
 
 ## Roadmap
 
