@@ -132,6 +132,10 @@ for i in settings['days_passed_after_session']..counter
   # Extracting data for graphs
   AppHelpers.graph1()
 
+  STDOUT.write "\r                                                            "
+  STDOUT.flush
+  puts "current day (#{BugmTime.now}), next day in #{settings['seconds_for_day_switching']} seconds"
+
   # Wait time before switching day
   sleep(settings['seconds_for_day_switching'])
 end
