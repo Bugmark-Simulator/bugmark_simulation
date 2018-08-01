@@ -8,12 +8,11 @@ html[lang="en-US"]
     meta[content="Test Bench" name="description"]
     meta[content="Andrew Leak" name="author"]
     meta[content="Vinod Ahuja" name="modified by"]
-    link[rel="stylesheet" crossorigin="anonymous"                                                                                     href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"           ]
-    link[rel="stylesheet" crossorigin="anonymous" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css"                    ]
-    link[rel="stylesheet" crossorigin="anonymous" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"]
-    link[rel="stylesheet" crossorigin="anonymous" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"   ]
+    link[rel="stylesheet" href="/css/jquery.dataTables.min.css"]
+    link[rel="stylesheet" href="/css/fontawesome.5.0.9.all.css"]
+    link[rel="stylesheet" href="/css/font-awesome.min.css"]
+    link[rel="stylesheet" href="/css/bootstrap.min.css"]
     link[rel="stylesheet" href="/css/app.css"]
-    script[type="text/javascript" src="/dygraph.js"]
     link[rel="stylesheet" href="/css/dygraph.css"]
   body
     == slim @navbar || :layout_nav_base_bar
@@ -30,10 +29,11 @@ html[lang="en-US"]
               | Powered by Bugmark
             .col-md-6.text-center
               == BugmTime.now.strftime("%B-%d %H:%M %Z")
-    script[crossorigin="anonymous" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"                              ]
-    script[crossorigin="anonymous" integrity="sha384-lZmvU/TzxoIQIOD9yQDEpvxp6wEU32Fy0ckUgOH4EIlMOCdR823rg4+3gWRwnX1M" src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.bundle.min.js" ]
-    script[crossorigin="anonymous"                                                                                     src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"                ]
+    script[src="/js/jquery-3.2.1.slim.min.js"                              ]
+    script[src="/js/bootstrap.bundle.min.js" ]
+    script[src="/js/jquery.dataTables.min.js"                ]
     script[src="/js/app.js"]
     script[src="/js/moment.js"]
     script[src="/js/underscore.js"]
+    script[src="/dygraph.js"]
     == yield_content :page_js
