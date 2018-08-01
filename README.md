@@ -26,28 +26,27 @@ Exchange.
 
 #### Required Skills
 
-To be successful, you'll need good skills with the following tools:
+To be successful, we recommend good skills with the following:
 - Git
 - Linux command line
 - Web development
-- PostgresQL
-- Ruby/Rails
-- Vim, Emacs or some command-line editor
+- PostgreSQL
+- Ruby on Rails
+- Slim template engine
 - Tmux (nice to have)
 
 #### Host Machine
 
-We assume that you're using Ubuntu 16.04 as your host machine.  If you're Mac
-savvy, you'll be able to get things running on a Mac.
+We assume that you're using Ubuntu 16.04 as your host machine.
 
 Your host machine can exist in a few different forms:
-1) a destop Ubuntu system
+1) a desktop Ubuntu system
 2) a Virtual Machine running locally (using Vagrant)
 3) a Virtual Machine running in the data center
 
 Of the three options, the best and simplest is 3), running in the data center.
 We like Linode - you can allocate a cheap node for development that will cost
-$5/month.
+$20/month.
 
 WARNING: if you choose to install on a local system (option 1), this
 configuration process will install many packages and will make changes to your
@@ -55,7 +54,7 @@ user configuration, including:
 - adding items to your `.bashrc`, modifying your path
 - adding your UserID to `sudoers`
 
-In this case, it is ususally best to use a dedicated user-id.
+In this case, it is usually best to use a dedicated user-id.
 
 #### Development VM Configuration
 
@@ -147,16 +146,27 @@ Your platform is ready to go.
 
 ## Reseting Bugmark Exchange and all the database
 
-Run script reset_scr to reset exchange and all database `./bugmark_simulation/exercises/script/reset_scr`
+Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercises/script/reset_scr`
 
 ## Running the experiment
-Following are the steps to run the experiment
-1. Run the script to clean the bugmark excange `./bugmark_simulation/exercises/script/reset_scr`
+Following are the steps to setup the experiment
+1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercises/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
 2. Run the script to set the BugmTime
 3. Run the script to create users
-4. Run the script nightly
 
+When you run the experiment, you need to make sure the 'background services' are running:
+1. Run the script nightly
+
+
+## Simulate user behavior
+
+To test the visualizations, data analysis, or simply see how the system behaves with many users,
+run a simulation script that executes simple user actions with some randomization.
+
+1. Setup Experiment
+2. Start nightly script to make sure the system is in simulation mode ``
+3. Start the user behavior simulation script `~/src/bugmark_simulation/exercises/script/simulate_worker_funder.rb`
 
 ## Roadmap
 
@@ -172,7 +182,10 @@ Please file an issue in the issue tracker.
 
 ### Contribute Code
 
-Please fork the repository, commit changes to your fork, and create a pull request. Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by. Create one pull request for each fixed bug or feature. Use a [Feature Branch Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).
+Please fork the repository, commit changes to your fork, and create a pull request.
+Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by. 
+Create one pull request for each fixed bug or feature.
+Use a [Feature Branch Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).
 
 ### How to Become a Repository Maintainer
 
