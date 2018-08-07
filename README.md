@@ -112,7 +112,7 @@ Follow these steps to bootstrap the app in your development environment.
 
 4. Run migrations `bundle exec rails db:migrate`
 
-5. Start the tmux development session `script/dev/session`
+5. Start the tmux session `tmux`
 
    A cheat-sheet for tmux navigation is in `~/.tmux.conf`.
 
