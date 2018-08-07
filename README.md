@@ -141,7 +141,7 @@ Exchange and run the simulation on top of Exchange.
 
 6. Run script issue_comments to create issue comments table `./bugmark_simulation/exercise/simulation/script/issue_comment_table_scr`
 
-7. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/simulation/webapp/`  
+7. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
 
 8. Start the simulation platform `./run`
 
