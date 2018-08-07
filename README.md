@@ -156,7 +156,7 @@ Run script reset_scr to reset exchange and all database `~/src/bugmark_simulatio
 ## Running the experiment
 If InfluxDB or Grafana are not running:
 - `sudo systemctl start influxdb`
-- `sudo systemctl start grafana`
+- `sudo systemctl start grafana-server`
 
 Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercises/script/reset_scr`
