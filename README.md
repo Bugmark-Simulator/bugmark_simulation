@@ -137,11 +137,11 @@ Exchange and run the simulation on top of Exchange.
 
 4. Check which directory the `.env` links to and change if desired, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
 
-5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercises/script/work_queue_table_scr`
+5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercise/simulation/script/work_queue_table_scr`
 
-6. Run script issue_comments to create issue comments table `./bugmark_simulation/exercises/script/issue_comment_table_scr`
+6. Run script issue_comments to create issue comments table `./bugmark_simulation/exercise/simulation/script/issue_comment_table_scr`
 
-7. Go to the simulation application folder `cd bugmark_simulation/exercises/simulation/webapp/`  
+7. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/simulation/webapp/`  
 
 8. Start the simulation platform `./run`
 
@@ -151,7 +151,7 @@ Your platform is ready to go.
 
 ## Reseting Bugmark Exchange and all the database
 
-Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercises/script/reset_scr`
+Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
 ## Running the experiment
 If InfluxDB or Grafana are not running:
@@ -159,7 +159,7 @@ If InfluxDB or Grafana are not running:
 - `sudo systemctl start grafana-server`
 
 Following are the steps to setup the experiment
-1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercises/script/reset_scr`
+1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
 2. Run the script to set the BugmTime
 3. Run the script to create users
@@ -175,7 +175,7 @@ run a simulation script that executes simple user actions with some randomizatio
 
 1. Setup Experiment
 2. Start nightly script to make sure the system is in simulation mode ``
-3. Start the user behavior simulation script `~/src/bugmark_simulation/exercises/script/simulate_worker_funder.rb`
+3. Start the user behavior simulation script `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
 
 ## Roadmap
 
