@@ -580,13 +580,13 @@ end
 # generating data for graphs
 
 def graph1()
-  sql = "SELECT id, to_date(created_at, 'MM-DD-YYYY') from users;"
+  sql = "SELECT to_char(created_at, 'YYYYMMDD') as date, id from issues;"
   graphdata = ActiveRecord::Base.connection.execute(sql).to_a
   path = File.expand_path("./public/csv/graph1.csv", __dir__)
   CSV.open(path,"wb") do |csv|
-    csv << ["id", "to_char"]
+    csv << ["date", "id"]
     graphdata.each do |i|
-      csv << [i["id"], i["to_char"]]
+      csv << [i["date"], i["id"]]
     end
   end
   # File.write(path, graphdata)
