@@ -90,6 +90,11 @@ On the host machine:
 3. Install ansible roles `script/dev/provision/install_roles`
 
 4. Provision the dev machine `script/dev/provision/localhost`
+    - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
+      - Check that influxdb is installed and running `systemctl status influxdb`
+      - If it is not running, start it `sudo systemctl start influxdb`
+      - Re-run the provision script in step 4
+    - If any other task fails, try re-running the script, sometimes that helps
 
 5. Check database status: `systemctl status postgresql`
 
@@ -149,6 +154,10 @@ Your platform is ready to go.
 Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercises/script/reset_scr`
 
 ## Running the experiment
+If InfluxDB or Grafana are not running:
+- `sudo systemctl start influxdb`
+- `sudo systemctl start grafana`
+
 Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercises/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
