@@ -81,8 +81,6 @@ hr
 h2 Graph 1
 div[id="graphdiv1"]
 javascript:
-  jQuery(document).ready(function(){
-
     g = new Dygraph(
 
     // containing div
@@ -98,21 +96,18 @@ javascript:
     ylabel: 'Y-Axis',
     xlabel: 'X-Axis'}
     );
-  });
 
-h2 Graph 2
+h2 Fixed Paid / Total Paid
 div[id="graphdiv2"]
 javascript:
   g = new Dygraph(
     document.getElementById("graphdiv2"),
-    "/csv/graph1.csv",
+    "/csv/fixed_total.csv",
     {
-            rollPeriod: 7,
             legend: 'always',
-            showRoller: true,
-            title: 'Title',
-            ylabel: 'Y-Axis',
-            xlabel: 'X-Axis'}
+            title: 'Fixed Paid / Total Paid',
+            ylabel: 'Ratio',
+            xlabel: 'Days'}
   );
 
 h2 Graph 3

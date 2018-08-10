@@ -578,18 +578,18 @@ end
 
 
 # generating data for graphs
-
-def graph1()
-  sql = "SELECT to_char(created_at, 'YYYYMMDD') as date, id from issues;"
-  graphdata = ActiveRecord::Base.connection.execute(sql).to_a
-  path = File.expand_path("./public/csv/graph1.csv", __dir__)
-  CSV.open(path,"wb") do |csv|
-    csv << ["date", "id"]
-    graphdata.each do |i|
-      csv << [i["date"], i["id"]]
-    end
+def fixed_total_graph()
+  sql_fixed = "SELECT count(awarded_to) from contracts where awarded_to = 'fixed' and to_char(maturation, 'DD/MM/YYYY') = '#{BugmTime.now().strftime("%d/%m/%Y")}';"
+  sql_total = "SELECT count(awarded_to) from contracts where to_char(maturation, 'DD/MM/YYYY') = '#{BugmTime.now().strftime("%d/%m/%Y")}';"
+  fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a
+  total = ActiveRecord::Base.connection.execute(sql_total).to_a
+  path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  if total.first['count'] != 0
+      fixed_total = fixed.first['count'] / total.first['count']
+      CSV.open(path,"a") do |csv|
+        csv << [BugmTime.now().strftime("%d/%m/%Y"), fixed_total]
+      end
   end
-  # File.write(path, graphdata)
 end
   # ----- testing -----
 

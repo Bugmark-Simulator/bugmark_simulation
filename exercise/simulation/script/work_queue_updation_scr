@@ -47,6 +47,17 @@ loop do
 		;"
 		#binding.pry
 		ActiveRecord::Base.connection.execute(issue_update)
+		task_completed = Issue.where(uuid: "#{i["issue_uuid"]}").first.jfields["skill"]
+		ex_id = Issue.where(uuid: "#{i["issue_uuid"]}").first.exid
+		check = true
+		task_completed.each do |key, value|
+			if value == 0
+				check = false
+			end
+		end
+		if check == true
+			IssueCmd::Sync.new({exid: ex_id, stm_status: "closed"}).project
+		end
 	end
 	if updated_ids.length > 0
 		work_queue_update_sql = "update work_queues SET updated_issue = TRUE WHERE id IN (#{updated_ids * ","});"
