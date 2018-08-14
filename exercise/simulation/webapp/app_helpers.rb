@@ -584,12 +584,24 @@ def fixed_total_graph()
   fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a
   total = ActiveRecord::Base.connection.execute(sql_total).to_a
   path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  fixed_total = 0.0
   if total.first['count'] != 0
-      fixed_total = fixed.first['count'] / total.first['count']
-      CSV.open(path,"a") do |csv|
-        csv << [BugmTime.now().strftime("%d/%m/%Y"), fixed_total]
-      end
+    fixed_total = fixed.first['count'].to_f / total.first['count'].to_f
   end
+  if USE_INFLUX == true
+    args = {
+      tags: {
+        graph: "fixed_total"
+      },
+      values: {fixedtotalratio: fixed_total, fixed_contract: fixed.first['count'], total_contract: total.first['count']},
+      timestamp: BugmTime.now.to_i
+    }
+    InfluxStats.write_point "GraphData", args
+  end
+  #     CSV.open(path,"a") do |csv|
+  #       csv << [BugmTime.now().strftime("%d/%m/%Y"), fixed_total]
+  #     end
+  # end
 end
   # ----- testing -----
 
