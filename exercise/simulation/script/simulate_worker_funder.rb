@@ -59,7 +59,9 @@ NEW_OFFERS_PER_FUNDER = 3
     workers.push(user.uuid) if user.jfields['type'] == 'worker'
   end
 
-for i in 1..9 do
+i = 0
+loop do
+  i += 1
   funder_ran = 0
   workers_ran = 0
   new_offers_ran = 0
@@ -106,7 +108,7 @@ for i in 1..9 do
     user = User.where(uuid: worker_uuid).first
 
     # check work_queue length, if >=3, then skip turn
-    next if Work_queue.where(user_uuid: worker_uuid).where('completed < now()').count >=3
+    next if Work_queue.where(user_uuid: worker_uuid).where('completed > now()').count >=3
     # indicate that worker is willing to accept more work
     do_more += 1
     # find a task
@@ -140,7 +142,7 @@ for i in 1..9 do
           # ---- 2) accept open offer, if one exists ----
 
           # Filter by unassigned, since we want offers that are still up for the taking
-          offers = Offer.unassigned
+          offers = Offer.open.unassigned
           # then filter by cost<balance to be able to counter the offer
           offers = offers.where('((1 - offers.price)*offers.volume) <= '+user[:balance].to_s)
           # then filter offers for the current issue

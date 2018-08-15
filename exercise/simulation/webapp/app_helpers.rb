@@ -513,7 +513,7 @@ def queue_add_task(user_uuid, issue_uuid, task)
   end
   sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
   values ('#{user_uuid}','#{issue_uuid}','#{task}',
-    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
+    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '10 seconds',#{startdate}) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
 end
 
@@ -578,23 +578,23 @@ end
 
 
 # generating data for graphs
-def fixed_total_graph()
-  sql_fixed = "SELECT count(awarded_to) from contracts where awarded_to = 'fixed' and to_char(maturation, 'DD/MM/YYYY') = '#{BugmTime.now().strftime("%d/%m/%Y")}';"
-  sql_total = "SELECT count(awarded_to) from contracts where to_char(maturation, 'DD/MM/YYYY') = '#{BugmTime.now().strftime("%d/%m/%Y")}';"
-  fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a
-  total = ActiveRecord::Base.connection.execute(sql_total).to_a
+def fixed_total_graph(timeobject = BugmTime.now)
+  sql_fixed = "SELECT count(*) from contracts where awarded_to = 'fixed' and to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
+  sql_total = "SELECT count(*) from contracts where to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
+  fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a.first['count'].to_f
+  total = ActiveRecord::Base.connection.execute(sql_total).to_a.first['count'].to_f
   path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
   fixed_total = 0.0
-  if total.first['count'] != 0
-    fixed_total = fixed.first['count'].to_f / total.first['count'].to_f
+  if total > 0.0
+    fixed_total = (fixed / total).to_f
   end
   if USE_INFLUX == true
     args = {
       tags: {
         graph: "fixed_total"
       },
-      values: {fixedtotalratio: fixed_total, fixed_contract: fixed.first['count'], total_contract: total.first['count']},
-      timestamp: BugmTime.now.to_i
+      values: {fixedtotalratio: fixed_total, fixed_contract: fixed, total_contract: total},
+      timestamp: timeobject.to_i
     }
     InfluxStats.write_point "GraphData", args
   end
