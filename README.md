@@ -85,7 +85,7 @@ Let's get started:
 
 On the host machine:
 
-1. Checkout the dev branch `git checkout -b dev origin/dev` (TODO: TEST whether it works when in master -- all of our changes are in master) 
+1. Checkout the dev branch `git checkout -b dev origin/dev` (TODO: TEST whether it works when in master -- all of our changes are in master)
 
 2. Install ansible `script/dev/provision/install_ansible`
 
@@ -163,11 +163,11 @@ If InfluxDB or Grafana are not running:
 Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
-2. Run the script to set the BugmTime
-3. Run the script to create users
+2. Run the script to set the BugmTime (TODO: specify script)
+3. Run the script to create users (TODO: specify script)
 
 When you run the experiment, you need to make sure the 'background services' are running:
-1. Run the script nightly
+1. Run the script nightly (TODO: specify script)
 
 
 ## Simulate user behavior
@@ -181,9 +181,10 @@ run a simulation script that executes simple user actions with some randomizatio
 
 ## Roadmap
 
-The Software is developed in Summer 2018.
-
-  * [Gantt Chart](https://drive.google.com/open?id=1JTQLed788ZDsbExeyMFnR5Xbcf0TYxwBxNb6ToyxRII)
+- Software is developed in Summer 2018.
+- Pilot studies are run in September 2018.
+- Experiment is executed in November 2018.
+- Data analysis is planned for Spring of 2018.
 
 ## How to Contribute
 
