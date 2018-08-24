@@ -34,6 +34,8 @@ To be successful, we recommend good skills with the following:
 - Ruby on Rails
 - Slim template engine
 - Tmux (nice to have)
+- InfluxDB
+- Grafana
 
 #### Host Machine
 
@@ -83,7 +85,7 @@ Let's get started:
 
 On the host machine:
 
-1. Checkout the dev branch `git checkout -b dev origin/dev`
+1. Checkout the dev branch `git checkout -b dev origin/dev` (TODO: TEST whether it works when in master -- all of our changes are in master) 
 
 2. Install ansible `script/dev/provision/install_ansible`
 
@@ -192,7 +194,7 @@ Please file an issue in the issue tracker.
 ### Contribute Code
 
 Please fork the repository, commit changes to your fork, and create a pull request.
-Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by. 
+Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by.
 Create one pull request for each fixed bug or feature.
 Use a [Feature Branch Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).
 
