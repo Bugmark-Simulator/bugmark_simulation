@@ -76,6 +76,8 @@ Let's get started:
 
 #### Cloning the Bugmark Exchange
 
+**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu.
+
 1. Clone the tracker
    `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
 
@@ -164,7 +166,7 @@ Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
 2. Run the script to set the BugmTime (TODO: specify script)
-3. Run the script to create users (TODO: specify script)
+3. Run the script to create users  `./bugmark_simulation/exercise/simulation/script/user_gen_scr`
 
 When you run the experiment, you need to make sure the 'background services' are running:
 1. Run the script nightly (TODO: specify script)
