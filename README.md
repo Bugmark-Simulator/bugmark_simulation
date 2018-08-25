@@ -76,7 +76,7 @@ Let's get started:
 
 #### Cloning the Bugmark Exchange
 
-**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu.
+**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `adduser bugmarkstudy; adduser bugmarkstudy sudo`
 
 1. Clone the tracker
    `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
@@ -99,6 +99,7 @@ On the host machine:
       - If it is not running, start it `sudo systemctl start influxdb`
       - Re-run the provision script in step 4
     - If any other task fails, try re-running the script, sometimes that helps
+    - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
 
 5. Check database status: `systemctl status postgresql`
 
