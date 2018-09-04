@@ -130,7 +130,7 @@ Follow these steps to bootstrap the app in your development environment.
 
 2. On your local machine, add the VM IP Address to `/etc/hosts`
 
-3. On your local machine, browse to `http://<hostname>:3000`
+3. On your local machine, browse to `http://<hostname>:3000` (TODO: what ever service this is, we need to start it first)
 
 
 ### 2. Installation of Simulation Platform
