@@ -143,7 +143,7 @@ Exchange and run the simulation on top of Exchange.
 
 3. Create *.env* setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
+4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data; cd ~/src`
 
 5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercise/simulation/script/work_queue_table_scr`
 
