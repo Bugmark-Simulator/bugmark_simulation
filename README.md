@@ -34,6 +34,8 @@ To be successful, we recommend good skills with the following:
 - Ruby on Rails
 - Slim template engine
 - Tmux (nice to have)
+- InfluxDB
+- Grafana
 
 #### Host Machine
 
@@ -74,6 +76,8 @@ Let's get started:
 
 #### Cloning the Bugmark Exchange
 
+**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `adduser bugmarkstudy; adduser bugmarkstudy sudo`
+
 1. Clone the tracker
    `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
 
@@ -83,18 +87,22 @@ Let's get started:
 
 On the host machine:
 
-1. Checkout the dev branch `git checkout -b dev origin/dev`
+1. Checkout the dev branch `git checkout -b dev origin/dev` (TODO: TEST whether it works when in master -- all of our changes are in master)
 
 2. Install ansible `script/dev/provision/install_ansible`
 
 3. Install ansible roles `script/dev/provision/install_roles`
 
 4. Provision the dev machine `script/dev/provision/localhost`
+    - If Node.js or NPM fail, make sure they are installed `npm -v`
+      - If not, add the NodeSource APT repository `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`
+      - Then install Node.js `sudo apt-get install -y nodejs`
     - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
       - Check that influxdb is installed and running `systemctl status influxdb`
       - If it is not running, start it `sudo systemctl start influxdb`
       - Re-run the provision script in step 4
     - If any other task fails, try re-running the script, sometimes that helps
+    - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
 
 5. Check database status: `systemctl status postgresql`
 
@@ -161,11 +169,11 @@ If InfluxDB or Grafana are not running:
 Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
   (Note: This step is not needed if you have setup a clean environment for the first time)
-2. Run the script to set the BugmTime
-3. Run the script to create users
+2. Run the script to set the BugmTime (TODO: specify script)
+3. Run the script to create users  `./bugmark_simulation/exercise/simulation/script/user_gen_scr`
 
 When you run the experiment, you need to make sure the 'background services' are running:
-1. Run the script nightly
+1. Run the script nightly (TODO: specify script)
 
 
 ## Simulate user behavior
@@ -174,14 +182,15 @@ To test the visualizations, data analysis, or simply see how the system behaves 
 run a simulation script that executes simple user actions with some randomization.
 
 1. Setup Experiment
-2. Start nightly script to make sure the system is in simulation mode ``
+2. Start nightly script to make sure the system is in simulation mode `(?)`
 3. Start the user behavior simulation script `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
 
 ## Roadmap
 
-The Software is developed in Summer 2018.
-
-  * [Gantt Chart](https://drive.google.com/open?id=1JTQLed788ZDsbExeyMFnR5Xbcf0TYxwBxNb6ToyxRII)
+- Software is developed in Summer 2018.
+- Pilot studies are run in September 2018.
+- Experiment is executed in November 2018.
+- Data analysis is planned for Spring of 2018.
 
 ## How to Contribute
 
@@ -192,7 +201,7 @@ Please file an issue in the issue tracker.
 ### Contribute Code
 
 Please fork the repository, commit changes to your fork, and create a pull request.
-Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by. 
+Please describe in the pull request what changes were made and why -- reference all issue that the change is motivated by.
 Create one pull request for each fixed bug or feature.
 Use a [Feature Branch Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).
 
