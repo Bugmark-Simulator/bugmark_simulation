@@ -108,6 +108,8 @@ On the host machine:
 
 6. Start a new shell: `bash` (required to load your new user configuration)
 
+7.  Checkout the master branch `git checkout master`
+
 #### Application Bootstrap
 
 Follow these steps to bootstrap the app in your development environment.

@@ -6,8 +6,6 @@ require_relative "../../../Base/lib/exchange"
 require_relative "../../../Base/lib/access_log"
 require_relative "../../../Base/lib/trial_settings"
 
-require_relative "./code_word"
-
 WEB_DIR    = File.expand_path("../", File.dirname(__FILE__))
 TRIAL_DIR  = dotenv_trial_dir(__dir__)
 TRIAL_DATA = dotenv_trial_data(__dir__)
