@@ -94,15 +94,15 @@ On the host machine:
 3. Install ansible roles `script/dev/provision/install_roles`
 
 4. Provision the dev machine `script/dev/provision/localhost`
-    - If Node.js or NPM fail, make sure they are installed `npm -v`
-      - If not, add the NodeSource APT repository `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`
-      - Then install Node.js `sudo apt-get install -y nodejs`
-    - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
-      - Check that influxdb is installed and running `systemctl status influxdb`
-      - If it is not running, start it `sudo systemctl start influxdb`
-      - Re-run the provision script in step 4
-    - If any other task fails, try re-running the script, sometimes that helps
-    - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
+  - If Node.js or NPM fail, make sure they are installed `npm -v`
+    - If not, add the NodeSource APT repository `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`
+    - Then install Node.js `sudo apt-get install -y nodejs`
+  - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
+    - Check that influxdb is installed and running `systemctl status influxdb`
+    - If it is not running, start it `sudo systemctl start influxdb`
+    - Re-run the provision script in step 4
+  - If any other task fails, try re-running the script, sometimes that help
+  - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
 
 5. Check database status: `systemctl status postgresql`
 
@@ -137,13 +137,13 @@ Follow these steps to bootstrap the app in your development environment.
 This covers the installation of simulation platform to access Bugmark
 Exchange and run the simulation on top of Exchange.
 
-1. On the server, go to `src` directory: `cd ~/src`
+1. On the server, go to *src* directory: `cd ~/src`
 
 2. Git clone the Bugmark Simulator: `git clone https://github.com/Bugmark-Simulator/bugmark_simulation.git`
 
-3. Create `.env` setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
+3. Create *.env* setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-4. Check which directory the `.env` links to and change if desired, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
+4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
 
 5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercise/simulation/script/work_queue_table_scr`
 
