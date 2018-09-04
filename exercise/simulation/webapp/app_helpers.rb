@@ -41,6 +41,7 @@ module AppHelpers
   end
 
   def underactivity_penalty(user)
+    binding.pry
     spread = invested_tokens(user) - TS.seed_balance
     [ 0, spread ].min
   end
@@ -567,7 +568,7 @@ end
 # nevigation bar dat time settings
 
 def days_out()
-  settings = YAML.load_file(../script/nightly_scr_setting.yml')
+  settings = YAML.load_file('../script/nightly_scr_setting.yml')
   day_out = settings['time_back_days_start'] - (Time.now.to_date - BugmTime.now.to_date ).round
 end
 
