@@ -94,12 +94,15 @@ On the host machine:
 3. Install ansible roles `script/dev/provision/install_roles`
 
 4. Provision the dev machine `script/dev/provision/localhost`
-    - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
-      - Check that influxdb is installed and running `systemctl status influxdb`
-      - If it is not running, start it `sudo systemctl start influxdb`
-      - Re-run the provision script in step 4
-    - If any other task fails, try re-running the script, sometimes that helps
-    - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
+  - If Node.js or NPM fail, make sure they are installed `npm -v`
+    - If not, add the NodeSource APT repository `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`
+    - Then install Node.js `sudo apt-get install -y nodejs`
+  - If tasks 'influxdb : setup admin user' and 'influxdb : create database' fail, then
+    - Check that influxdb is installed and running `systemctl status influxdb`
+    - If it is not running, start it `sudo systemctl start influxdb`
+    - Re-run the provision script in step 4
+  - If any other task fails, try re-running the script, sometimes that help
+  - If an error comes up about sudo requiring a password, run `sudo ls` before retrying
 
 5. Check database status: `systemctl status postgresql`
 
@@ -129,20 +132,20 @@ Follow these steps to bootstrap the app in your development environment.
 
 2. On your local machine, add the VM IP Address to `/etc/hosts`
 
-3. On your local machine, browse to `http://<hostname>:3000`
+3. On your local machine, browse to `http://<hostname>:3000` (TODO: what ever service this is, we need to start it first)
 
 
 ### 2. Installation of Simulation Platform
 This covers the installation of simulation platform to access Bugmark
 Exchange and run the simulation on top of Exchange.
 
-1. On the server, go to `src` directory: `cd ~/src`
+1. On the server, go to *src* directory: `cd ~/src`
 
 2. Git clone the Bugmark Simulator: `git clone https://github.com/Bugmark-Simulator/bugmark_simulation.git`
 
-3. Create `.env` setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
+3. Create *.env* setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-4. Check which directory the `.env` links to and change if desired, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; cd ~/src`
+4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data; cd ~/src`
 
 5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercise/simulation/script/work_queue_table_scr`
 
@@ -181,7 +184,7 @@ To test the visualizations, data analysis, or simply see how the system behaves 
 run a simulation script that executes simple user actions with some randomization.
 
 1. Setup Experiment
-2. Start nightly script to make sure the system is in simulation mode ``
+2. Start nightly script to make sure the system is in simulation mode `(?)`
 3. Start the user behavior simulation script `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
 
 ## Roadmap
