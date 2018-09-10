@@ -41,7 +41,7 @@ module AppHelpers
   end
 
   def underactivity_penalty(user)
-    binding.pry
+    #binding.pry
     spread = invested_tokens(user) - TS.seed_balance
     [ 0, spread ].min
   end
@@ -421,8 +421,8 @@ module AppHelpers
   end
 
   def user_name(user = current_user)
-    if user
-      user&.name || user&.uuid&[0..5]
+    if user && user.class == User
+      user.name || user.uuid[0..5]
     else
       "err"
     end
