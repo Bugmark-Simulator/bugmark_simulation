@@ -169,6 +169,7 @@ def workqueue_sync
     task_completed = Issue.where(uuid: "#{i["issue_uuid"]}").first.jfields["skill"]
     ex_id = Issue.where(uuid: "#{i["issue_uuid"]}").first.exid
     check = true
+    # Check all the skills of an issue are worked on and mark it closed
     task_completed.each do |key, value|
       if value == 0
         check = false
@@ -189,7 +190,7 @@ loop do
   if @nightly_run <= Time.now
     nightly_scr
   end
-  sleep 2
+  sleep 1
 end
 
 puts 'DONE'

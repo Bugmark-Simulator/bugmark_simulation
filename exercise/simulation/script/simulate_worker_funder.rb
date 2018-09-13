@@ -116,10 +116,6 @@ loop do
     # avoid endless loops by limiting tries
     max_tries = 3
     while task_chosen == false
-      # count tries backwards
-      max_tries -= 1
-      # last try
-      task_chosen = true if max_tries <= 0
 
       # get a random open issue
       issue = Issue.where(stm_status: 'open').order('random()').first
@@ -128,7 +124,7 @@ loop do
         # skip task, if user already chose a task this turn
         next if task_chosen == true
         # skip task, if it is already completed
-        next if completed == 1
+        next if completed.to_i == 1
         # test whether user has skill for this task
         if user.jfields['skill'].include? task then
 
@@ -159,6 +155,10 @@ loop do
           end
         end
       end
+      # count tries backwards
+      max_tries -= 1
+      # last try
+      task_chosen = true if max_tries <= 0
     end
   end
 
