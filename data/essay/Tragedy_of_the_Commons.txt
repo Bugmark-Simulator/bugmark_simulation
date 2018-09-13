@@ -1,2 +1,0 @@
-Explain what "tragedy of the commons" is. Does this apply to open source
-production? If so, how?
