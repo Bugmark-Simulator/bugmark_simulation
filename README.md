@@ -147,15 +147,11 @@ Exchange and run the simulation on top of Exchange.
 
 4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data; cd ~/src`
 
-5. Run script work_queue_table_scr to create work queue table `./bugmark_simulation/exercise/simulation/script/work_queue_table_scr`
+5. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
 
-6. Run script issue_comments to create issue comments table `./bugmark_simulation/exercise/simulation/script/issue_comment_table_scr`
+6. Start the simulation platform `./run`
 
-7. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
-
-8. Start the simulation platform `./run`
-
-9. On your local machine, browse to `http://<hostname>:4567`
+7. On your local machine, browse to `http://<hostname>:4567`
 
 Your platform is ready to go.
 
