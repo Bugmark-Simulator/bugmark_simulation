@@ -580,11 +580,12 @@ end
 
 # generating data for graphs
 def fixed_total_graph(timeobject = BugmTime.now)
+  # Graph data for Contract fixed rate vs total
   sql_fixed = "SELECT count(*) from contracts where awarded_to = 'fixed' and to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
   sql_total = "SELECT count(*) from contracts where to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
   fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a.first['count'].to_f
   total = ActiveRecord::Base.connection.execute(sql_total).to_a.first['count'].to_f
-  path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
   fixed_total = 0.0
   if total > 0.0
     fixed_total = (fixed / total).to_f
@@ -599,6 +600,29 @@ def fixed_total_graph(timeobject = BugmTime.now)
     }
     InfluxStats.write_point "GraphData", args
   end
+
+  # Graph data for Payout vs Potential
+  sql_payout = "select sum(fixed_value) + sum(unfixed_value) as payout from escrows join contracts on escrows.contract_uuid = contracts.uuid where contracts.awarded_to = 'fixed' and to_char(contracts.maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
+  sql_potential = "select sum(fixed_value) + sum(unfixed_value) as potential from escrows join contracts on escrows.contract_uuid = contracts.uuid where to_char(contracts.maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
+  fixed = ActiveRecord::Base.connection.execute(sql_payout).to_a.first['payout'].to_f
+  total = ActiveRecord::Base.connection.execute(sql_potential).to_a.first['potential'].to_f
+  #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  fixed_total = 0.0
+  if total > 0.0
+    fixed_total = (fixed / total).to_f
+  end
+  if USE_INFLUX == true
+    args = {
+      tags: {
+        graph: "Payout_Potential"
+      },
+      values: {payoutpotentialratio: fixed_total, payout_contract: fixed, potential_contract: total},
+      timestamp: timeobject.to_i
+    }
+    InfluxStats.write_point "GraphData", args
+  end
+
+
   #     CSV.open(path,"a") do |csv|
   #       csv << [BugmTime.now().strftime("%d/%m/%Y"), fixed_total]
   #     end
