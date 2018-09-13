@@ -159,6 +159,11 @@ Your platform is ready to go.
 
 Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
+To destroy the database and setup again:
+
+1. Go to the exchange `cd ~\src\exchange`
+2. Destroy Database and reconstruct it `bundle exec rails db:drop db:create db:migrate`
+
 ## Running the experiment
 If InfluxDB or Grafana are not running:
 - `sudo systemctl start influxdb`
