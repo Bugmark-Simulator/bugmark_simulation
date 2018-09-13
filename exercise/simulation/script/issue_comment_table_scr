@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# SCRIPT NOT USED as of 2018-09-13 - table is generated within the exchange
+
+
 # ----- setup -----
 
 Dir.chdir File.expand_path(__dir__)

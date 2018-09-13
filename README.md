@@ -153,7 +153,11 @@ Exchange and run the simulation on top of Exchange.
 
 7. On your local machine, browse to `http://<hostname>:4567`
 
-Your platform is ready to go.
+Your platform is ready to go. The default admin account is
+ - user: admin@bugmark.net
+ - password: bugmark
+
+
 
 ## Reseting Bugmark Exchange and all the database
 
