@@ -190,7 +190,17 @@ run a simulation script that executes simple user actions with some randomizatio
 
 1. Setup Experiment
 2. Start nightly script to make sure the system is in simulation mode `(?)`
-3. Start the user behavior simulation script `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
+3. Start the user behavior simulation script `ruby ~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
+
+## Helpful Commands
+
+Open PostgreSQL database in console
+1. Logon as user postgres `sudo -u postgres -i`
+2. Start `psql`
+3. List databases `\l`
+4. Switch to bugmark_development database `\c bugmark_development`
+5. List tables `\dt`
+6. View definition of a table (e.g. views) `\d+ views`
 
 ## Roadmap
 
