@@ -158,8 +158,7 @@ Your platform is ready to go. The default admin account is
  - password: bugmark
 
 
-
-## Reseting Bugmark Exchange and all the database
+## Resetting Bugmark Exchange and all the database
 
 Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
@@ -167,6 +166,36 @@ Alternatively, to destroy the database and setup from scratch:
 1. Go to the exchange `cd ~\src\exchange`
 2. Destroy Database and reconstruct it `bundle exec rails db:drop db:create db:migrate`
 3. Run script reset_scr to reset exchange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
+
+
+## Setting up Grafana
+
+1. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`
+
+2. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
+
+3. Configure a influxDB connection
+  - type: influxDB
+  - Basic Autho (yes)
+  - user: admin
+  - pasword: admin
+  - database: bugm_stats
+  - user: admin
+  - password: admin
+
+4. Only after you have data in InfluxDB does it make sense to setup a panels because Grafana will only allow you to setup visualizations for existing data.
+
+5. Create PostgreSQL user for grafana. (How to connect to PostgreSQL is described in the helpful commands section below.)
+  - `CREATE USER grafana WITH PASSWORD 'grafana';`
+  - `GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana;`
+
+6. Configure PostgreSQL connection
+  - Name: PSQL
+  - Type: PostgreSQL
+  - Host: localhost:5432
+  - Database: bugmark_development
+  - User: grafana
+  - Password: grafana
 
 ## Running the experiment
 If InfluxDB or Grafana are not running:
