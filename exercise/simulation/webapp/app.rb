@@ -21,7 +21,6 @@ helpers AppHelpers
 # ----- core app -----
 
 get "/" do
-  binding.pry
   slim :home
 end
 
