@@ -78,9 +78,9 @@ module AppHelpers
   end
 
   def account_lbl(user)
-    count = funding_count(user)
-    warn = funding_hold?(user) ? " / FUNDED #{count} of 5 " : ""
-    "#{user_name(user)}#{warn} / balance: #{user.token_available}"
+    # count = funding_count(user)
+    # warn = funding_hold?(user) ? " / FUNDED #{count} of 5 " : ""
+    "#{user_name(user)} / balance: #{user.token_available}"
   end
 
   def successful_fundings(user)
@@ -621,6 +621,63 @@ def fixed_total_graph(timeobject = BugmTime.now)
     }
     InfluxStats.write_point "GraphData", args
   end
+
+  # Graph data for Variance of offer volumes
+  sql_agr = "select min(volume * price) as minvol, max(volume * price) as maxvol, avg(volume * price) as avgvol from offers where status = 'open';"
+  agr = ActiveRecord::Base.connection.execute(sql_agr).to_a
+  minvol = agr.first['minvol'].to_f
+  maxvol = agr.first['maxvol'].to_f
+  avgvol = agr.first['avgvol'].to_f
+  #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  if USE_INFLUX == true
+    args = {
+      tags: {
+        graph: "variance_of_offer"
+      },
+      values: {minvol: minvol, maxvol: maxvol, avgvol: avgvol},
+      timestamp: timeobject.to_i
+    }
+    InfluxStats.write_point "GraphData", args
+  end
+
+  # Graph data for Variance of offer volumes
+  sql_off = "select sum(volume) as vol, count(*) as total from offers where status = 'open';"
+  off = ActiveRecord::Base.connection.execute(sql_off).to_a
+  vol = off.first['vol'].to_f
+  total = off.first['total'].to_f
+  #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  if USE_INFLUX == true
+    args = {
+      tags: {
+        graph: "open_offer_count_and_volume"
+      },
+      values: {offer_volume: vol, offer_count: total},
+      timestamp: timeobject.to_i
+    }
+    InfluxStats.write_point "GraphData", args
+  end
+
+  # Graph data for Maturation Days table
+  # future maturation dates from contracts
+  #sql_c_maturation = "select to_char(maturation, 'YYYY/MM/DD') as dates from Contracts where to_char(maturation, 'YYYY/MM/DD') >= '#{BugmTime.now.strftime("%Y/%m/%d")}' group by to_char(maturation, 'YYYY/MM/DD');"
+  #future_c_maturation_dates = ActiveRecord::Base.connection.execute(sql_c_maturation).to_a
+  # future maturation dates from offers
+  #sql_o_matu = "select substring(lower(maturation_range)::TEXT from 1 for 10) as dates from offers where substring(lower(maturation_range)::TEXT from 1 for 10) >= '#{BugmTime.now.strftime("%Y-%m-%d")}' group by substring(lower(maturation_range)::TEXT from 1 for 10);"
+  #future_o_maturation_dates = ActiveRecord::Base.connection.execute(sql_o_matu).to_a
+  #sql_last_price = "select postion"
+  #vol = off.first['vol'].to_f
+  #total = off.first['total'].to_f
+  #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+  #if USE_INFLUX == true
+  #  args = {
+  #    tags: {
+  #      graph: "open_offer_count_and_volume"
+  #    },
+  #    values: {offer_volume: vol, offer_count: total},
+  #    timestamp: timeobject.to_i
+  #  }
+  #  InfluxStats.write_point "GraphData", args
+  #end
 
 
   #     CSV.open(path,"a") do |csv|

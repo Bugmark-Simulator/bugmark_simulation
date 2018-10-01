@@ -78,48 +78,14 @@ hr
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue
 
-h2 Graph 1
-div[id="graphdiv1"]
-javascript:
-    g = new Dygraph(
+h2 Contract fixed Rate
+img[src='http://45.33.15.105:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00']
 
-    // containing div
-    document.getElementById("graphdiv1"),
+h2 Payout vs Potential
+img[src='http://45.33.15.105:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00']
 
-    // CSV or path to a CSV file.
-    // "/metrics/temperatures.csv"
-    "/csv/graph1.csv",
-    {
-    rollPeriod: 7,
-    legend: 'always',
-    title: 'Title',
-    ylabel: 'Y-Axis',
-    xlabel: 'X-Axis'}
-    );
+h2 Variance of Offer Volumes
+img[src='http://45.33.15.105:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00']
 
-h2 Fixed Paid / Total Paid
-div[id="graphdiv2"]
-javascript:
-  g = new Dygraph(
-    document.getElementById("graphdiv2"),
-    "/csv/fixed_total.csv",
-    {
-            legend: 'always',
-            title: 'Fixed Paid / Total Paid',
-            ylabel: 'Ratio',
-            xlabel: 'Days'}
-  );
-
-h2 Graph 3
-div[id="graphdiv3"]
-javascript:
-  g = new Dygraph(
-    document.getElementById("graphdiv3"),
-    "/csv/graph1.csv",
-    {
-            rollPeriod: 7,
-            legend: 'always',
-            title: 'Title',
-            ylabel: 'Y-Axis',
-            xlabel: 'X-Axis'}
-  );
+h2 Open offer Count and Volume
+img[src='http://45.33.15.105:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00']
