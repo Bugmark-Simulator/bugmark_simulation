@@ -1,68 +1,46 @@
-# University of Nebraska Omaha Consent Form
+# Informed Consent Form
 
-IRB PROTOCOL # 313-18-EX 
+University of Nebraska at Omaha<br/>
+IRB PROTOCOL # 658-18-EX 
 
 ## Title of this Research Study
 
-Usability testing of a new market mechanism for peer-production
+Investigating the influence of signals on market tradng behavior
 
 ## Study Participants
 
 You are invited to participate in this research study. The information in this consent
 form is provided to help you make an informed decision whether or not to participate.
-
 If you have any questions, please do not hesitate to ask.
 
-If you decide to participate in this study, you will first participate in a training session.
-You have the right to change your mind and leave the study at any time without
-penalty, and you need not give a reason for leaving the study. Your enrollment status
-will be unaffected by participating.
+If you decide to participate in the study, you will be asked to participate in up to four
+60-minute  sessions.  We  will  offer  several  sessions  and  you  can  choose  the  most
+convenient  time.  During  the  first  three  sessions,  you  will  be  using  a  software
+prototype on a computer that we provide. The prototype will be the same in each
+session but content you are interacting with will be constantly changing. We will be
+tracking your behavior within the software and ask you at the end of each session to
+answer a few questions. The optional fourth session would be an interview about
+your experience using the prototype.
 
-Taking part in this study voluntarily. Data collected during the study will be stored
-using an identifier, rather than using your name. The data collected about you in this
-study will be kept private and identifiers will not be shared with anyone outside the
-study. The recorded sessions will be deleted after completed analysis. Also, no
-personal information will be disclosed in any publications or presentations as a result
-of being in this research.
+Participation in the study is voluntary. You have the right to change your mind at any
+time. You may stop participating in the study without penalty and without giving a
+reason.  Your  enrollment  status  or  class  performance  will  be  unaffected  by
+participating.  Your  participation  will  be  anonymous  and  we  collect  your  personal
+information only to communicate with you about scheduling sessions and to provide
+you with an Amazon gift card as a token of appreciation for your participation. The
+value  of  the  Amazon  gift  card  will  be  determined  by  how  many  sessions  you
+participated in.
 
-We ask that you participate in three usability studies. The software platform can be
-used from anywhere with internet access. You can participate on your own time and
-from any location you choose. We do not require you to travel to a specific location
-but do request that you make time to join a training session for each study.
+The results of the research study will not be of use to you, and you will not be told
+individual  results.  We  may  share  the  full  anonymous  research  dataset  with
+collaborators. If you like to receive a final study report, you are free to let us know.
+If you have any questions about the rights as a research participant, please contact
+the  principal  investigator  Georg  Link  via  glink@unomaha.edu,  the  secondary
+investigator  Vinod  Ahuja  via  vahuja@unomaha.edu,  or  the  faculty  supervisor:  Dr.
+Matt Germonprez via germonprez@gmail.com.
 
-Usability study 1 is our base case. The objective is to get you using the platform,
-opening and closing contracts, resolving trades successfully, and earning some
-money. We also want your feedback after this study to improve the experience for the
-next two studies. In this study, everyone will be workers who work on pre-funded
-tasks.
-
-Usability study 2 requires more economic reasoning on your part. You will be both
-worker and trader in this study. You must then not only decide what tasks to work on
-but also take on the role of funding these tasks (deciding what tasks to fund and how
-much).
-
-Usability study 3 requires advanced knowledge of trading and involves partial work
-and reselling of contracts. We want to understand how information sharing and
-collaboration work in a trading platform for software tasks. Specifically, our
-hypothesis is that such a trading platform facilitates information sharing and
-collaboration.
-
-Prior to each study we will offer a training session to familiarize you with the new
-functionality that you will use. The training will be recorded and available to you at all
-times. We will also prepare a FAQ and written instructions for the software prototype.
-After each study, we will send out a survey asking "What did you find easy? What did
-you struggle with?" Other evaluations include trace data from the transaction history
-in our software prototype.
-
-The results of these research studies will not be of any use to you, and you will not
-be told individual results. If you like to receive the final study trackerrt, you are free to
-ask us for it.
-
-If you have any questions about your rights as a research participant, please contact
-the principal investigator Georg Link via email at glink@unomaha.edu, the secondary
-investigators Malvika Rao via email at malvikar@gmail.com, Andy Leak via email at
-andy@r210.com, or the faculty supervisor Dr. Matt Germonprez via email at
-germonprez@gmail.com.
-
-By checking the box when creating your account for the software prototype, you
-agree to have read this consent form and voluntarily decided to participate.
+You can only participate if you consent. By clicking "I consent to participate" within
+the software prototype, you acknowledge that the information in this consent form
+was explained to you, you have read and understood the consent form, that your
+questions have been answered, and that you decided to participate. You will receive
+a copy of this consent form via email when we confirm your scheduled sessions.
