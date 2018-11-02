@@ -160,11 +160,19 @@ Your platform is ready to go. The default admin account is
 
 ### 3. Setting up Grafana
 
- 1. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`
+ 1. Enable Grafana for users without requiring signing by editing file `/etc/grafana/grafana.ini` and setting:
+``` 
+    [auth.anonymous]
+    enabled = true
+    org_name = Main Org.
+    org_role = Viewer
+```
+ 
+ 2. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`
 
- 2. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
+ 3. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
 
- 3. Configure a influxDB connection
+ 4. Configure a influxDB connection
    - type: influxDB
    - Basic Autho (yes)
    - user: admin
@@ -173,13 +181,13 @@ Your platform is ready to go. The default admin account is
    - user: admin
    - password: admin
 
- 4. Only after you have data in InfluxDB does it make sense to setup a panels because Grafana will only allow you to setup visualizations for existing data.
+ 5. Only after you have data in InfluxDB does it make sense to setup a panels because Grafana will only allow you to setup visualizations for existing data.
 
- 5. Create PostgreSQL user for grafana. (How to connect to PostgreSQL is described in the helpful commands section below.)
+ 6. Create PostgreSQL user for grafana. (How to connect to PostgreSQL is described in the helpful commands section below.)
    - `CREATE USER grafana WITH PASSWORD 'grafana';`
    - `GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana;`
 
- 6. Configure PostgreSQL connection
+ 7. Configure PostgreSQL connection
    - Name: PSQL
    - Type: PostgreSQL
    - Host: localhost:5432
