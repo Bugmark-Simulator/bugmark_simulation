@@ -18,8 +18,8 @@ require_relative "./../webapp/app_helpers"
 require 'open-uri'  # for downloading grafana image
 # make function for graph1
 AppHelpers.module_eval do
-  module_function(:fixed_total_graph)
-  public :fixed_total_graph
+  module_function(:grafana_graph_data)
+  public :grafana_graph_data
 end
 
 #require 'whenever'
@@ -141,27 +141,28 @@ def nightly_scr
     STDOUT.write "\rStep 5: generate data for graphs                            "
     STDOUT.flush
     # Extracting data for graphs
-    AppHelpers.fixed_total_graph(last_day)
+    AppHelpers.grafana_graph_data(last_day)
 
     STDOUT.write "\rStep 6: create graphs                                       "
     STDOUT.flush
-    # contract fix rate
-    open('./../webapp/public/graph/contract_fix_rate.png', 'wb') do |file|
-      file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+    Tracker.pluck('uuid').each do |project_uuid|
+      # contract fix rate
+      open("./../webapp/public/graph/#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
+        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+      end
+      # payout vs potential
+      open("./../webapp/public/graph/#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
+        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+      end
+      # variance of offer volumes
+      open("./../webapp/public/graph/#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
+        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+      end
+      # open offer count and volume
+      open("./../webapp/public/graph/#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
+        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+      end
     end
-    # payout vs potential
-    open('./../webapp/public/graph/payout_vs_potential.png', 'wb') do |file|
-      file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-    end
-    # variance of offer volumes
-    open('./../webapp/public/graph/var_offer_volumes.png', 'wb') do |file|
-      file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-    end
-    # open offer count and volume
-    open('./../webapp/public/graph/open_offer_count_vol.png', 'wb') do |file|
-      file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-    end
-
 
     STDOUT.write "\r                                                            "
     STDOUT.flush

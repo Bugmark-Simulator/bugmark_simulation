@@ -44,7 +44,7 @@ Exchange.load_rails
 # days in future that offers expire and contracts mature
 MATURATION_DAYS_IN_FUTURE = 3
 # funder price
-UNFIXED_PRICE = 1.0
+UNFIXED_PRICE = [0.80, 0.85, 0.90, 0.95, 1.0]
 # volume of contracts in tokens
 CONTRACT_VOLUME = 100
 # number of offers a funder creates
@@ -88,7 +88,7 @@ loop do
       # args is a hash
       args  = {
         user_uuid: funder_uuid,
-        price: UNFIXED_PRICE,  # always fixed price 1
+        price: UNFIXED_PRICE.sample,  # always fixed price 1
         volume: CONTRACT_VOLUME,
         stm_issue_uuid: issue_uuid,
         expiration: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE),
@@ -144,7 +144,11 @@ loop do
           # then filter offers for the current issue
           offers = offers.where(stm_issue_uuid: issue.uuid)
           # randomly select an offer
-          offer = offers.order('RANDOM()').first
+          offers = offers.order('RANDOM()')
+          offer = offers.first
+          puts offers.explain
+          puts offers.to_sql
+          puts ""
           # accept offer
           if !offer.nil? && offer.valid?
             projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
