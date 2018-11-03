@@ -195,6 +195,9 @@ Your platform is ready to go. The default admin account is
    - User: grafana
    - Password: grafana
 
+  8. [TODO] setup panels in grafana
+  
+  9. [TODO] announce location of panels to simulator to display graphs 
 
 ## Resetting Bugmark Exchange and all the database
 
