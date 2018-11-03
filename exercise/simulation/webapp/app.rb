@@ -365,6 +365,8 @@ get "/account" do
     redirect "/accountf"
   elsif current_user["jfields"]["type"] == "worker"
     redirect "/accountw"
+  else 
+      redirect "/accountf"
   end
 end
 
