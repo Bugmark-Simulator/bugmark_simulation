@@ -210,9 +210,7 @@ module AppHelpers
     when 'expired'
       'EXPIRED'
     when 'open'
-      if funding_hold?(user)
-        "FUNDING HOLD"
-      elsif offer.user.uuid == user.uuid
+      if offer.user.uuid == user.uuid
         "My Offer"
       else
         cost = 20 - offer.value.to_i

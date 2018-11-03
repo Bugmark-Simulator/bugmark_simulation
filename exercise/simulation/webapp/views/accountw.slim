@@ -11,18 +11,7 @@ hr
           span
             '  (
             a[href='/contracts'] View
-            '  )
-      p
-        | You funded <b>#{funding_count(current_user)}</b> offers.
-        - if funding_hold?(current_user)
-          | You are on #{funding_hold_link.html_safe}, ineligible to accept
-            offers until you fund <b>five</b> offers.
-      - if funding_count(current_user) > 0
-        p
-          | Of your funded offers, <b>#{successful_fundings(current_user)}</b>
-            have resolved sucessfully.  You will earn #{TS.fee_funding} tokens
-            for each successful resolution.
-            <a href='/help#funding' target='_blank'>Learn More</a>
+            '  
       p
         ' You accepted the
         a[href="/consent_form"] UNO Consent Form
