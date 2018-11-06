@@ -27,67 +27,12 @@ end
 # ----- project Page -----
 get "/project" do
   protected!
-  # @trackers = Tracker.all
-  # @issue = Issue.all
-  #
-  # sql = "SELECT COUNT(offers.uuid) FROM offers
-  # JOIN issues ON offers.stm_issue_uuid = issues.uuid
-  # JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
-  # WHERE offers.status = 'open';  "
-  # openoffer = ActiveRecord::Base.connection.execute(sql).to_a
-  # @openoffers = openoffer[0]["count"]
-  #
-  # sql1 = "SELECT COUNT(contracts.uuid) FROM contracts
-  # JOIN issues ON contracts.stm_issue_uuid = issues.uuid
-  # JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
-  # WHERE contracts.status = 'open';  "
-  # activecontract = ActiveRecord::Base.connection.execute(sql1).to_a
-  # @activecontract = activecontract[0]["count"]
-
+  @treatment = current_user["jfields"]["treatment"]
   slim :project
 end
 
 
-# -----project page include tracker ------
-# list all tracker which is project also
 
-
-
-# ----- wordquest -----
-
-get "/wordquest/:hexid" do
-  protected!
-  @hexid  = params["hexid"].upcase
-  @issue  = Issue.by_hexid(@hexid).first
-  @cwrd   = CodeWord.new
-  @issues = @cwrd.issues_for_user(current_user.uuid)
-  @kwd    = @cwrd.codeword_for_user(@issue.sequence, current_user.uuid)
-  slim :wordquest
-end
-
-post "/wordquest/:hexid" do
-  protected!
-  cwrd = CodeWord.new
-  c1, c2 = [params['codeword1'].capitalize, params['codeword2'].capitalize]
-  if solution = cwrd.solution_for(c1, c2)
-    flash[:solution] = "The solution for: #{c1} + #{c2} = <b>#{solution}</b>"
-  else
-    flash[:danger] = "No solution was found for / #{c1} / #{c2} /"
-  end
-  redirect "/wordquest/#{params["hexid"]}"
-end
-
-get "/wordquest" do
-  protected!
-  @issues = CodeWord.new.issues_for_user(current_user.uuid)
-  slim :wordquest
-end
-
-get "/wordkeys" do
-  protected!
-  @cwrd = CodeWord.new.issues
-  slim :wordkeys
-end
 
 # ----- events -----
 
@@ -358,26 +303,14 @@ end
 
 # ----- user account -----
 
-# account as per dash board
+# funder account
 get "/account" do
   protected!
-  if current_user["jfields"]["type"] == "funder"
-    redirect "/accountf"
-  elsif current_user["jfields"]["type"] == "worker"
-    redirect "/accountw"
-  else
-      redirect "/accountf"
-  end
-end
-
-# funder account
-get "/accountf" do
-  protected!
   @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
-  slim :accountf
+  slim :account
 end
 
-post "/accountf" do
+post "/account" do
   protected!
   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
   ActiveRecord::Base.connection.execute(cancelsql).to_a
@@ -393,72 +326,9 @@ post "/accountf" do
     WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
     shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
   end
-  redirect "/accountf"
+  redirect "/account"
   #slim :accountf
 end
-
-# Worker account
-get "/accountw" do
-  protected!
-  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
-  slim :accountw
-end
-
-post "/accountw" do
-  protected!
-  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
-  ActiveRecord::Base.connection.execute(cancelsql).to_a
-  cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
-  shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-  if shifts['partial'] > 0
-    if shifts['partial'] < shifts['full']
-      shift = "'#{shifts['partial']} seconds'"
-    elsif
-      shift = "'#{shifts['full']} seconds'"
-    end
-    cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
-    WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
-    shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
-  end
-  redirect "/accountw"
-end
-
-
-
-#-----account original
-# get "/account" do
-#   protected!
-#   binding.pry
-#   #  @events = Event.for_user(current_user)
-#   @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
-#   slim :account
-# end
-#
-#
-# post "/account" do
-#   protected!
-#   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
-#   ActiveRecord::Base.connection.execute(cancelsql).to_a
-# #  cancelsql = "SELECT startwork, age(completed, startwork) as full, age(completed,current_timestamp) as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
-#   cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
-#   shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-#   # if partial is less than full, shift by partial
-#   #try this sql
-#   #  SELECT EXTRACT(EPOCH FROM (completed - startwork)), EXTRACT(EPOCH FROM (completed - current_timestamp)) FROM work_queues
-#   if shifts['partial'] > 0
-#     if shifts['partial'] < shifts['full']
-#       shift = "'#{shifts['partial']} seconds'"
-#     elsif
-#       shift = "'#{shifts['full']} seconds'"
-#     end
-#     cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
-#     WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
-#     shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
-#   end
-#   redirect "/account"
-# end
-
-
 
 
 post "/set_username" do

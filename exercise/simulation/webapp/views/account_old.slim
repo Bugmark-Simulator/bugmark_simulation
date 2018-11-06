@@ -1,4 +1,3 @@
-h2 This is funder account dashboard testing
 h2 Account information for #{current_user.email}
 hr
 .row[style='margin-top: 20px;']
@@ -64,7 +63,7 @@ hr
           tr
             td <b>Issue No</b>
             td <b>Task</b>
-            td <b>Progress</b>
+            td <b>Progress (Time Remaining to finish the task in Seconds)</b>
             td <b>Action</b>
         tbody
           - @work_queues.each do |work_queue|
@@ -77,16 +76,3 @@ hr
               td
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue
-
-h2 Contract fixed Rate
-/images are created by the nightly script
-img[src='/graph/contract_fix_rate.png']
-
-h2 Payout vs Potential
-img[src='/graph/payout_vs_potential.png']
-
-h2 Variance of Offer Volumes
-img[src='/graph/var_offer_volumes.png']
-
-h2 Open offer Count and Volume
-img[src='/graph/open_offer_count_vol.png']
