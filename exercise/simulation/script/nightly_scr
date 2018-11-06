@@ -36,6 +36,8 @@ Exchange.load_rails
 
 
 @nightly_run = Time.now - 1
+@request_graph_pictures = false;
+@getting_graph_pictures = false;
 def nightly_scr
   # ----- read settings -----
 
@@ -143,26 +145,11 @@ def nightly_scr
     # Extracting data for graphs
     AppHelpers.grafana_graph_data(last_day)
 
+
     STDOUT.write "\rStep 6: create graphs                                       "
     STDOUT.flush
-    Tracker.pluck('uuid').each do |project_uuid|
-      # contract fix rate
-      open("./../webapp/public/graph/#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
-        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-      end
-      # payout vs potential
-      open("./../webapp/public/graph/#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
-        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-      end
-      # variance of offer volumes
-      open("./../webapp/public/graph/#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
-        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-      end
-      # open offer count and volume
-      open("./../webapp/public/graph/#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
-        file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-      end
-    end
+    @request_graph_pictures = true;
+
 
     STDOUT.write "\r                                                            "
     STDOUT.flush
@@ -207,12 +194,85 @@ def workqueue_sync
   end
 end
 
+def update_graphs
+  # only get graphs if they were requested
+  return unless @request_graph_pictures
+  # only get graphs, if the process is not yet running
+  return if @getting_graph_pictures
+  # announce that the process is running
+  @getting_graph_pictures = true
+  # reset requeest bit
+  @request_graph_pictures = false
+
+  STDOUT.puts "\rStep 6: store graphs in static files                            "
+  Tracker.pluck('uuid').each do |project_uuid|
+    puts "graphs for project #{project_uuid}"
+    # get all pictures for this project at the same time
+    threads = []
+    threads.push(
+      # contract fix rate
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 1 - contract fix rate"
+      end
+    )
+    # payout vs potential
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 2 - payout vs potential"
+      end
+    )
+    # variance of offer volumes
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 3 - variance of offer volumes"
+      end
+    )
+    # open offer count and volume
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 4 - open offer count and volume"
+      end
+    )
+    # maturation days offers summary
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_maturation_days_offer_summary.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 5 - maturation days offers summary"
+      end
+    )
+    # wait until pictures for this project are stored before going to the next project
+    threads.each(&:join)
+  end
+  @getting_graph_pictures = false
+
+end
+
 loop do
+  # always check the workqueue
   workqueue_sync
+  # if nightly needs to be run, run it
   if @nightly_run <= Time.now
     nightly_scr
   end
-  sleep 1
+  # get graphs, but don't wait for them
+  Thread.new do
+    update_graphs
+  end
+  sleep 2
 end
 
 puts 'DONE'

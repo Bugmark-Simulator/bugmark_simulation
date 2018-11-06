@@ -146,15 +146,17 @@ loop do
           # randomly select an offer
           offers = offers.order('RANDOM()')
           offer = offers.first
-          puts offers.explain
-          puts offers.to_sql
-          puts ""
+          # puts offers.explain
+          # puts offers.to_sql
+          # puts ""
           # accept offer
           if !offer.nil? && offer.valid?
             projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
-            counter = projection.offer
-            if counter.valid?
-              ContractCmd::Cross.new(counter, :expand).project
+            if projection
+              counter = projection.offer
+              if counter.valid?
+                ContractCmd::Cross.new(counter, :expand).project
+              end
             end
           end
         end

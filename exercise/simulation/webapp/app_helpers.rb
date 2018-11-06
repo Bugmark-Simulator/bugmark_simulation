@@ -581,58 +581,129 @@ def grafana_graph_data(timeobject = BugmTime.now)
   # Graph data for Contract fixed rate vs total
 
   Tracker.pluck('uuid').each do |project_uuid|
-    sql_fixed = "SELECT count(*) from contracts where awarded_to = 'fixed' and to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
-    sql_total = "SELECT count(*) from contracts where to_char(maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
-    fixed = ActiveRecord::Base.connection.execute(sql_fixed).to_a.first['count'].to_f
-    total = ActiveRecord::Base.connection.execute(sql_total).to_a.first['count'].to_f
+    # sql_fixed = "SELECT count(*) from contracts
+    #             join issues on contracts.stm_issue_uuid=issues.uuid
+    #             where awarded_to = 'fixed'
+    #             and to_char(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+    #             and issues.stm_tracker_uuid = '#{project_uuid}';"
+    # sql_total = "SELECT count(*)
+    #             from contracts
+    #             join issues on contracts.stm_issue_uuid=issues.uuid
+    #             where to_char(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+    #             and issues.stm_tracker_uuid = '#{project_uuid}';"
+    sql = "WITH f_contr AS (
+          SELECT COUNT(*) AS fixed_contr
+          FROM contracts
+          JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+          WHERE awarded_to = 'fixed'
+          AND TO_CHAR(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+          AND issues.stm_tracker_uuid = '#{project_uuid}'
+          )
+          , a_contr AS (
+          SELECT COUNT(*) AS all_contr
+          FROM contracts
+          JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+          WHERE to_char(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+          AND issues.stm_tracker_uuid = '#{project_uuid}'
+          )
+          SELECT fixed_contr
+          , all_contr
+          , CASE WHEN all_contr=0 THEN 0.0 ELSE CAST(fixed_contr AS DOUBLE PRECISION)/CAST(all_contr AS DOUBLE PRECISION) END AS ratio
+          FROM f_contr
+          , a_contr;";
+    result =ActiveRecord::Base.connection.execute(sql).to_a.first
+    fixed = result['fixed_contr'].to_f
+    total = result['all_contr'].to_f
+    ratio = result['raio'].to_f
     #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-    fixed_total = 0.0
-    if total > 0.0
-      fixed_total = (fixed / total).to_f
-    end
+    # fixed_total = 0.0
+    # if total > 0.0
+    #   fixed_total = (fixed / total).to_f
+    # end
     if USE_INFLUX == true
       args = {
         tags: {
-          graph: "fixed_total"
+          graph: "fixed_total",
+          project: "#{project_uuid}"
         },
-        values: {fixedtotalratio: fixed_total, fixed_contract: fixed, total_contract: total},
+        values: {fixedtotalratio: ratio, fixed_contract: fixed, total_contract: total},
         timestamp: timeobject.to_i
       }
       InfluxStats.write_point "GraphData", args
     end
 
     # Graph data for Payout vs Potential
-    sql_payout = "select sum(fixed_value) + sum(unfixed_value) as payout from escrows join contracts on escrows.contract_uuid = contracts.uuid where contracts.awarded_to = 'fixed' and to_char(contracts.maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
-    sql_potential = "select sum(fixed_value) + sum(unfixed_value) as potential from escrows join contracts on escrows.contract_uuid = contracts.uuid where to_char(contracts.maturation, 'DD/MM/YYYY') = '#{timeobject.strftime("%d/%m/%Y")}';"
-    fixed = ActiveRecord::Base.connection.execute(sql_payout).to_a.first['payout'].to_f
-    total = ActiveRecord::Base.connection.execute(sql_potential).to_a.first['potential'].to_f
+    # sql_payout = "select sum(fixed_value) + sum(unfixed_value) as payout
+    #               from escrows
+    #               join contracts on escrows.contract_uuid = contracts.uuid
+    #               join issues on contracts.stm_issue_uuid=issues.uuid
+    #               where contracts.awarded_to = 'fixed'
+    #               and to_char(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+    #               and issues.stm_tracker_uuid = '#{project_uuid}';"
+    # sql_potential = "select sum(fixed_value) + sum(unfixed_value) as potential
+    #                 from escrows
+    #                 join contracts on escrows.contract_uuid = contracts.uuid
+    #                 join issues on contracts.stm_issue_uuid=issues.uuid
+    #                 where to_char(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+    #                 and issues.stm_tracker_uuid = '#{project_uuid}';"
+    sql = "WITH payout_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS payout
+              FROM escrows
+              JOIN contracts on escrows.contract_uuid = contracts.uuid
+              JOIN issues on contracts.stm_issue_uuid=issues.uuid
+              WHERE contracts.awarded_to = 'fixed'
+              AND TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+              AND issues.stm_tracker_uuid = '#{project_uuid}'
+            )
+            , potential_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS potential
+              FROM escrows
+              JOIN contracts ON escrows.contract_uuid = contracts.uuid
+              JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+              WHERE TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+              AND issues.stm_tracker_uuid = '#{project_uuid}'
+            )
+            SELECT payout
+            , potential
+            , CASE WHEN potential=0 THEN 0.0 ELSE CAST(payout AS DOUBLE PRECISION)/CAST(potential AS DOUBLE PRECISION) END AS ratio
+            FROM payout_sql, potential_sql;"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    payout = result['payout'].to_f
+    potential = result['potential'].to_f
+    ratio = result['ratio'].to_f
     #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-    fixed_total = 0.0
-    if total > 0.0
-      fixed_total = (fixed / total).to_f
-    end
+    # fixed_total = 0.0
+    # if total > 0.0
+    #   fixed_total = (fixed / total).to_f
+    # end
     if USE_INFLUX == true
       args = {
         tags: {
-          graph: "Payout_Potential"
+          graph: "payout_potential",
+          project: "#{project_uuid}"
         },
-        values: {payoutpotentialratio: fixed_total, payout_contract: fixed, potential_contract: total},
+        values: {payoutpotentialratio: ratio, payout_contract: payout, potential_contract: potential},
         timestamp: timeobject.to_i
       }
       InfluxStats.write_point "GraphData", args
     end
 
     # Graph data for Variance of offer volumes
-    sql_agr = "select min(volume * price) as minvol, max(volume * price) as maxvol, avg(volume * price) as avgvol from offers where status = 'open';"
-    agr = ActiveRecord::Base.connection.execute(sql_agr).to_a
-    minvol = agr.first['minvol'].to_f
-    maxvol = agr.first['maxvol'].to_f
-    avgvol = agr.first['avgvol'].to_f
+    sql = "SELECT MIN(volume * price) AS minvol
+              , MAX(volume * price) AS maxvol
+              , AVG(volume * price) AS avgvol
+              FROM offers
+              JOIN issues ON offers.stm_issue_uuid=issues.uuid
+              WHERE status = 'open'
+              AND issues.stm_tracker_uuid = '#{project_uuid}';"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    minvol =result['minvol'].to_f
+    maxvol = result['maxvol'].to_f
+    avgvol = result['avgvol'].to_f
     #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
     if USE_INFLUX == true
       args = {
         tags: {
-          graph: "variance_of_offer"
+          graph: "variance_of_offer",
+          project: "#{project_uuid}"
         },
         values: {minvol: minvol, maxvol: maxvol, avgvol: avgvol},
         timestamp: timeobject.to_i
@@ -641,15 +712,21 @@ def grafana_graph_data(timeobject = BugmTime.now)
     end
 
     # Graph data for Variance of offer volumes
-    sql_off = "select sum(volume) as vol, count(*) as total from offers where status = 'open';"
-    off = ActiveRecord::Base.connection.execute(sql_off).to_a
-    vol = off.first['vol'].to_f
-    total = off.first['total'].to_f
+    sql = "SELECT SUM(volume) AS vol
+              , COUNT(*) AS total
+              FROM offers
+              JOIN issues ON offers.stm_issue_uuid=issues.uuid
+              WHERE status = 'open'
+              AND issues.stm_tracker_uuid = '#{project_uuid}';"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    vol = result['vol'].to_f
+    total = result['total'].to_f
     #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
     if USE_INFLUX == true
       args = {
         tags: {
-          graph: "open_offer_count_and_volume"
+          graph: "open_offer_count_and_volume",
+          project: "#{project_uuid}"
         },
         values: {offer_volume: vol, offer_count: total},
         timestamp: timeobject.to_i
@@ -657,33 +734,7 @@ def grafana_graph_data(timeobject = BugmTime.now)
       InfluxStats.write_point "GraphData", args
     end
 
-    # Graph data for Maturation Days table
-    # future maturation dates from contracts
-    #sql_c_maturation = "select to_char(maturation, 'YYYY/MM/DD') as dates from Contracts where to_char(maturation, 'YYYY/MM/DD') >= '#{BugmTime.now.strftime("%Y/%m/%d")}' group by to_char(maturation, 'YYYY/MM/DD');"
-    #future_c_maturation_dates = ActiveRecord::Base.connection.execute(sql_c_maturation).to_a
-    # future maturation dates from offers
-    #sql_o_matu = "select substring(lower(maturation_range)::TEXT from 1 for 10) as dates from offers where substring(lower(maturation_range)::TEXT from 1 for 10) >= '#{BugmTime.now.strftime("%Y-%m-%d")}' group by substring(lower(maturation_range)::TEXT from 1 for 10);"
-    #future_o_maturation_dates = ActiveRecord::Base.connection.execute(sql_o_matu).to_a
-    #sql_last_price = "select postion"
-    #vol = off.first['vol'].to_f
-    #total = off.first['total'].to_f
-    #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-    #if USE_INFLUX == true
-    #  args = {
-    #    tags: {
-    #      graph: "open_offer_count_and_volume"
-    #    },
-    #    values: {offer_volume: vol, offer_count: total},
-    #    timestamp: timeobject.to_i
-    #  }
-    #  InfluxStats.write_point "GraphData", args
-    #end
 
-
-    #     CSV.open(path,"a") do |csv|
-    #       csv << [BugmTime.now().strftime("%d/%m/%Y"), fixed_total]
-    #     end
-    # end
   end #tracker.each
 end
   # ----- testing -----
