@@ -249,7 +249,7 @@ def update_graphs
     threads.push(
       Thread.new do
         open("./../webapp/public/graph/#{project_uuid}_maturation_days_offer_summary.png", 'wb') do |file|
-          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=500&height=250&tz=UTC-05%3A00").read
         end
         puts "graph: 5 - maturation days offers summary"
       end

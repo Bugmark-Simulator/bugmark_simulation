@@ -27,22 +27,22 @@ end
 # ----- project Page -----
 get "/project" do
   protected!
-  @trackers = Tracker.all
-  @issue = Issue.all
-
-  sql = "SELECT COUNT(offers.uuid) FROM offers
-  JOIN issues ON offers.stm_issue_uuid = issues.uuid
-  JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
-  WHERE offers.status = 'open';  "
-  openoffer = ActiveRecord::Base.connection.execute(sql).to_a
-  @openoffers = openoffer[0]["count"]
-
-  sql1 = "SELECT COUNT(contracts.uuid) FROM contracts
-  JOIN issues ON contracts.stm_issue_uuid = issues.uuid
-  JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
-  WHERE contracts.status = 'open';  "
-  activecontract = ActiveRecord::Base.connection.execute(sql1).to_a
-  @activecontract = activecontract[0]["count"]
+  # @trackers = Tracker.all
+  # @issue = Issue.all
+  #
+  # sql = "SELECT COUNT(offers.uuid) FROM offers
+  # JOIN issues ON offers.stm_issue_uuid = issues.uuid
+  # JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
+  # WHERE offers.status = 'open';  "
+  # openoffer = ActiveRecord::Base.connection.execute(sql).to_a
+  # @openoffers = openoffer[0]["count"]
+  #
+  # sql1 = "SELECT COUNT(contracts.uuid) FROM contracts
+  # JOIN issues ON contracts.stm_issue_uuid = issues.uuid
+  # JOIN trackers ON issues.stm_tracker_uuid = trackers.uuid
+  # WHERE contracts.status = 'open';  "
+  # activecontract = ActiveRecord::Base.connection.execute(sql1).to_a
+  # @activecontract = activecontract[0]["count"]
 
   slim :project
 end
@@ -365,7 +365,7 @@ get "/account" do
     redirect "/accountf"
   elsif current_user["jfields"]["type"] == "worker"
     redirect "/accountw"
-  else 
+  else
       redirect "/accountf"
   end
 end

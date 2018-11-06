@@ -1,9 +1,10 @@
-h2 Project
+h2 Projects
 hr
-.row[style='margin-top: 20px;']
-  .col-md-6.d-flex.align-items-start.flex-column
-    .p-2.mt-auto[style='width: 100%']
-      table.table.table-sm.table-bordered.table-hover
+.row
+  .col-md-4
+    .p
+      p select a project to view its statistics
+      table.table.table-sm.table-hover.table-striped.table-condensed
         thead
           tr
             th <b>Project Description</b>
@@ -11,13 +12,30 @@ hr
             th <b>Open Offers</b>
             th <b>Active Contracts</b>
         tbody
-        - @trackers.each do |tracker|
+        - Tracker.all.each do |tracker|
           tr
             td = tracker.name
             td = Issue.open.where(stm_tracker_uuid: tracker.uuid).count
             td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
             td = Contract.open.where(stm_tracker_uuid: tracker.uuid).count
+  .col-md-4
+    p <b>Market Metrics</b>
+    /images are created by the nightly script
 
-.row[style='margin-top: 20px;']
-  .col-md-6.d-flex.align-items-start.flex-column
-    .p-2 <b>Project: #{@trackers.name}  </b>
+    /p Contract fixed Rate
+    img.mt-1[src='/graph/#{Tracker.first.uuid}_contract_fix_rate.png' imgsrc='/graph/projectuuid_contract_fix_rate.png']
+
+    /p Payout vs Potential
+    img.mt-1[src='/graph/#{Tracker.first.uuid}_payout_vs_potential.png']
+
+    /p Variance of Offer Volumes
+    img.mt-1[src='/graph/#{Tracker.first.uuid}_var_offer_volumes.png']
+
+    /p Open offer Count and Volume
+    img.mt-1[src='/graph/#{Tracker.first.uuid}_open_offer_count_vol.png']
+
+    /p Maturation Days Offer Summary
+    img.mt-1[src='/graph/#{Tracker.first.uuid}_maturation_days_offer_summary.png']
+
+  .col-md-4
+    p <b>Health Metrics</b>
