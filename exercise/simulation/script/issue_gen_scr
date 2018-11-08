@@ -54,6 +54,9 @@ Tracker.all.each do |i|
     skill_array.each do |i|
       myhash["skill"]["#{i}"] = 0
     end
+    myhash["created_at"] = BugmTime.now.strftime("%Y-%m-%d")
+    myhash["first_activity"] = ""
+    myhash["last_activity"] = ""
     sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
     #binding.pry
     ActiveRecord::Base.connection.execute(sql).to_a

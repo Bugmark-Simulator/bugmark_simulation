@@ -734,6 +734,53 @@ def grafana_graph_data(timeobject = BugmTime.now)
       InfluxStats.write_point "GraphData", args
     end
 
+    # Graph data for Open Issues
+    open_issue = Issue.open.where(stm_tracker_uuid: project_uuid).count
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "open_issues",
+          project: "#{project_uuid}"
+        },
+        values: {open_issues: open_issue},
+        timestamp: timeobject.to_i
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
+    # Graph data for Open Issues
+    closed_issue = Issue.closed.where(stm_tracker_uuid: project_uuid).count
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "closed_issues",
+          project: "#{project_uuid}"
+        },
+        values: {closed_issues: closed_issue},
+        timestamp: timeobject.to_i
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+    # Graph data for Open Issue Age
+    # project_uuid = Tracker.first.uuid
+    # all_ages = 0
+    # Issue.open.where(stm_tracker_uuid: project_uuid).each do |issue_temp|
+    #   created_at = JSON.parse(issue_temp.jfield)["created_at"]
+    #   now_at = BugmTime.now.strftime("%Y-%m-%d")
+    #   all_ages += converted_str_time(now_at) - convert_str_time(created_at)
+    # end
+    # avg_age = all_ages / open_issue
+    # if USE_INFLUX == true
+    #   args = {
+    #     tags: {
+    #       graph: "open_issue_age",
+    #       project: "#{project_uuid}"
+    #     },
+    #     values: {open_issue_age: avg_age},
+    #     timestamp: timeobject.to_i
+    #   }
+    #   InfluxStats.write_point "GraphData", args
+    # end
 
   end #tracker.each
 end

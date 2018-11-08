@@ -254,6 +254,60 @@ def update_graphs
         puts "graph: 5 - maturation days offers summary"
       end
     )
+    # open issues
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_open_issues.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=12&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 6 - open issues"
+      end
+    )
+    # closed issues
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_closed_issues.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 7 - closed issues"
+      end
+    )
+    # # issue resolution efficiency
+    # threads.push(
+    #   Thread.new do
+    #     open("./../webapp/public/graph/#{project_uuid}_issue_resolution_efficiency.png", 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+    #     end
+    #     puts "graph: 8 - issue resolution efficiency"
+    #   end
+    # )
+    # # open issue age
+    # threads.push(
+    #   Thread.new do
+    #     open("./../webapp/public/graph/#{project_uuid}_open_issue_age.png", 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+    #     end
+    #     puts "graph: 9 - open issue age"
+    #   end
+    # )
+    # # first response days
+    # threads.push(
+    #   Thread.new do
+    #     open("./../webapp/public/graph/#{project_uuid}_first_response_days.png", 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+    #     end
+    #     puts "graph: 10 - first response days"
+    #   end
+    # )
+    # # issue resolution days
+    # threads.push(
+    #   Thread.new do
+    #     open("./../webapp/public/graph/#{project_uuid}_issue_resolution_days.png", 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+    #     end
+    #     puts "graph: 11 - issue resolution days"
+    #   end
+    # )
     # wait until pictures for this project are stored before going to the next project
     threads.each(&:join)
   end
