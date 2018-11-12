@@ -185,6 +185,15 @@ def workqueue_sync
       end
     end
     if check == true
+      issue_update_sql = "update issues
+          set jfields = jsonb_set(jfields, '{\"first_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+          WHERE exid = '#{ex_id}'
+          AND jfields->>'first_activity' = '';"
+      ActiveRecord::Base.connection.execute(issue_update_sql)
+      issue_update_sql = "update issues
+              set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+              WHERE exid = '#{ex_id}';"
+      ActiveRecord::Base.connection.execute(issue_update_sql)
       IssueCmd::Sync.new({exid: ex_id, stm_status: "closed"}).project
     end
   end
@@ -205,7 +214,7 @@ def update_graphs
   @request_graph_pictures = false
 
   STDOUT.puts "\rStep 6: store graphs in static files                            "
-  Tracker.pluck('uuid').each do |project_uuid|
+  Tracker.pluck('uuid').shuffle.each do |project_uuid|
     puts "graphs for project #{project_uuid}"
     # get all pictures for this project at the same time
     threads = []
@@ -281,15 +290,15 @@ def update_graphs
     #     puts "graph: 8 - issue resolution efficiency"
     #   end
     # )
-    # # open issue age
-    # threads.push(
-    #   Thread.new do
-    #     open("./../webapp/public/graph/#{project_uuid}_open_issue_age.png", 'wb') do |file|
-    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
-    #     end
-    #     puts "graph: 9 - open issue age"
-    #   end
-    # )
+    # open issue age
+    threads.push(
+      Thread.new do
+        open("./../webapp/public/graph/#{project_uuid}_open_issue_age.png", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=500&height=250&tz=UTC-05%3A00").read
+        end
+        puts "graph: 9 - open issue age"
+      end
+    )
     # # first response days
     # threads.push(
     #   Thread.new do

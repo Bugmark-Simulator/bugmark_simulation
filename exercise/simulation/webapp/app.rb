@@ -107,6 +107,15 @@ post "/issue_comments/:uuid" do
   issue_comment_sql = "Insert into issue_comments (issue_uuid, user_uuid, user_name, comment, comment_date)
     values ('#{@issue.uuid}', '#{current_user.uuid}', '#{current_user.name}', '#{params["Comments"]}', '#{BugmTime.now.to_s.slice(0..18)}');"
   ActiveRecord::Base.connection.execute(issue_comment_sql)
+  issue_update_sql = "update issues
+      set jfields = jsonb_set(jfields, '{\"first_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+      WHERE uuid = '#{@issue.uuid}'
+      AND jfields->>'first_activity' = '';"
+  ActiveRecord::Base.connection.execute(issue_update_sql)
+  issue_update_sql = "update issues
+          set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+          WHERE uuid = '#{@issue.uuid}';"
+  ActiveRecord::Base.connection.execute(issue_update_sql)
   redirect "/issues/#{params['uuid']}"
 end
 
