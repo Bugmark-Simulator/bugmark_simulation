@@ -31,9 +31,9 @@ puts 'LOADING RAILS'
 Exchange.load_rails
 
 #-----issues------
-puts 'CREATE A BUGMARK ISSUE'
+puts 'CREATE BUGMARK ISSUES'
 #binding.pry
-id =1
+id = 0
 id = Issue.last.id unless Issue.last.nil?
 Tracker.all.each do |i|
   settings['number_of_issues_tracker'].times do
@@ -60,6 +60,8 @@ Tracker.all.each do |i|
     sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
     #binding.pry
     ActiveRecord::Base.connection.execute(sql).to_a
+
+    puts "created issue #{id}"
   end
 end
 puts 'DONE'

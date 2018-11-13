@@ -42,7 +42,7 @@ settings['create_users'].each do |users|
       opts = {
         balance: users['budget'],
         name: username,
-        email: username+'@test.com',
+        email: username+'@example.com',
         password: userpassword
       }
       userid = FB.create(:user, opts).user.id

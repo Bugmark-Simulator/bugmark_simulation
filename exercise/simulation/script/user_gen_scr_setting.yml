@@ -33,7 +33,7 @@ create_users:
     group: "funder"
     budget: 100
     number_of_new_users: 10
-  - treatment: "both-metrics"
-    group: "admin"
-    budget: 10000000
-    number_of_new_users: 1
+  # - treatment: "both-metrics"
+  #   group: "admin"
+  #   budget: 10000000
+  #   number_of_new_users: 1

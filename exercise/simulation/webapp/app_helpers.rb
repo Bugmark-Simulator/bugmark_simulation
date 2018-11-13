@@ -781,6 +781,134 @@ def grafana_graph_data(timeobject = BugmTime.now)
       InfluxStats.write_point "GraphData", args
     end
 
+    # Graph data for abandoned percentage of open issues (Issue Resolution Efficiency)
+    sql = "WITH total_count_tbl AS
+            (
+              SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS total_count_fld
+              FROM issues
+              WHERE issues.stm_status = 'open'
+              AND issues.stm_tracker_uuid = '#{project_uuid}'
+            )
+            , abandoned_tbl AS
+            (
+              SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS abandoned_fld
+              FROM issues
+              WHERE issues.stm_status = 'open'
+              AND CAST(jfields->>'last_activity' AS TEXT) < '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
+              AND issues.stm_tracker_uuid = '#{project_uuid}'
+            )
+            SELECT CASE WHEN total_count_fld=0 THEN 0.0 ELSE abandoned_fld / total_count_fld END AS abandoned_pct
+            FROM abandoned_tbl, total_count_tbl;"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    abandoned_pct = result['abandoned_pct'].to_f
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "abandoned_vs_open",
+          project: "#{project_uuid}"
+        },
+        values: {abandoned_vs_open: abandoned_pct},
+        timestamp: timeobject.to_i
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
+    # Graph data for First Response Days
+    sql = "SELECT
+              (
+                CAST(
+                  SUM(
+                    CAST(
+                      CAST(
+                        jfields->'first_activity' AS TEXT
+                      ) AS DATE
+                    )
+                    -
+                    CAST(
+                      CAST(
+                        jfields->'created_at' AS TEXT
+                      ) AS DATE
+                    )
+                  ) AS DOUBLE PRECISION
+                )
+                /
+                CAST(
+                  COUNT(*) AS DOUBLE PRECISION
+                )
+              ) AS avg_days
+            FROM issues
+            WHERE
+            (
+              issues.stm_status = 'open'
+              OR
+              (
+                issues.stm_status = 'closed'
+                AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
+              )
+            )
+            AND issues.stm_tracker_uuid = '#{project_uuid}'
+            AND jfields->>'first_activity' <> ''
+            ;"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    first_response_days = result['avg_days'].to_f
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "first_response_days",
+          project: "#{project_uuid}"
+        },
+        values: {first_response_days: first_response_days},
+        timestamp: timeobject.to_i
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
+    # Graph data for Issues Resolution Days ( Closed After Days)
+    sql = "SELECT
+              (
+                CAST(
+                  SUM(
+                    CAST(
+                      CAST(
+                        jfields->'closed_on' AS TEXT
+                      ) AS DATE
+                    )
+                    -
+                    CAST(
+                      CAST(
+                        jfields->'created_at' AS TEXT
+                      ) AS DATE
+                    )
+                  ) AS DOUBLE PRECISION
+                )
+                /
+                CAST(
+                  COUNT(*) AS DOUBLE PRECISION
+                )
+              ) AS avg_days
+            FROM issues
+            WHERE
+            (
+              issues.stm_status = 'closed'
+              AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -100).strftime("%Y-%m-%d")}'
+            )
+            AND issues.stm_tracker_uuid = '#{project_uuid}'
+            ;"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    issue_resolution_days = 0
+    issue_resolution_days = result['avg_days'].to_f unless result.nil?
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "issue_resolution_days",
+          project: "#{project_uuid}"
+        },
+        values: {issue_resolution_days: issue_resolution_days},
+        timestamp: timeobject.to_i
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
   end #tracker.each
 end
   # ----- testing -----

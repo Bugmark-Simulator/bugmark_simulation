@@ -27,15 +27,19 @@ hr
 
       /p Contract fixed Rate
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_contract_fix_rate.png' imgsrc='/graph/projectuuid_contract_fix_rate.png']
+      </br>
 
       /p Payout vs Potential
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_payout_vs_potential.png' imgsrc='/graph/projectuuid_payout_vs_potential.png']
+      </br>
 
       /p Variance of Offer Volumes
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_var_offer_volumes.png' imgsrc='/graph/projectuuid_var_offer_volumes.png']
+      </br>
 
       /p Open offer Count and Volume
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_offer_count_vol.png' imgsrc='/graph/projectuuid_open_offer_count_vol.png']
+      </br>
 
       /p Maturation Days Offer Summary
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_maturation_days_offer_summary.png' imgsrc='/graph/projectuuid_maturation_days_offer_summary.png']
@@ -45,23 +49,28 @@ hr
       p <b>Health Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span>
       /images are created by the nightly script
 
-      /p Contract fixed Rate
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
+      /p Open Issues
+      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
+      /</br>
 
-      /p Payout vs Potential
+      /p Closed Issues
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_closed_issues.png' imgsrc='/graph/projectuuid_closed_issues.png']
+      </br>
 
-      /p Variance of Offer Volumes
+      /p Issue Resolution Efficiency
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_efficiency.png' imgsrc='/graph/projectuuid_issue_resolution_efficiency.png']
+      </br>
 
-      /p Open offer Count and Volume
+      /p Open Issue Age
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issue_age.png' imgsrc='/graph/projectuuid_open_issue_age.png']
+      </br>
 
-      /p Maturation Days Offer Summary
+      /p First Response After Days
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_first_response_days.png' imgsrc='/graph/projectuuid_first_response_days.png']
+      </br>
 
-      /p Maturation Days Offer Summary
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_days.png.png' imgsrc='/graph/projectuuid_issue_resolution_days.png.png']
+      /p Issues Closed Afer Days
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_days.png' imgsrc='/graph/projectuuid_issue_resolution_days.png']
 
 - unless @treatment == 'no-metrics'
   javascript:
