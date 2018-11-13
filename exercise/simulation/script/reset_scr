@@ -25,4 +25,19 @@ Exchange.load_rails
 # ----- Reset Everything -----
 puts 'Resetting Bugmark Exchange'
 BugmHost.reset
+
+# ----- Delete graph images -----
+Dir.glob("../webapp/public/graph/*.png").each { |file|
+  File.delete(file)
+}
+
+
+
+
+
+
+
+
+
+
 puts 'DONE'
