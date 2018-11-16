@@ -28,6 +28,9 @@ end
 get "/project" do
   protected!
   @treatment = current_user["jfields"]["treatment"]
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'project');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :project
 end
 
@@ -72,7 +75,9 @@ get "/issues/:uuid" do
   protected!
   @issue = Issue.find_by_uuid(params['uuid'])
   @comments = Issue_Comment.where(issue_uuid: params['uuid']).where(:comment_delete => nil).order(comment_date: :asc)
-  #binding.pry
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issue_detail','#{params['uuid']}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :issue
 end
 
@@ -81,21 +86,9 @@ post "/issue_task_queue/:uuid" do
   protected!
   # moved logic to app_helper to reuse it in the simulation.
   queue_add_task(current_user.uuid,params['uuid'],params['task'])
-  # @issue = Issue.find_by_uuid(params['uuid'])
-  # datesql = "Select max(completed) from work_queues where user_uuid = '#{current_user.uuid}'
-  # and completed > now()
-  # and removed IS NULL;"
-  # maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
-  # #maxdate = JSON.parse(maxdate1)['max']
-  # if maxdate[0]["max"].nil?
-  #   startdate = 'now()'
-  # else
-  #  startdate = "(timestamp '#{maxdate[0]["max"]}')"
-  # end
-  # sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
-  # values ('#{current_user.uuid}','#{@issue.uuid}','#{params["task"]}',
-  #   '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '1 minute',#{startdate}) ;"
-  # ActiveRecord::Base.connection.execute(sql).to_a
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'add_to_queue','#{params['uuid']}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{params['uuid']}"
 end
 
@@ -116,6 +109,9 @@ post "/issue_comments/:uuid" do
           set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
           WHERE uuid = '#{@issue.uuid}';"
   ActiveRecord::Base.connection.execute(issue_update_sql)
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issue_comment','#{params['uuid']}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{params['uuid']}"
 end
 
@@ -129,6 +125,9 @@ post "/issue_comments_delete" do
     set comment_delete = '#{BugmTime.now.to_s.slice(0..18)}'
     where id = #{params["id"]} ;"
   ActiveRecord::Base.connection.execute(issue_comment_delete_sql)
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issue_comments_delete','#{issue_uuid}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{issue_uuid}"
 end
 
@@ -145,6 +144,9 @@ end
 get "/issues" do
   protected!
   @issues = Issue.open
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :issues
 end
 
@@ -208,6 +210,9 @@ post "/offer_create/:issue_uuid" do
   else
     flash[:danger] = "Something went wrong"
   end
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'create_offer/#{params['side']}','#{uuid}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{uuid}"
 end
 
@@ -233,6 +238,9 @@ get "/offer_fund/:issue_uuid" do
   else
     flash[:danger] = "Something went wrong"
   end
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'fund_offer/unfixed','#{uuid}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{uuid}"
 end
 
@@ -245,6 +253,9 @@ get "/offer_accept/:offer_uuid" do
   counter   = OfferCmd::CreateCounter.new(offer, poolable: false, user_uuid: user_uuid).project.offer
   contract  = ContractCmd::Cross.new(counter, :expand).project.contract
   flash[:success] = "You have formed a new contract"
+  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'accept_offer','#{contract.issue.uuid}');"
+  ActiveRecord::Base.connection.execute(log_sql)
   redirect "/issues/#{contract.issue.uuid}"
 end
 
@@ -291,6 +302,9 @@ end
 get "/contracts/:uuid" do
   protected!
   @contract = Contract.find_by_uuid(params['uuid'])
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'contract_detail');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :contract
 end
 
@@ -299,6 +313,9 @@ get "/contracts" do
   protected!
   @title     = "My Contracts"
   @contracts = current_user.contracts
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'contracts_my');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :contracts
 end
 
@@ -307,6 +324,9 @@ get "/contracts_all" do
   protected!
   @title     = "All Contracts"
   @contracts = Contract.all
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'contracts_all');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :contracts
 end
 
@@ -316,6 +336,9 @@ end
 get "/account" do
   protected!
   @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'account');"
+  ActiveRecord::Base.connection.execute(log_sql)
   slim :account
 end
 
@@ -392,6 +415,9 @@ post "/login" do
     AccessLog.new(current_user&.email).logged_in
     path = session[:tgt_path]
     session[:tgt_path] = nil
+    log_sql = "Insert into log (user_uuid, time, page)
+      values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'login');"
+    ActiveRecord::Base.connection.execute(log_sql)
     redirect path || "/account"
   when ! user
     word = (/@/ =~ params["usermail"]) ? "Email Address" : "Username"
@@ -408,6 +434,11 @@ post "/login" do
 end
 
 get "/logout" do
+  if logged_in?
+    log_sql = "Insert into log (user_uuid, time, page)
+      values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'logout');"
+    ActiveRecord::Base.connection.execute(log_sql)
+  end
   session[:usermail] = nil
   session[:consent] = nil
   flash[:warning] = "Logged out"
@@ -434,10 +465,20 @@ end
 
 get "/help/:page" do
   @page = params['page']
+  if logged_in?
+    log_sql = "Insert into log (user_uuid, time, page)
+      values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'help/#{@page}');"
+    ActiveRecord::Base.connection.execute(log_sql)
+  end
   slim :help
 end
 
 get "/help" do
+  if logged_in?
+    log_sql = "Insert into log (user_uuid, time, page)
+      values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'help/base');"
+    ActiveRecord::Base.connection.execute(log_sql)
+  end
   @page = "base"
   slim :help
 end
