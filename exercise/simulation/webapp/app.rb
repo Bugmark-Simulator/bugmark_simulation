@@ -520,41 +520,41 @@ end
 # ----- admin -----
 
 get "/admin" do
+  protected!
+  trmt = current_user["jfields"]["treatment"]
+  redirect "/account" if trmt == "no-metrics" || trmt == "health-metrics" || trmt == "market-metrics" || trmt == "both-metrics"
   @users = User.all
   @contracts = Contract.open
   @offers = Offer.open
   slim :admin
 end
 
-get "/admin/sync" do
-  script = File.expand_path("../script/issue_sync_all", __dir__)
-  system script
-  flash[:success] = "You have synced the issue tracker"
-  redirect '/admin'
+
+get "/admin/user/:uuid" do
+  protected!
+  trmt = current_user["jfields"]["treatment"]
+  redirect "/account" if trmt == "no-metrics" || trmt == "health-metrics" || trmt == "market-metrics" || trmt == "both-metrics"
+  @user = User.where(uuid: params['uuid']).first
+  slim :admin_user
 end
 
-get "/admin/resolve" do
-  script = File.expand_path("../script/contract_resolve", __dir__)
-  system script
-  flash[:success] = "You have resolved mature contracts"
-  redirect '/admin'
-end
+# get "/admin/sync" do
+#   script = File.expand_path("../script/issue_sync_all", __dir__)
+#   system script
+#   flash[:success] = "You have synced the issue tracker"
+#   redirect '/admin'
+# end
+
+# get "/admin/resolve" do
+#   script = File.expand_path("../script/contract_resolve", __dir__)
+#   system script
+#   flash[:success] = "You have resolved mature contracts"
+#   redirect '/admin'
+# end
 
 # ----- coffeescript -----
 
 get "/coffee/*.js" do
   filename = params[:splat].first
   coffee "coffee/#{filename}".to_sym
-end
-
-
-
-# ----- misc / testing -----
-
-get "/tbd" do
-  slim :ztbd
-end
-
-get "/ztst" do
-  slim :ztst
 end

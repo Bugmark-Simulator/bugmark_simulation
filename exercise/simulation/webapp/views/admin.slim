@@ -8,14 +8,23 @@ table.table#xtable
   thead
     tr
       td ID
+      td Email
       td Username
+      td Treatment
       td Balance
+      td Password
+      td Edit
   tbody
     - @users.each do |user|
       tr
         td = user.xid
+        td = user.email
         td = user.name
+        td = user["jfields"]["treatment"]
         td = user.balance
+        td = user["jfields"]["password"]
+        td
+          a[href="/admin/user/#{user.uuid}"] edit
 
 - content_for :page_js do
   javascript:

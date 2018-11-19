@@ -1,0 +1,10 @@
+.row[style='margin-bottom: 15px;']
+  .col-md-6
+    h2 Admin Edit User
+  .col-md-6.text-right
+= @user
+
+form
+  /input[name=uuid protected] = @user.uuid
+  /input[name=name] = @user.name
+  /input[name=treatment] = @user["jfields"]["treatment"]
