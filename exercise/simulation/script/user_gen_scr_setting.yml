@@ -30,7 +30,7 @@ create_users:
     budget: 100000
     number_of_new_users: 2
   - treatment: "both-metrics"
-    group: "funder"
+    group: "worker"
     budget: 100
     number_of_new_users: 10
   # - treatment: "both-metrics"
