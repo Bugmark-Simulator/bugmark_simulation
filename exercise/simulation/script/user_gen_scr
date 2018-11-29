@@ -26,15 +26,10 @@ puts "EXCHANGE_DIR=#{Exchange.src_dir}"
 puts 'LOADING RAILS'
 Exchange.load_rails
 
-# ----- read settings -----
-
-settings = YAML.load_file('user_gen_scr_setting.yml')
-settings1 = YAML.load_file('skill.yml')
-
 # ----- accounts -----
-puts 'CREATE A BUGMARK USER ACCOUNT'
+puts 'CREATE BUGMARK USER ACCOUNTS'
 #binding.pry
-settings['create_users'].each do |users|
+TS.user_gen_scr["create_users"].each do |users|
   if(users['number_of_new_users'] > 0) then
     (1..users['number_of_new_users']).each do |i|
       username= SecureRandom.hex(2)
@@ -47,19 +42,30 @@ settings['create_users'].each do |users|
       }
       userid = FB.create(:user, opts).user.id
       tracker = ""
+      # find a sensible projectname
+      trackername = SecureRandom.hex(2)
+      if Tracker.count < TS.projectnames.count then
+        TS.projectnames.shuffle.each do |potential_name|
+          if Tracker.where(name: potential_name).count == 0 then
+            trackername = potential_name
+            break
+          end
+        end
+      end
       if(users['group']=='funder') then
         # generate a new tracker
         opts = {
           type: "Tracker::Test",
-          name: "#{username}"
+          name: "#{trackername}"
         }
         tracker = FB.create(:tracker, opts).tracker.uuid
       end
       # update user jfields through sql
-      sql = "UPDATE users SET jfields = '{\"skill\":#{settings1['skills'].sample(settings['skills_per_user'])},
+      sql = "UPDATE users SET jfields = '{\"skill\":#{TS.skills.sample(TS.user_gen_scr["skills_per_user"])},
       \"password\":\"#{userpassword}\",\"type\":\"#{users['group']}\",
       \"treatment\":\"#{users['treatment']}\",\"tracker\":\"#{tracker}\"}' WHERE id='#{userid}';"
       ActiveRecord::Base.connection.execute(sql).to_a
+      puts "userid: #{userid}"
     end
   end
 end

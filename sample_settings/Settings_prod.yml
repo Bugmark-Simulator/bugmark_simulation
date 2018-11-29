@@ -1,0 +1,3 @@
+---
+# These values overwrite default settings values
+webapp_url:   45.33.15.105:4567

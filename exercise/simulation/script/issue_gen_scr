@@ -14,16 +14,10 @@ require 'awesome_print'
 require 'securerandom'
 require 'yaml'
 
-# ----- read settings -----
-
-settings = YAML.load_file('issue_gen_scr_setting.yml')
-settings1 = YAML.load_file('skill.yml')
 
 # ----- info -----
 
 puts "EXCHANGE_DIR=#{Exchange.src_dir}"
-#puts 'EXERCISE SETTINGS'
-#ap TrialSettings.settings
 
 # ----- load -----
 
@@ -36,7 +30,12 @@ puts 'CREATE BUGMARK ISSUES'
 id = 0
 id = Issue.last.id unless Issue.last.nil?
 Tracker.all.each do |i|
-  settings['number_of_issues_tracker'].times do
+  TS.issue_gen_scr["number_of_issues_tracker"].times do
+    if id == 1 then
+      # update id, if last issue was first to create
+      # fixes an issue where exid <> id
+      id = Issue.last.id unless Issue.last.nil?
+    end
     id = id+1
     opts = {
       stm_title: SecureRandom.hex(2),
@@ -48,8 +47,7 @@ Tracker.all.each do |i|
     issueid = FB.create(:issue, opts).issue.id
     # update user jfields through sql
 
-    # {\"skill\":{#{settings1['skills'].sample(settings['number_of_skills_issue'])}:0}}
-    skill_array = settings1['skills'].sample(settings['number_of_skills_issue'])
+    skill_array = TS.skills.sample(TS.issue_gen_scr["number_of_skills_issue"])
     myhash = {"skill"=> {}}
     skill_array.each do |i|
       myhash["skill"]["#{i}"] = 0

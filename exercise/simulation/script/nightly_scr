@@ -41,7 +41,7 @@ Exchange.load_rails
 def nightly_scr
   # ----- read settings -----
 
-  settings = YAML.load_file('nightly_scr_setting.yml')
+  # settings = YAML.load_file('nightly_scr_setting.yml')
   # settings_issue_gen = YAML.load_file('issue_gen_scr_setting.yml')
   # settings_skill = YAML.load_file('skill.yml')
   # run again next:
@@ -50,7 +50,7 @@ def nightly_scr
 
   # Wait time before switching day
   puts "current run #{@nightly_run} < current time #{Time.now}"
-  @nightly_run += settings['seconds_for_day_switching']
+  @nightly_run += TS.nightly_scr["seconds_for_day_switching"]
 
   puts "next run #{@nightly_run} > current time #{Time.now}"
   # ----- accounts -----
@@ -123,12 +123,12 @@ def nightly_scr
     # end
 
     #Store the days passed after the last session and timestamp
-    STDOUT.write "\rStep 4: store in file progress of simulation                "
-    STDOUT.flush
-    settings['days_passed_after_session'] += 1
-    settings['closing_bugmtime'] = BugmTime.now
-    settings['closing_timestamp'] = Time.now
-    File.open('nightly_scr_setting.yml', 'w') {|f| f.write settings.to_yaml}
+    # STDOUT.write "\rStep 4: store in file progress of simulation                "
+    # STDOUT.flush
+    # settings['days_passed_after_session'] += 1
+    # settings['closing_bugmtime'] = BugmTime.now
+    # settings['closing_timestamp'] = Time.now
+    # File.open('nightly_scr_setting.yml', 'w') {|f| f.write settings.to_yaml}
 
     # # Breaking the scripts
     # trap("SIGINT") { throw :ctrl_c }
@@ -156,7 +156,7 @@ def nightly_scr
 
     STDOUT.write "\r                                                            "
     STDOUT.flush
-    puts "current day (#{BugmTime.now}), next day in #{settings['seconds_for_day_switching']} seconds"
+    puts "current day (#{BugmTime.now}), next day in #{TS.nightly_scr["seconds_for_day_switching"]} seconds"
   # end
 end
 
@@ -230,7 +230,7 @@ def update_graphs
     threads.push(
       # contract fix rate
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 1 - contract fix rate"
@@ -239,7 +239,7 @@ def update_graphs
     # payout vs potential
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 2 - payout vs potential"
@@ -248,7 +248,7 @@ def update_graphs
     # variance of offer volumes
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 3 - variance of offer volumes"
@@ -257,7 +257,7 @@ def update_graphs
     # open offer count and volume
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 4 - open offer count and volume"
@@ -266,7 +266,7 @@ def update_graphs
     # maturation days offers summary
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_maturation_days_offer_summary.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 5 - maturation days offers summary"
@@ -275,7 +275,7 @@ def update_graphs
     # # open issues
     # threads.push(
     #   Thread.new do
-    #     open("./../webapp/public/graph/#{project_uuid}_open_issues.png", 'wb') do |file|
+    #     open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issues.png", 'wb') do |file|
     #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=12&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
     #     end
     #     # puts "graph: 6 - open issues"
@@ -284,7 +284,7 @@ def update_graphs
     # closed issues
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_closed_issues.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 7 - closed issues"
@@ -293,7 +293,7 @@ def update_graphs
     # issue resolution efficiency
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_issue_resolution_efficiency.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_efficiency.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=16&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 8 - issue resolution efficiency"
@@ -302,7 +302,7 @@ def update_graphs
     # open issue age
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_open_issue_age.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 9 - open issue age"
@@ -311,7 +311,7 @@ def update_graphs
     # first response days
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_first_response_days.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_first_response_days.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=15&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         # puts "graph: 10 - first response days"
@@ -320,7 +320,7 @@ def update_graphs
     # issue resolution days
     threads.push(
       Thread.new do
-        open("./../webapp/public/graph/#{project_uuid}_issue_resolution_days.png", 'wb') do |file|
+        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
         puts "graph: 11 - issue resolution days"

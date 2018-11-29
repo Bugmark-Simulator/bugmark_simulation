@@ -27,7 +27,7 @@ puts 'Resetting Bugmark Exchange'
 BugmHost.reset
 
 # ----- Delete graph images -----
-Dir.glob("../webapp/public/graph/*.png").each { |file|
+Dir.glob("#{TS.graph_file_for_webapp_public}*.png").each { |file|
   File.delete(file)
 }
 

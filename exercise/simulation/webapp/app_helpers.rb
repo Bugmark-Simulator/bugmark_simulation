@@ -40,11 +40,11 @@ module AppHelpers
     user.offers.pluck(:value).sum
   end
 
-  def underactivity_penalty(user)
-    #binding.pry
-    spread = invested_tokens(user) - TS.seed_balance
-    [ 0, spread ].min
-  end
+  # def underactivity_penalty(user)
+  #   #binding.pry
+  #   spread = invested_tokens(user) - TS.seed_balance
+  #   [ 0, spread ].min
+  # end
 
   # ----- events -----
 
@@ -65,17 +65,17 @@ module AppHelpers
 
   # ----- funding hold -----
 
-  def funding_count(user)
-    user.offers.is_buy_unfixed.count
-  end
+  # def funding_count(user)
+  #   user.offers.is_buy_unfixed.count
+  # end
 
-  def funding_hold?(user)
-    funding_count(user) < 5
-  end
+  # def funding_hold?(user)
+  #   funding_count(user) < 5
+  # end
 
-  def funding_hold_link
-    "<a href='/help#trader' target='_blank'>FUNDING HOLD</a>"
-  end
+  # def funding_hold_link
+  #   "<a href='/help#trader' target='_blank'>FUNDING HOLD</a>"
+  # end
 
   def account_lbl(user)
     # count = funding_count(user)
@@ -83,13 +83,13 @@ module AppHelpers
     "#{user_name(user)} / balance: #{user.token_available}"
   end
 
-  def successful_fundings(user)
-    user.positions.unfixed.resolved.losing.count
-  end
+  # def successful_fundings(user)
+  #   user.positions.unfixed.resolved.losing.count
+  # end
 
-  def funding_bonus(user)
-    (successful_fundings(user) * TS.fee_funding.to_i).to_f
-  end
+  # def funding_bonus(user)
+  #   (successful_fundings(user) * TS.fee_funding.to_i).to_f
+  # end
 
   # ----- time -----
 
@@ -560,19 +560,6 @@ def delete_comment(id, user_uuid)
    output = "You can not delete other user's comments"
   end
   return output
-end
-
-
-# nevigation bar dat time settings
-
-def days_out()
-  settings = YAML.load_file('../script/nightly_scr_setting.yml')
-  day_out = settings['time_back_days_start'] - (Time.now.to_date - BugmTime.now.to_date ).round
-end
-
-def seconds_out()
-  settings = YAML.load_file('../script/nightly_scr_setting.yml')
-  second_out = settings['seconds_for_day_switching']
 end
 
 
