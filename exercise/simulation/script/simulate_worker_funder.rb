@@ -77,8 +77,8 @@ loop do
     new_offers_ran += 1
     STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
     STDOUT.flush
-    # choose order in which workers go randomly
-    workers.shuffle.each do |funder_uuid|
+    # choose order in which funders go randomly
+    funders.shuffle.each do |funder_uuid|
       # update output
       funder_ran += 1
       STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
