@@ -121,6 +121,8 @@ hr
 .modal#modalOb
   .modal-dialog.modal-lg
     form.form-inline[action="/offer_create/#{@issue.uuid}" method="post"]
+      input#today[type='hidden' value='#{dstr(BugmTime.now)}']
+      input#side[type='hidden' name='side' value='']
       .modal-content
         .modal-header
           h5.modal-title Create offer to <b id='titleType'>TBD</b> #{@issue.xid.capitalize}
@@ -151,16 +153,15 @@ hr
               hr
           .row
             .col-md-6
-              p[style='margin-bottom: 20px;'] <b>Matures</b><br/>
+              p[style='margin-bottom: 20px;'] <b>Matures in</b><br/>
               .btn-group.btn-group-toggle#maturation[data-toggle="buttons"]
                 - BugmTime.next_week_ends.each_with_index do |date, idx|
                   label.btn.btn-secondary.btn-sm
                     input[type="radio" value="#{dstr(date)}" name="maturation" id="mat#{idx}"] #{dvis(date)}
             .col-md-6
-              p <b>Expires</b><br/>
-              input#today[type='hidden' value='#{dstr(BugmTime.now)}']
-              input#side[type='hidden' name='side' value='']
-              select.form-control.mb-2.mr-sm-2#expSel[name='expiration']
+              /p <b>Expires</b><br/>
+
+              /select.form-control.mb-2.mr-sm-2#expSel[name='expiration']
 
         .modal-footer
           button.btn.btn-primary[type="submit"] Create

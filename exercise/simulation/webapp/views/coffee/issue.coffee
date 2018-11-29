@@ -6,7 +6,7 @@ launchModal = (id)->
   selectMatButton("#mat0")
   updateContribution(20)
   setTitleType()
-  setExp()
+  # setExp()
   $("#{id}").modal { keyboard: true, focus: true, show: true }
 
 setSide = (side)-> $('#side').attr("value", side)
@@ -18,19 +18,19 @@ selectMatButton = (id)->
   $("#{id}").attr("checked", true)
   $("#{id}").parent().addClass("active")
 
-setExp = ->
-  mDate   = $('#maturation input:checked').val()
-  tDate   = $('#today').val()
-  lst1 = _.map([1..10], (idx) -> moment(tDate).add(idx*3, 'days').format("YYYY-MM-DD"))
-  lst2 = lst1.concat([mDate])
-  lst3 = _.uniq(lst2)
-  lst4 = _.select(lst3, (str) -> tDate < str <= mDate)
-  $('#expSel').empty()
-  dateLbl = moment(tDate).format("MMM DD")
-  $('#expSel').append("<option value='#{tDate}' select='selected'>#{dateLbl}</option>")
-  _.each lst4, (dateStr)->
-    dateLbl = moment(dateStr).format("MMM DD")
-    $('#expSel').append("<option value='#{dateStr}'>#{dateLbl}</option>")
+# setExp = ->
+#   mDate   = $('#maturation input:checked').val()
+#   tDate   = $('#today').val()
+#   lst1 = _.map([1..10], (idx) -> moment(tDate).add(idx*3, 'days').format("YYYY-MM-DD"))
+#   lst2 = lst1.concat([mDate])
+#   lst3 = _.uniq(lst2)
+#   lst4 = _.select(lst3, (str) -> tDate < str <= mDate)
+#   $('#expSel').empty()
+#   dateLbl = moment(tDate).format("MMM DD")
+#   $('#expSel').append("<option value='#{tDate}' select='selected'>#{dateLbl}</option>")
+#   _.each lst4, (dateStr)->
+#     dateLbl = moment(dateStr).format("MMM DD")
+#     $('#expSel').append("<option value='#{dateStr}'>#{dateLbl}</option>")
 
 updateContribution = (value)->
   side = getSide()
@@ -52,7 +52,7 @@ $('#valueSel').change ->
   value = parseInt($('#valueSel').val())
   updateContribution(value)
 
-$('#maturation').change setExp
+# $('#maturation').change setExp
 
 $('.exDate').tooltip(html: true)
 $('.cancelOffer').tooltip(title: "Cancel your offer")
