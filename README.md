@@ -163,13 +163,13 @@ Your platform is ready to go. The default admin account is
 (_Note:_ Make sure grafana is in version 5.3+)
 
  1. Enable Grafana for users without requiring signing by editing file `/etc/grafana/grafana.ini` and setting:
-``` 
+```
     [auth.anonymous]
     enabled = true
     org_name = Main Org.
     org_role = Viewer
 ```
- 
+
  2. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`
 
  3. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
@@ -198,8 +198,8 @@ Your platform is ready to go. The default admin account is
    - Password: grafana
 
   8. [TODO] setup panels in grafana
-  
-  9. [TODO] announce location of panels to simulator to display graphs 
+
+  9. [TODO] announce location of panels to simulator to display graphs
 
 ## Resetting Bugmark Exchange and all the database
 
@@ -231,9 +231,12 @@ When you run the experiment, you need to make sure the 'background services' are
 To test the visualizations, data analysis, or simply see how the system behaves with many users,
 run a simulation script that executes simple user actions with some randomization.
 
-1. Setup Experiment
-2. Start nightly script to make sure the system is in simulation mode `(?)`
-3. Start the user behavior simulation script `ruby ~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder.rb`
+1. Install Bugmark Exchange, Simulation Software, Setup Grafana, and configure the software according to the install instructions.
+2. To clean the database, run `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
+3. Next, create users by running `~/src/bugmark_simulation/exercise/simulation/script/user_gen_scr`
+4. Before we can simulate behavior, we need to generate issues `~/src/bugmark_simulation/exercise/simulation/script/issue_gen_scr`
+5. Now that we have a fully populated simulation setting with users, projects, and issues, we can start the background activity, which we call the nightly script `~/src/bugmark_simulation/exercise/simulation/script/nightly_scr`
+3. To simulate the behavior of funders and workers who create offers, do work, and form contracts, run `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder`
 
 ## Helpful Commands
 
