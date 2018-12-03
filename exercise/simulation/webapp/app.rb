@@ -92,6 +92,28 @@ post "/issue_task_queue/:uuid" do
   redirect "/issues/#{params['uuid']}"
 end
 
+
+post "/issue_task_queue_remove/:uuid" do
+  protected!
+  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
+  ActiveRecord::Base.connection.execute(cancelsql).to_a
+  cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
+  shifts = ActiveRecord::Base.connection.execute(cancelsql).first
+  if shifts['partial'] > 0
+    if shifts['partial'] < shifts['full']
+      shift = "'#{shifts['partial']} seconds'"
+    elsif
+      shift = "'#{shifts['full']} seconds'"
+    end
+    cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+    WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
+    shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
+  end
+  redirect "/issues/#{params["uuid"]}"
+  #slim :accountf
+end
+
+
 # Adding comments to the issue
 post "/issue_comments/:uuid" do
   protected!
@@ -342,6 +364,7 @@ get "/account" do
   slim :account
 end
 
+# remove work queue item
 post "/account" do
   protected!
   cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"

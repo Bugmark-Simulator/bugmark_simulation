@@ -517,10 +517,13 @@ def queue_add_task(user_uuid, issue_uuid, task)
 end
 
 def task_action(task,issue_uuid,status)
+  queue_item = Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""])
   if status == 1
-    out2 = "Task is already completed"
-  elsif Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""]).present?
-    out2 = "Task is already added to list"
+    out2 = "Task is completed"
+  elsif queue_item.present?
+    out2 = "<form class='form-work' method='post' action='/issue_task_queue_remove/#{issue_uuid}'>
+              You are working on it <button class='btn btn-sm btn-primary' type='submit' value='#{queue_item.first.id}' name='Cancel'>Remove from Work Queue</button>
+            </form>"
   else
     out2 = "<form class='form-work' method='post' action='/issue_task_queue/#{issue_uuid}'>
               <button class='btn btn-sm btn-primary' type='submit' value='#{task}' name='task'>Add to Work Queue</button>
