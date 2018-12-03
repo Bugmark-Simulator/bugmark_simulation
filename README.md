@@ -147,11 +147,13 @@ Exchange and run the simulation on top of Exchange.
 
 4. Check which directory the *.env* links to `less .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data; cd ~/src`
 
-5. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
+5. Clean database and setup the default admin user `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
-6. Start the simulation platform `./run`
+6. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
 
-7. On your local machine, browse to `http://<hostname>:4567`
+7. Start the simulation platform `./run`
+
+8. On your local machine, browse to `http://<hostname>:4567`
 
 Your platform is ready to go. The default admin account is
  - user: admin@bugmark.net
