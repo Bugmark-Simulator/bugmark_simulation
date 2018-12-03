@@ -95,11 +95,11 @@ end
 
 post "/issue_task_queue_remove/:uuid" do
   protected!
-  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
-  ActiveRecord::Base.connection.execute(cancelsql).to_a
   cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
   shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-  if shifts['partial'] > 0
+  if shifts['partial'] > 2
+    cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
+    ActiveRecord::Base.connection.execute(cancelsql).to_a
     if shifts['partial'] < shifts['full']
       shift = "'#{shifts['partial']} seconds'"
     elsif
@@ -162,12 +162,24 @@ get "/issues_ex/:exid" do
   redirect "/issues/#{issue.uuid}"
 end
 
-# list all issues
+# list all open issues
 get "/issues" do
   protected!
+  @OpenClosed = "Open"
   @issues = Issue.open
   log_sql = "Insert into log (user_uuid, time, page)
     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
+  ActiveRecord::Base.connection.execute(log_sql)
+  slim :issues
+end
+
+# list closed issues
+get "/issues_closed" do
+  protected!
+  @OpenClosed = "Closed"
+  @issues = Issue.closed
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues_closed');"
   ActiveRecord::Base.connection.execute(log_sql)
   slim :issues
 end
@@ -367,11 +379,11 @@ end
 # remove work queue item
 post "/account" do
   protected!
-  cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
-  ActiveRecord::Base.connection.execute(cancelsql).to_a
   cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
   shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-  if shifts['partial'] > 0
+  if shifts['partial'] > 2
+    cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
+    ActiveRecord::Base.connection.execute(cancelsql).to_a
     if shifts['partial'] < shifts['full']
       shift = "'#{shifts['partial']} seconds'"
     elsif

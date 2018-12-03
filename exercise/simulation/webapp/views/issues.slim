@@ -1,12 +1,22 @@
 .row
   .col-md-4
-    h2[style='margin-bottom: 15px;'] Open Issues (#{@issues.open.count})
+    h2[style='margin-bottom: 15px;'] #{@OpenClosed} Issues (#{@issues.count})
   .col-md-8.text-right
     .btn-group.btn-group-toggle.btn-group-sm[data-toggle="buttons"]
-      label.btn.btn-secondary.active
-        input#allIssues[type="radio" name="options" autocomplete="off" checked] All Issues
+      - if @OpenClosed == "Open"
+        label.btn.btn-secondary.active
+          input#allIssues[type="radio" name="options" autocomplete="off" checked] Open Issues
+      - else
+        label.btn.btn-secondary
+          input#allIssues[type="radio" name="options" autocomplete="off" checked] Open Issues
       label.btn.btn-secondary
-        input#myIssues[type="radio" name="options" autocomplete="off"] My Issues
+        input#myIssues[type="radio" name="options" autocomplete="off"] My #{@OpenClosed} Issues
+      - if @OpenClosed == "Closed"
+        label.btn.btn-secondary.active
+          input#closedIssues[type="radio" name="options" autocomplete="off" checked] Closed Issues
+      - else
+        label.btn.btn-secondary
+          input#closedIssues[type="radio" name="options" autocomplete="off" checked] Closed Issues
 
 table.table#xtable
   thead
@@ -15,7 +25,7 @@ table.table#xtable
       td Project
       td Title
       td Open Offers
-      td Active Contracts
+      td Contracts
       td Progress
       td Skills required
   tbody
@@ -48,8 +58,20 @@ table.table#xtable
     # table = $('#xtable').DataTable({
     #   "lengthMenu": [[-1, 50 100 200], ["All", 50, 100, 200]]
     # });
-    setMyIssues  = -> table.search("*").draw()
-    setAllIssues = -> table.search("").draw()
+    re = /_closed/
+    setMyIssues  = ->
+      table.search("*").draw()
+    setAllIssues = ->
+      if re.test(window.location.href)
+        window.location = "/issues"
+      else
+        table.search("").draw()
+    setClosedIssues = ->
+      if re.test(window.location.href)
+        table.search("").draw()
+      else
+        window.location = "/issues_closed"
     $('document').ready ->
       $('#myIssues').on  "focus", setMyIssues
       $('#allIssues').on "focus", setAllIssues
+      $('#closedIssues').on "focus", setClosedIssues
