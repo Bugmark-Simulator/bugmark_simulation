@@ -210,6 +210,7 @@ Run script reset_scr to reset exchange and all database `~/src/bugmark_simulatio
 Alternatively, to destroy the database and setup from scratch:
 1. Go to the exchange `cd ~\src\exchange`
 2. Destroy Database and reconstruct it `bundle exec rails db:drop db:create db:migrate`
+  * If this fails, try restarting the PostgreSQL server `sudo systemctl stop postgresql; sudo systemctl start postgresql`
 3. Run script reset_scr to reset exchange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
 

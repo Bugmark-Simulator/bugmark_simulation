@@ -38,6 +38,12 @@ Exchange.load_rails
 @nightly_run = Time.now - 1
 @request_graph_pictures = false;
 @getting_graph_pictures = false;
+
+
+sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
+ActiveRecord::Base.connection.execute(sql)
+
+
 def nightly_scr
   # ----- read settings -----
 
@@ -83,6 +89,9 @@ def nightly_scr
     STDOUT.flush
     last_day = BugmTime.now
     BugmTime.go_past_end_of_day
+    sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
+    ActiveRecord::Base.connection.execute(sql)
+
 
     # resolve mature contracts
     STDOUT.write "\rStep 2: resolve matured contracts                           "
