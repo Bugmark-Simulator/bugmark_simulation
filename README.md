@@ -106,9 +106,14 @@ On the host machine:
 
 5. Check database status: `systemctl status postgresql`
 
-6. Start a new shell: `bash` (required to load your new user configuration)
+6. Set server timezone to UTC within `sudo dpkg-reconfigure tzdata`
 
-7.  Checkout the master branch `git checkout master`
+7. Also, set the TZ variable for bash `vim ~/.bashrc` and add at the bottom of file `export TZ=UTC`
+  - If vim thorws an error on startup, run command `:PlugInstall`
+
+8. Start a new shell: `bash` (required to load your new user configuration)
+
+9.  Checkout the master branch `git checkout master`
 
 #### Application Bootstrap
 
