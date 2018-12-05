@@ -40,7 +40,7 @@ Exchange.load_rails
 @getting_graph_pictures = false;
 
 
-sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
+sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
 ActiveRecord::Base.connection.execute(sql)
 
 
@@ -89,7 +89,7 @@ def nightly_scr
     STDOUT.flush
     last_day = BugmTime.now
     BugmTime.go_past_end_of_day
-    sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
+    sql = "INSERT INTO bugmtimes (bugmtime, systime) VALUES ('#{BugmTime.now.strftime('%Y-%m-%d %H:%M:%S.%L')}', '#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%L')}');"
     ActiveRecord::Base.connection.execute(sql)
 
 
