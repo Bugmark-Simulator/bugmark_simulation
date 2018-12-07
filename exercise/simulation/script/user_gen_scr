@@ -61,7 +61,11 @@ TS.user_gen_scr["create_users"].each do |users|
         tracker = FB.create(:tracker, opts).tracker.uuid
       end
       # update user jfields through sql
-      sql = "UPDATE users SET jfields = '{\"skill\":#{TS.skills.sample(TS.user_gen_scr["skills_per_user"])},
+      skills = TS.skills["task_skills"].shuffle
+      bonus_skills = skills.pop(TS.skills["skills_bonus_per_user"])
+      malus_skills = skills.pop(TS.skills["skills_malus_per_user"])
+      sql = "UPDATE users SET jfields = '{\"skill_bonus\":#{bonus_skills},
+      \"skill_malus\":#{malus_skills},
       \"password\":\"#{userpassword}\",\"type\":\"#{users['group']}\",
       \"treatment\":\"#{users['treatment']}\",\"tracker\":\"#{tracker}\"}' WHERE id='#{userid}';"
       ActiveRecord::Base.connection.execute(sql).to_a

@@ -34,6 +34,5 @@ html[lang="en-US"]
           .row
             .col-md-6.text-center
               | Powered by Bugmark
-            .col-md-6.text-center
-              == BugmTime.now.strftime("%B-%d %H:%M %Z")
+            .col-md-6.text-center This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%m/%d")}
     == yield_content :page_js

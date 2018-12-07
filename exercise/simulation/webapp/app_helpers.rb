@@ -80,7 +80,7 @@ module AppHelpers
   def account_lbl(user)
     # count = funding_count(user)
     # warn = funding_hold?(user) ? " / FUNDED #{count} of 5 " : ""
-    "#{user_name(user)} / balance: #{user.token_available}"
+    "#{user_name(user)} / balance: #{user.token_available.to_i}"
   end
 
   # def successful_fundings(user)
@@ -166,10 +166,11 @@ module AppHelpers
 
   def offer_maturation_date(offer)
     return "TBD" if offer.expiration.nil?
-    color = BugmTime.now > offer.expiration ? "red" : "green"
-    date = offer.expiration.strftime("%m-%d %H:%M %Z")
-    date_iso = offer.expiration.strftime("%Y%m%dT%H%M%S")
-    "<a target='_blank' style='color: #{color}' href='https://www.timeanddate.com/worldclock/fixedtime.html?iso=#{date_iso}&p1=217'>#{date}</a>"
+    # color = BugmTime.now > offer.expiration ? "red" : "green"
+    date = offer.expiration.strftime("%m-%d %H:%M")
+    # date_iso = offer.expiration.strftime("%Y%m%dT%H%M%S")
+    # "<a target='_blank' style='color: #{color}' href='https://www.timeanddate.com/worldclock/fixedtime.html?iso=#{date_iso}&p1=217'>#{date}</a>"
+    # date
   end
 
   def offer_status_link(offer)
@@ -213,14 +214,14 @@ module AppHelpers
       if offer.user.uuid == user.uuid
         "My Offer"
       else
-        cost = 20 - offer.value.to_i
+        cost = offer.fixer_cost.to_i
         "<a class='btn btn-primary btn-sm' href='/#{action}/#{offer.uuid}'>ACCEPT OFFER (cost: #{cost} tokens)</a>"
       end
     end
   end
 
   def offer_fund_link(user, issue)
-    return "Already 3 offers today" if issue.offers_bu.where('expiration > ?', BugmTime.now).count > 2
+    # return "Already 3 offers today" if issue.offers_bu.where('expiration > ?', BugmTime.now).count > 2
     return "Low Balance - Can't Fund Offers" if user.token_available < 10
     return "You already placed an offer today" if issue_offerable?(user, issue)
     "<a class='btn btn-primary btn-sm' href='/offer_fund/#{issue.uuid}'>FUND A NEW OFFER (cost: 10 tokens)</a>"
@@ -501,6 +502,22 @@ module AppHelpers
 
 #------work Queue ------
 
+def queue_task_time(task, user = current_user)
+  # if user.nil? then
+  #   user = current_user
+  # end
+  if user.jfields["skill_malus"].nil? || user.jfields["skill_bonus"].nil? then
+    return TS.skills['seconds_per_normal_skill']
+  end
+  if user.jfields["skill_malus"].include?(task) then
+    return TS.skills['seconds_per_malus_skill']
+  end
+  if user.jfields["skill_bonus"].include?(task) then
+    return TS.skills['seconds_per_bonus_skill']
+  end
+  return TS.skills['seconds_per_normal_skill']
+end
+
 def queue_add_task(user_uuid, issue_uuid, task)
   datesql = "Select max(completed) from work_queues where user_uuid = '#{user_uuid}' and completed > now() and removed IS NULL;"
   maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
@@ -512,7 +529,7 @@ def queue_add_task(user_uuid, issue_uuid, task)
   end
   sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
   values ('#{user_uuid}','#{issue_uuid}','#{task}',
-    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '10 seconds',#{startdate}) ;"
+    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '#{queue_task_time(task)} seconds',#{startdate}) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
 end
 

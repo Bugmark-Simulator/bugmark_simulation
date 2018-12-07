@@ -151,13 +151,13 @@ loop do
           # puts ""
           # accept offer
           if !offer.nil? && offer.valid?
-            projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
-            if projection
-              counter = projection.offer
-              if counter.valid?
-                ContractCmd::Cross.new(counter, :expand).project
-              end
-            end
+            # projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
+            # if projection
+            #   counter = projection.offer
+            #   if counter.valid?
+            #     ContractCmd::Cross.new(counter, :expand).project
+            #   end
+            # end
           end
         end
       end

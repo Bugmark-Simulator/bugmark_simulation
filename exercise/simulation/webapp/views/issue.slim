@@ -21,102 +21,112 @@ css:
 .row
   .col-md-5
     p
-      b Issue Title:<br/>
-      == @issue.stm_title
+      b Project:<br/>
+      == Tracker.where(uuid: @issue.stm_tracker_uuid).first.name
     p
       b Status:<br/>
       == @issue.stm_status
-    p
-      b Project:<br/>
-      == Tracker.where(uuid: @issue.stm_tracker_uuid).first.name
 
   .col-md-7
+    h2 Tasks required to close issue
     table.table.table-sm[style='margin-top: 5px;']
       thead
         tr
-          th Skills Required
-          th Action
+          th Task
+          th Skill Required
+          th Complete task to close issue
+          th Your time to complete task
       tbody
+        - counter = 0
         - @issue.jfields["skill"].each do |task, status|
+          - counter += 1
           tr
+            td Task #{counter}
             td = task
             td == task_action(task, @issue.uuid, status)
+            td #{queue_task_time(task)} seconds
 
+.row[style="background-color:#eee"]
+  .row-12.mx-auto.mt-2
+    h2 Market Place
 
-table.table.table-sm[style='margin-top: 10px;']
-  thead
-    tr
-      th
-        ' Funder
-        a.obu[href="#"]
-          i.fa.fa-file-o
-      th Funder cost
-      th
-        ' Worker
-        a.obf[href="#"]
-          i.fa.fa-file-o
-      th Worker cost
-      th Payout
-      th Maturation
-      th
-      th Resolution
-      th
-  tbody
-    - @issue.offers_bu.each do |offer|
-      tr
-        td = user_name(offer.user)
-        td #{offer.value.to_i} tokens
-        td == offer_worker_link(current_user, offer)
-        td #{offer.fixer_cost.to_i} tokens
-        td #{offer.volume} tokens
-        td == offer_maturation_date(offer)
-        /td
-          i.fa.fa-calendar-times.exDate[title="offer expires<br/>#{offer_expiration_date(offer)}"]
-        td == offer_awardee(offer)
-        td
-          - if offer.user.uuid == current_user.uuid
-            a.cancelOffer[href="/offer_cancel/#{offer.uuid}"]
-              i.fa.fa-window-close-o
-    / - @issue.offers_sf.without_branch_position.each do |offer|
-    /   tr
-    /     td > #{user_name(offer.user)}
-    /     td #{offer.value.to_i} tokens
-    /     td == offer_worker_link(current_user, offer, "position_buy")
-    /     td #{20 - offer.value.to_i} tokens
-    /     td #{offer.volume} tokens
-    /     td == offer_maturation_date(offer)
-    /     td == offer_awardee(offer)
-
-h2 Issue Comments
-table.table.table-sm[style='margin-top: 10px;']
-  thead
-    tr
-      th User
-      th Comments
-      th Posted on
-      th Action
-  tbody
-    - @comments.each do |comment|
-      tr
-        td == comment.user_name
-        td == comment.comment
-        td == comment.comment_date.strftime("%m/%d/%Y %I:%M%p")
-        td == delete_comment(comment.id, comment.user_uuid)
-
-h2 Post Your Comments
-.col-md-6
-  .wrapper
-    form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
-      textarea.form-control[autofocus="" name="Comments" placeholder=("Comments") required=""]
-      p
-      button.btn.btn-lg.btn-primary.btn-block type="Comments"  Comments
-
-
-
-hr
 .row
-  .col-md-12.text-center
-    small All times in #{BugmTime.now.strftime("%Z")} #{ic_link('/help#maturation').html_safe}
+  .col-12.py-2
+    table.table.table-sm
+      thead
+        tr
+          th
+            ' Funder
+            a.obu.btn.btn-primary[href="#"] create offer to fund
+          th Funder cost
+          th
+            ' Worker
+            a.obf.btn.btn-primary[href="#"] create offer to work
+          th Worker cost
+          th Payout
+          th Maturation
+          th
+          th Resolution
+          th
+      tbody
+        - @issue.offers_bu.each do |offer|
+          tr
+            td = user_name(offer.user)
+            td #{offer.value.to_i} tokens
+            td == offer_worker_link(current_user, offer)
+            td #{offer.fixer_cost.to_i} tokens
+            td #{offer.volume} tokens
+            td == offer_maturation_date(offer)
+            /td
+              /i.fa.fa-calendar-times.exDate[title="offer expires<br/>#{offer_expiration_date(offer)}"]
+            td == offer_awardee(offer)
+            td
+              - if offer.user.uuid == current_user.uuid
+                a.cancelOffer[href="/offer_cancel/#{offer.uuid}"]
+                  i.fa.fa-window-close-o
+        / - @issue.offers_sf.without_branch_position.each do |offer|
+        /   tr
+        /     td > #{user_name(offer.user)}
+        /     td #{offer.value.to_i} tokens
+        /     td == offer_worker_link(current_user, offer, "position_buy")
+        /     td #{20 - offer.value.to_i} tokens
+        /     td #{offer.volume} tokens
+        /     td == offer_maturation_date(offer)
+        /     td == offer_awardee(offer)
+
+.row[style="background-color:#eee"]
+  .row-12.mx-auto.mt-2
+    h2 Comments
+
+.row
+  .col-md-1
+  .col-md-10.mt-2
+    table.table.table-sm[style='margin-top: 10px;']
+      thead
+        tr
+          th User
+          th Comments
+          th Posted on
+          /th Action
+      tbody
+        - @comments.each do |comment|
+          tr
+            td == comment.user_name
+            td == comment.comment
+            td == comment.comment_date.strftime("%m/%d/%Y %I:%M%p")
+            /td == delete_comment(comment.id, comment.user_uuid)
+  .col-md-1
+
+/h3 Comment on issue to coordinate with others to complete the tasks.
+.row
+  .col-md-4
+  .col-md-4
+    .wrapper
+      form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
+        textarea.form-control[autofocus="" name="Comments" placeholder="Write your comment here to coordinate with others to complete the tasks." required="required"]
+        p
+        button.btn.btn-lg.btn-primary.btn-block type="Comments"  Save Comment
+  .col-md-4
 
 .modal#modalOb
   .modal-dialog.modal-lg
@@ -180,17 +190,8 @@ hr
         p Use this dialog to create an offer to sell your position.
         form.form-inline#mform[action="/position_sell/TBD" method="post"]
           label.mb-2.mr-sm-2 Offer to sell your position for
-          select.form-control.mb-2.mr-sm-2[name='value']
-            option[value="2"]                      2
-            option[value="4"]                      4
-            option[value="6"]                      6
-            option[value="8"]                      8
-            option[value="10" selected="selected"] 10
-            option[value="12"]                     12
-            option[value="14"]                     14
-            option[value="16"]                     16
-            option[value="18"]                     18
-          label.mb-2.mr-sm-2 tokens
+          input.form-control.mb-2.mr-sm-2[name='value' type='number' min='0' multiple='1']
+          label.mb-2.mr-sm-2[for='value'] tokens
           button.btn.btn-primary.mb-2[type="submit"] Create
       .modal-footer
         button.btn.btn-secondary[type="button" data-dismiss="modal"] Cancel

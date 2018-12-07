@@ -1,8 +1,8 @@
 ul.navbar-nav.mr-auto
   - if logged_in? && consented?
-    == nav_link("Project"      , "/project")
-    == nav_link("Issues"                 , "/issues")
-    == nav_link("Contracts" , "/contracts")
+    == nav_link("Project Metrics Dashbaord" , "/project")
+    == nav_link("Issue Tracker"                    , "/issues")
+    == nav_link("Market Place"                 , "/contracts")
 
 ul.navbar-nav.navbar-text.mx-auto
   - if logged_in?

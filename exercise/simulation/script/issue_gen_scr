@@ -30,7 +30,7 @@ puts 'CREATE BUGMARK ISSUES'
 id = 0
 id = Issue.last.id unless Issue.last.nil?
 Tracker.all.each do |i|
-  TS.issue_gen_scr["number_of_issues_tracker"].times do
+  TS.issue_gen_scr["number_of_issues_per_tracker"].times do
     if id == 1 then
       # update id, if last issue was first to create
       # fixes an issue where exid <> id
@@ -47,7 +47,7 @@ Tracker.all.each do |i|
     issueid = FB.create(:issue, opts).issue.id
     # update user jfields through sql
 
-    skill_array = TS.skills.sample(TS.issue_gen_scr["number_of_skills_issue"])
+    skill_array = TS.skills["task_skills"].sample(TS.skills["number_of_skills_per_issue"])
     myhash = {"skill"=> {}}
     skill_array.each do |i|
       myhash["skill"]["#{i}"] = 0

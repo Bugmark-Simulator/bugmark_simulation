@@ -23,17 +23,17 @@ table.table#xtable
     tr
       td ID
       td Project
-      td Title
+      /td Title
       td Open Offers
-      td Contracts
-      td Progress
-      td Skills required
+      td Accepted Offers
+      td Progress on Completing Tasks
+      /td Skills required
   tbody
     - @issues.each do |issue|
       tr
         td == issue_id_link(issue)
         td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
-        td = issue.stm_title
+        /td = issue.stm_title
         td
           = issue.offers_bu.open.count
           '  /
@@ -46,8 +46,8 @@ table.table#xtable
           = issue.offers.crossed.pluck(:value).sum
           '  tokens
           == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
-        td = "#{issue.jfields["skill"].inject(0){|sum, tuple| sum+= tuple[1]}} / 3"
-        td = issue.jfields["skill"].keys * ", "
+        td == "#{issue.jfields["skill"].map{|k,v| "<span style=\"color:#{v.to_i==1 ? 'green' : 'red'};#{(!current_user.jfields["skill_bonus"].nil? && current_user.jfields["skill_bonus"].include?(k)) ? 'font-weight: bold;' : ''}\">#{k}</span> (#{v.to_i==1 ? 'complete' : 'open'})"}.join(', ')}"
+        /td = issue.jfields["skill"].keys * ", "
 .row
   .col-md-12.text-center
     small <b>*</b> issues where you have an offer or contract
