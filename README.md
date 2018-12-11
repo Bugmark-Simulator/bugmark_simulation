@@ -76,7 +76,9 @@ Let's get started:
 
 #### Cloning the Bugmark Exchange
 
-**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `adduser bugmarkstudy; adduser bugmarkstudy sudo`
+**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `sudo adduser bugmarkstudy; sudo adduser bugmarkstudy sudo` 
+- to switch to new user, either logout and back in, or run `su - bugmarkstudy`
+
 
 1. Clone the tracker
    `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
