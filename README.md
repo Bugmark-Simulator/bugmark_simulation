@@ -81,7 +81,7 @@ Let's get started:
 
 
 1. Clone the tracker
-   `mkdir src; cd src; git clone https://github.com/Bugmark-Simulator/exchange.git`
+   `mkdir ~/src; cd ~/src; git clone https://github.com/Bugmark-Simulator/exchange.git`
 
 2. CD to the tracker directory `cd exchange`
 
