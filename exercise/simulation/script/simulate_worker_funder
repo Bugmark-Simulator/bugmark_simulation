@@ -16,6 +16,8 @@ require_relative "./../webapp/app_helpers"
 AppHelpers.module_eval do
   module_function(:queue_add_task)
   public :queue_add_task
+  module_function(:queue_task_time)
+  public :queue_task_time
 end
 
 # require 'awesome_print'
