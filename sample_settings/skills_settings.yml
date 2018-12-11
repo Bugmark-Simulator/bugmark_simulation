@@ -1,11 +1,18 @@
 ---
 #Skills available
 skills:
-  - "java"
-  - "ruby"
-  - "python"
-  - "HTML"
-  - "SQL"
-  - "c"
-  - "GO"
-  - "R"
+  task_skills:
+    - "Java"
+    - "Ruby"
+    - "Python"
+    - "HTML"
+    - "SQL"
+    - "C++"
+    - "Swift"
+    - "PHP"
+  skills_bonus_per_user: 3
+  skills_malus_per_user: 3
+  seconds_per_bonus_skill:  60
+  seconds_per_normal_skill: 300
+  seconds_per_malus_skill:  3600
+  number_of_skills_per_issue: 3
