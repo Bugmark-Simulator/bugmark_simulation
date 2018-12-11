@@ -37,7 +37,7 @@ To be successful, we recommend good skills with the following:
 - InfluxDB
 - Grafana
 
-#### Host Machine
+#### 0) Host Machine
 
 We assume that you're using Ubuntu 16.04 as your host machine.
 
@@ -58,7 +58,7 @@ user configuration, including:
 
 In this case, it is usually best to use a dedicated user-id.
 
-#### Development VM Configuration
+#### 0.a) Development VM Configuration
 
 Follow these steps to set up a working development environment running on an
 Ubuntu Virtual machine.
@@ -74,7 +74,7 @@ Let's get started:
 
 4. Login to your virtual machine using `vagrant ssh`
 
-#### Cloning the Bugmark Exchange
+#### 1.a) Cloning the Bugmark Exchange
 
 **NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `sudo adduser bugmarkstudy; sudo adduser bugmarkstudy sudo` 
 - to switch to new user, either logout and back in, or run `su - bugmarkstudy`
@@ -85,7 +85,7 @@ Let's get started:
 
 2. Open the repository directory `cd exchange`
 
-#### Development Environment Provisioning
+#### 1.b) Development Environment Provisioning
 
 On the host machine:
 
@@ -117,7 +117,7 @@ On the host machine:
 
 9.  Checkout the master branch `git checkout master`
 
-#### Application Bootstrap
+#### 1.c) Application Bootstrap
 
 Follow these steps to bootstrap the app in your development environment.
 
@@ -133,7 +133,7 @@ Follow these steps to bootstrap the app in your development environment.
 
    A cheat-sheet for tmux navigation is in `~/.tmux.conf`.
 
-#### Host Web Access
+#### 1.d) Host Web Access
 
 1. Get the host IP address `ifconfig`  
 
@@ -142,7 +142,7 @@ Follow these steps to bootstrap the app in your development environment.
 3. On your local machine, browse to `http://<hostname>:3000` (TODO: what ever service this is, we need to start it first)
 
 
-### 2. Installation of Simulation Platform
+### 2.) Installation of Simulation Platform
 This covers the installation of simulation platform to access Bugmark
 Exchange and run the simulation on top of Exchange.
 
@@ -152,22 +152,24 @@ Exchange and run the simulation on top of Exchange.
 
 3. Create *.env* setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-4. Check which directory the *.env* links to `cat .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data; cd ~/src`
+4. Check which directory the *.env* links to `cat .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data`
 
-5. Clean database and setup the default admin user `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
+5. Create settings `cd simulation; mkdir settings; cp ~/src/bugmark_simulation/sample_settings/* ./settings`
 
-6. Go to the simulation application folder `cd bugmark_simulation/exercise/simulation/webapp/`  
+6. Clean database and setup the default admin user `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
-7. Start the simulation platform `./run`
+7. Go to the simulation application folder `cd ~/src/bugmark_simulation/exercise/simulation/webapp/`  
 
-8. On your local machine, browse to `http://<hostname>:4567`
+8. Start the simulation platform `./run`
+
+9. On your local machine, browse to `http://<hostname>:4567`
 
 Your platform is ready to go. The default admin account is
  - user: admin@bugmark.net
  - password: bugmark
 
 
-### 3. Setting up Grafana
+### 3.) Setting up Grafana
 
 (_Note:_ Make sure grafana is in version 5.3+)
 
