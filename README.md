@@ -80,10 +80,10 @@ Let's get started:
 - to switch to new user, either logout and back in, or run `su - bugmarkstudy`
 
 
-1. Clone the tracker
+1. Clone the bugmark exchange repository
    `mkdir ~/src; cd ~/src; git clone https://github.com/Bugmark-Simulator/exchange.git`
 
-2. CD to the tracker directory `cd exchange`
+2. Open the repository directory `cd exchange`
 
 #### Development Environment Provisioning
 
