@@ -152,9 +152,9 @@ Exchange and run the simulation on top of Exchange.
 
 3. Create *.env* setting file `cd bugmark_simulation/exercise/simulation; cp .env-default .env`
 
-4. Check which directory the *.env* links to `cat .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial; cd trial; mkdir simulation; mkdir .trial_data`
+4. Check which directory the *.env* links to `cat .env` and change if desired `vim .env`, then create that directory `cd ~; mkdir trial;  mkdir trial/simulation; mkdir trial/simulation/.trial_data`
 
-5. Create settings `cd simulation; mkdir settings; cp ~/src/bugmark_simulation/sample_settings/* ./settings`
+5. Create settings `cd ~/trial/simulation; mkdir settings; cp ~/src/bugmark_simulation/sample_settings/* ./settings`
 
 6. Clean database and setup the default admin user `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
@@ -211,7 +211,8 @@ Your platform is ready to go. The default admin account is
    - User: grafana
    - Password: grafana
 
-  8. [TODO] setup panels in grafana
+  8. To setup the panels that display the graphs, go to `http://<ip-address-of-server>:3030/dashboard/import` and either select "Upload .json File" or copy past the content of [grafana-panels.json](./grafana-panels.json)
+    - Note: Might have to login first at `http://<ip-address-of-server>:3030/login`
 
   9. [TODO] announce location of panels to simulator to display graphs
 
