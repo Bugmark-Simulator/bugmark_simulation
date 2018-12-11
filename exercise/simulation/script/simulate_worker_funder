@@ -126,7 +126,7 @@ loop do
         # skip task, if it is already completed
         next if completed.to_i == 1
         # test whether user has skill for this task
-        if user.jfields['skill'].include? task then
+        if user.jfields['skill_bonus'].include? task then
 
           # ---- 1) accept a task ----
 
