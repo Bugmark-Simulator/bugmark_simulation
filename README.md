@@ -186,7 +186,7 @@ Your platform is ready to go. The default admin account is
  3. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
 
  4. Configure a influxDB connection
-   - name: influxdb
+   - name: influx
    - type: influxDB
    - URL: http://localhost:8086
    - Access: proxy
