@@ -16,6 +16,7 @@ require 'securerandom'
 require 'yaml'
 require_relative "./../webapp/app_helpers"
 require 'open-uri'  # for downloading grafana image
+require 'fileutils'
 # make function for graph1
 AppHelpers.module_eval do
   module_function(:grafana_graph_data)
@@ -236,105 +237,116 @@ def update_graphs
     puts "graphs for project #{Tracker.where(uuid: project_uuid).first.name}"
     # get all pictures for this project at the same time
     threads = []
-    threads.push(
-      # contract fix rate
-      Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png", 'wb') do |file|
-          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-        end
-        # puts "graph: 1 - contract fix rate"
-      end
-    )
+    # threads.push(
+    #   # contract fix rate
+    #   Thread.new do
+    #     open('/tmp/bugm-sim-graph-1', 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+    #     end
+    #     FileUtils.mv('/tmp/bugm-sim-graph-1', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png")
+    #     # puts "graph: 1 - contract fix rate"
+    #   end
+    # )
     # payout vs potential
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_payout_vs_potential.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-2', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-2', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_payout_vs_potential.png")
         # puts "graph: 2 - payout vs potential"
       end
     )
     # variance of offer volumes
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_var_offer_volumes.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-3', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-3', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_var_offer_volumes.png")
         # puts "graph: 3 - variance of offer volumes"
       end
     )
     # open offer count and volume
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offer_count_vol.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-4', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-4', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offer_count_vol.png")
         # puts "graph: 4 - open offer count and volume"
       end
     )
     # maturation days offers summary
-    threads.push(
-      Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png", 'wb') do |file|
-          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-        end
-        # puts "graph: 5 - maturation days offers summary"
-      end
-    )
+    # threads.push(
+    #   Thread.new do
+    #     open('/tmp/bugm-sim-graph-5', 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+    #     end
+    #     FileUtils.mv('/tmp/bugm-sim-graph-5', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png")
+    #     # puts "graph: 5 - maturation days offers summary"
+    #   end
+    # )
     # # open issues
     # threads.push(
     #   Thread.new do
-    #     open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issues.png", 'wb') do |file|
+    #     open('/tmp/bugm-sim-graph-6', 'wb') do |file|
     #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=12&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
     #     end
+    #     FileUtils.mv('/tmp/bugm-sim-graph-6', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issues.png")
     #     # puts "graph: 6 - open issues"
     #   end
     # )
     # closed issues
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-7', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-7', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png")
         # puts "graph: 7 - closed issues"
       end
     )
     # issue resolution efficiency
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_efficiency.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-8', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=16&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-8', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_efficiency.png")
         # puts "graph: 8 - issue resolution efficiency"
       end
     )
     # open issue age
-    threads.push(
-      Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png", 'wb') do |file|
-          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-        end
-        # puts "graph: 9 - open issue age"
-      end
-    )
+    # threads.push(
+    #   Thread.new do
+    #     open('/tmp/bugm-sim-graph-9', 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+    #     end
+    #     FileUtils.mv('/tmp/bugm-sim-graph-9', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png")
+    #     # puts "graph: 9 - open issue age"
+    #   end
+    # )
     # first response days
     threads.push(
       Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_first_response_days.png", 'wb') do |file|
+        open('/tmp/bugm-sim-graph-10', 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=15&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
+        FileUtils.mv('/tmp/bugm-sim-graph-10', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_first_response_days.png")
         # puts "graph: 10 - first response days"
       end
     )
     # issue resolution days
-    threads.push(
-      Thread.new do
-        open("./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png", 'wb') do |file|
-          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-        end
-        puts "graph: 11 - issue resolution days"
-      end
-    )
+    # threads.push(
+    #   Thread.new do
+    #     open('/tmp/bugm-sim-graph-11', 'wb') do |file|
+    #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+    #     end
+    #     FileUtils.mv('/tmp/bugm-sim-graph-11', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png")
+    #     # puts "graph: 11 - issue resolution days"
+    #   end
+    # )
     # wait until pictures for this project are stored before going to the next project
     threads.each(&:join)
   end

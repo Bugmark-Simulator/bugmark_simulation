@@ -518,7 +518,7 @@ def queue_task_time(task, user = current_user)
   return TS.skills['seconds_per_normal_skill']
 end
 
-def queue_add_task(user_uuid, issue_uuid, task)
+def queue_add_task(user_uuid, issue_uuid, task, user = current_user)
   datesql = "Select max(completed) from work_queues where user_uuid = '#{user_uuid}' and completed > now() and removed IS NULL;"
   maxdate = ActiveRecord::Base.connection.execute(datesql).to_a
   #maxdate = JSON.parse(maxdate1)['max']
@@ -529,7 +529,7 @@ def queue_add_task(user_uuid, issue_uuid, task)
   end
   sql = "INSERT INTO work_queues (user_uuid, issue_uuid, task, added_queue, position, completed, startwork)
   values ('#{user_uuid}','#{issue_uuid}','#{task}',
-    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '#{queue_task_time(task)} seconds',#{startdate}) ;"
+    '#{BugmTime.now.to_s.slice(0..18)}', 1, #{startdate} + '#{queue_task_time(task, user)} seconds',#{startdate}) ;"
   ActiveRecord::Base.connection.execute(sql).to_a
 end
 
