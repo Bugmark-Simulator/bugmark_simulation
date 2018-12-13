@@ -16,7 +16,8 @@ hr
             - Tracker.all.each do |tracker|
               tr.projsel[projuuid="#{tracker.uuid}" projname="#{tracker.name}"]
                 td = tracker.name
-                td = Issue.open.where(stm_tracker_uuid: tracker.uuid).count
+                td
+                  a.btn.btn-secondary[href="/project_issues/#{tracker.uuid}"] View <b>#{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}</b> open issues
                 td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
           - else
             tr
@@ -50,7 +51,7 @@ hr
 
   - unless @treatment == 'market-metrics' || @treatment == 'no-metrics' || Tracker.count == 0
     .col-md-4
-      p <b>Health Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span> 
+      p <b>Health Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span>
       /images are created by the nightly script
 
       /p Open Issues
@@ -86,9 +87,14 @@ hr
       $(this).css('background', 'yellow')
       $('span.metricprojectname').text($(this).attr('projname'))
       projuuid = $(this).attr('projuuid')
+      datestr = ''+Math.round((new Date()).getTime()/10000)
       $('img.projgraph').each(function(){
-        newurl = $(this).attr('imgsrc')
+        newurl = $(this).attr('imgsrc') +"?"+ datestr
         newurl = newurl.replace('projectuuid', projuuid)
         $(this).attr('src', newurl)
       })
     })
+    proj_uuid = window.location.toString().split('#')[1]
+    if (proj_uuid){
+      $('tr.projsel[projuuid='+proj_uuid+']').click()
+    }

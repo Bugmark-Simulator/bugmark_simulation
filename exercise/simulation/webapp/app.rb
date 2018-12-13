@@ -184,6 +184,57 @@ end
 #   redirect "/issues/#{issue.uuid}"
 # end
 
+# list of open  issues for a specific project
+get "/project_issues" do
+  protected!
+  if session[:project_issues] then
+    project = Tracker.where(uuid: session[:project_issues]).first
+    redirect "/project_issues/#{project.uuid}"
+  else
+    redirect "/issues"
+  end
+end
+
+# list of open issues for a specific project
+get "/project_issues/:uuid" do
+  protected!
+  @project = Tracker.where(uuid: params['uuid']).first
+  session[:project_issues] = @project.uuid
+  @OpenClosed = "Open"
+  @issues = Issue.where(stm_tracker_uuid: @project.uuid).open
+  # activity log
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
+  ActiveRecord::Base.connection.execute(log_sql)
+  slim :project_issues
+end
+
+# list of closed issues for a specific project
+get "/project_issues_closed" do
+  protected!
+  if session[:project_issues] then
+    project = Tracker.where(uuid: session[:project_issues]).first
+    redirect "/project_issues_closed/#{project.uuid}"
+  else
+    redirect "/issues_closed"
+  end
+end
+
+# list of closed issues for a specific project
+get "/project_issues_closed/:uuid" do
+  protected!
+  @project = Tracker.where(uuid: params['uuid']).first
+  session[:project_issues] = @project.uuid
+  @OpenClosed = "Closed"
+  @issues = Issue.where(stm_tracker_uuid: @project.uuid).closed
+  # activity log
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
+  ActiveRecord::Base.connection.execute(log_sql)
+  slim :project_issues
+end
+
+
 # list all open issues
 get "/issues" do
   protected!

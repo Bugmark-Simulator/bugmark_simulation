@@ -1,6 +1,6 @@
 .row
   .col-md-4
-    h2[style='margin-bottom: 15px;'] #{@OpenClosed} Issues (#{@issues.count})
+    h2[style='margin-bottom: 15px;'] #{@OpenClosed} Issues (#{@issues.count}) for project #{@project.name}
   .col-md-8.text-right
     .btn-group.btn-group-toggle.btn-group-sm[data-toggle="buttons"]
       - if @OpenClosed == "Open"
@@ -63,14 +63,14 @@ table.table#xtable
       table.search("*").draw()
     setAllIssues = ->
       if re.test(window.location.href)
-        window.location = "/issues"
+        window.location = "/project_issues"
       else
         table.search("").draw()
     setClosedIssues = ->
       if re.test(window.location.href)
         table.search("").draw()
       else
-        window.location = "/issues_closed"
+        window.location = "/project_issues_closed"
     $('document').ready ->
       $('#myIssues').on  "focus", setMyIssues
       $('#allIssues').on "focus", setAllIssues
