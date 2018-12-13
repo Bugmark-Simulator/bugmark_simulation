@@ -181,7 +181,7 @@ Your platform is ready to go. The default admin account is
     org_role = Viewer
 ```
 
- 2. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`
+ 2. Test if Grafana is running `systemctl status grafana-server` and if not, start Grafana `sudo systemctl start grafana-server`, otherwise restart to load new settings `sudo systemctl restart grafana-server`
 
  3. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
 
