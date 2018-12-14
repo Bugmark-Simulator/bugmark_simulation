@@ -10,19 +10,25 @@ table.table#xtable
       td ID
       td Email
       td Username
-      td Treatment
-      td Balance
       td Password
-      td Edit
+      td Treatment
+      td Type
+      td Skill Bonus
+      td Skill Malus
+      td Balance
+      td
   tbody
     - @users.each do |user|
       tr
         td = user.xid
         td = user.email
         td = user.name
-        td = user["jfields"]["treatment"]
-        td = user.balance
         td = user["jfields"]["password"]
+        td = user["jfields"]["treatment"]
+        td = user["jfields"]["type"]
+        td = user["jfields"]["skill_bonus"]
+        td = user["jfields"]["skill_malus"]
+        td = user.balance
         td
           a[href="/admin/user/#{user.uuid}"] edit
 

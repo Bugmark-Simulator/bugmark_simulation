@@ -16,6 +16,14 @@ set :bind, '0.0.0.0'
 set :root, File.dirname(__FILE__)
 enable :sessions
 
+Thread.new do
+  loop do
+    # always check the workqueue
+    AppHelpers.workqueue_sync
+    sleep 1
+  end
+end
+
 helpers AppHelpers
 
 # ----- core app -----

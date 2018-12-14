@@ -170,58 +170,6 @@ def nightly_scr
   # end
 end
 
-def workqueue_sync
-  un_marked_list_sql = "Select id, issue_uuid, task from work_queues
-    where updated_issue = false
-    and completed < now()
-    and (removed > completed OR removed IS NULL); "
-  un_marked_lists = ActiveRecord::Base.connection.execute(un_marked_list_sql).to_a
-
-  # Update Issue table J-field for issue/task completed
-  updated_ids = []
-  un_marked_lists.each do |i|
-    updated_ids.push(i['id'])
-    # puts i["issue_uuid"]
-    issue_update = "UPDATE issues
-    SET jfields = replace(jfields::TEXT, '\"#{i["task"]}\": 0','\"#{i["task"]}\": 1')::jsonb
-    WHERE uuid='#{i["issue_uuid"]}'
-    ;"
-    issue_update_sql = "update issues
-        set jfields = jsonb_set(jfields, '{\"first_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
-        WHERE uuid = '#{i["issue_uuid"]}'
-        AND jfields->>'first_activity' = '';"
-    ActiveRecord::Base.connection.execute(issue_update_sql)
-    issue_update_sql = "update issues
-            set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
-            WHERE uuid = '#{i["issue_uuid"]}';"
-    ActiveRecord::Base.connection.execute(issue_update_sql)
-
-    #binding.pry
-    ActiveRecord::Base.connection.execute(issue_update)
-    task_completed = Issue.where(uuid: "#{i["issue_uuid"]}").first.jfields["skill"]
-    ex_id = Issue.where(uuid: "#{i["issue_uuid"]}").first.exid
-    check = true
-    # Check all the skills of an issue are worked on and mark it closed
-    task_completed.each do |key, value|
-      if value == 0
-        check = false
-      end
-    end
-
-    if check == true
-      IssueCmd::Sync.new({exid: ex_id, stm_status: "closed"}).project
-      issue_update_sql = "update issues
-              set jfields = jsonb_set(jfields, '{\"closed_on\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
-              WHERE exid = '#{ex_id}';"
-      ActiveRecord::Base.connection.execute(issue_update_sql)
-    end
-  end
-  if updated_ids.length > 0
-    work_queue_update_sql = "update work_queues SET updated_issue = TRUE WHERE id IN (#{updated_ids * ","});"
-    ActiveRecord::Base.connection.execute(work_queue_update_sql)
-  end
-end
-
 def update_graphs
   # only get graphs if they were requested
   return unless @request_graph_pictures
@@ -355,8 +303,6 @@ def update_graphs
 end
 
 loop do
-  # always check the workqueue
-  workqueue_sync
   # if nightly needs to be run, run it
   if @nightly_run <= Time.now
     nightly_scr
