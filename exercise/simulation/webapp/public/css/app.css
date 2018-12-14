@@ -11,3 +11,8 @@
   display: -ms-flexbox;
   display: flex;
 }
+
+img.projgraph {
+  min-height: 180px;
+  width: 100%;
+}
