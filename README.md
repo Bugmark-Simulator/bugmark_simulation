@@ -39,10 +39,11 @@ To be successful, we recommend good skills with the following:
 
 #### 0) Host Machine
 
-We assume that you're using Ubuntu 16.04 as your host machine.
+We assume that you're using **Ubuntu v16.04** as your host machine. Newer versions 
+have known issues.
 
 Your host machine can exist in a few different forms:
-1) a desktop Ubuntu system
+1) a desktop Ubuntu v16.04 system
 2) a Virtual Machine running locally (using Vagrant)
 3) a Virtual Machine running in the data center
 
