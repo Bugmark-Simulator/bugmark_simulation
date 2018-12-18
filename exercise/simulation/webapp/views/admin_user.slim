@@ -2,9 +2,28 @@
   .col-md-6
     h2 Admin Edit User
   .col-md-6.text-right
-= @user
+.row
+  .col-md-12
+    h3 = @user.name
 
-form
-  /input[name=uuid protected] = @user.uuid
-  /input[name=name] = @user.name
-  /input[name=treatment] = @user["jfields"]["treatment"]
+form[method="post"]
+  div
+    label[for="uuid"] UUID:
+    input[name="uuid" disabled value="#{@user.uuid}"]
+  div
+    label[for="name"] Name:
+    input[name="name" disabled value="#{@user.name}"]
+  div
+    label[for="email"] Email:
+    input[name="email" disabled value="#{@user.email}"]
+  div
+    label[for="pwd"] Password:
+    input[name="pwd" disabled value=""]
+  div
+    label[for='treatment'] Treatment:
+    input[name="treatment" disabled value="#{@user["jfields"]["treatment"]}"]
+  div
+    label[for='jfields'] Jfields:
+    textarea[name='jfields' disabled style='width:100%;height:10em;'] = @user["jfields"]
+  div
+    input.btn.btn-primary[type="submit" disabled value="Save"]

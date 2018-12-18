@@ -1,37 +1,36 @@
-.row[style='margin-bottom: 15px;']
+.row.mb-1
   .col-md-6
     h2 Admin
+    div
+      == start_stop_nightly
+      .ml-1 Next day every #{TS.nightly_scr["seconds_for_day_switching"]} seconds | Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
+      a.btn.btn-danger[href="/admin/nextday"] Manually Go to Next day
+    h3 Status
+    div Last graph update: #{$last_graph_update.nil? ? "NEVER" : (Time.now - $last_graph_update).round } seconds ago
+    div Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
+
+
   .col-md-6.text-right
-    small Users: #{@users.count} Offers: #{@offers.count} Contracts: #{@contracts.count}
+    a.btn.btn-primary[href="/admin/users"] Open Users Admin
+    /a.btn.btn-primary[href="/admin/settings"] Settings Admin
 
-table.table#xtable
-  thead
-    tr
-      td ID
-      td Email
-      td Username
-      td Password
-      td Treatment
-      td Type
-      td Skill Bonus
-      td Skill Malus
-      td Balance
-      td
-  tbody
-    - @users.each do |user|
-      tr
-        td = user.xid
-        td = user.email
-        td = user.name
-        td = user["jfields"]["password"]
-        td = user["jfields"]["treatment"]
-        td = user["jfields"]["type"]
-        td = user["jfields"]["skill_bonus"]
-        td = user["jfields"]["skill_malus"]
-        td = user.balance
-        td
-          a[href="/admin/user/#{user.uuid}"] edit
-
-- content_for :page_js do
-  javascript:
-    $('#xtable').DataTable();
+.row
+  .col-md-12
+    table.table.table-sm.table-hover.table-striped.table-condensed
+      thead
+        tr
+          th Project
+          th Open Issues
+          th Open Offers
+          th Bots
+      tbody
+        - if Tracker.count > 0
+          - Tracker.all.each do |tracker|
+            tr.projsel[projuuid="#{tracker.uuid}" projname="#{tracker.name}"]
+              td = tracker.name
+              td <b>#{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}</b> open issues
+              td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
+              td TBD
+        - else
+          tr
+            td[colspan=4] No projects

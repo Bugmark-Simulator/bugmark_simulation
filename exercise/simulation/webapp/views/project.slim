@@ -29,8 +29,8 @@ hr
       /images are created by the nightly script
 
       /p Contract fixed Rate
-      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_contract_fix_rate.png' imgsrc='/graph/projectuuid_contract_fix_rate.png']
-      /</br>
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_contract_fix_rate.png' imgsrc='/graph/projectuuid_contract_fix_rate.png']
+      </br>
       /NOTE: activated in nighlty script if you want this graph
 
       /p Payout vs Potential
@@ -46,7 +46,7 @@ hr
       </br>
 
       /p Maturation Days Offer Summary
-      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_maturation_days_offer_summary.png' imgsrc='/graph/projectuuid_maturation_days_offer_summary.png']
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_maturation_days_offer_summary.png' imgsrc='/graph/projectuuid_maturation_days_offer_summary.png']
       /NOTE: activated in nighlty script if you want this graph
 
   - unless @treatment == 'market-metrics' || @treatment == 'no-metrics' || Tracker.count == 0
@@ -55,8 +55,8 @@ hr
       /images are created by the nightly script
 
       /p Open Issues
-      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
-      /</br>
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
+      </br>
 
       /p Closed Issues
       img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_closed_issues.png' imgsrc='/graph/projectuuid_closed_issues.png']
@@ -67,8 +67,8 @@ hr
       </br>
 
       /p Open Issue Age
-      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issue_age.png' imgsrc='/graph/projectuuid_open_issue_age.png']
-      /</br>
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issue_age.png' imgsrc='/graph/projectuuid_open_issue_age.png']
+      </br>
       /NOTE: activated in nighlty script if you want this graph
 
       /p First Response After Days
@@ -76,10 +76,14 @@ hr
       </br>
 
       /p Issues Closed Afer Days
-      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_days.png' imgsrc='/graph/projectuuid_issue_resolution_days.png']
+      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_days.png' imgsrc='/graph/projectuuid_issue_resolution_days.png']
       /NOTE: activated in nighlty script if you want this graph
 
 - unless @treatment == 'no-metrics'
+  .row
+    .col-md-4
+    .col-md-8
+      p Metrics updated #{$last_graph_update.nil? ? "NEVER" : (Time.now - $last_graph_update).round } seconds ago
   javascript:
     $('tr.projsel').first().css('background', 'yellow')
     $('tr.projsel').css('cursor', 'pointer').click(function(){

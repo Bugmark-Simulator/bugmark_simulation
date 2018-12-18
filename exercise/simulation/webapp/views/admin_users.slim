@@ -1,0 +1,37 @@
+.row[style='margin-bottom: 15px;']
+  .col-md-6
+    h2 Admin
+  .col-md-6.text-right
+    small Users: #{@users.count} Offers: #{@offers.count} Contracts: #{@contracts.count}
+
+table.table#xtable
+  thead
+    tr
+      td ID
+      td Email
+      td Username
+      td Password
+      td Treatment
+      td Type
+      td Skill Bonus
+      td Skill Malus
+      td Balance
+      td
+  tbody
+    - @users.each do |user|
+      tr
+        td = user.xid
+        td = user.email
+        td = user.name
+        td = user["jfields"]["password"]
+        td = user["jfields"]["treatment"]
+        td = user["jfields"]["type"]
+        td = user["jfields"]["skill_bonus"]
+        td = user["jfields"]["skill_malus"]
+        td = user.balance
+        td
+          a[href="/admin/user/#{user.uuid}"] edit
+
+- content_for :page_js do
+  javascript:
+    $('#xtable').DataTable();

@@ -44,11 +44,11 @@ Exchange.load_rails
 # settings_skill = YAML.load_file('skill.yml')
 
 # days in future that offers expire and contracts mature
-MATURATION_DAYS_IN_FUTURE = 3
+MATURATION_DAYS_IN_FUTURE = 10
 # funder price
-UNFIXED_PRICE = [0.80, 0.85, 0.90, 0.95, 1.0]
+UNFIXED_PRICE = [0.5, 0.6, 0.7, 0.75 ,0.80, 0.85, 0.90, 0.95, 1.0]
 # volume of contracts in tokens
-CONTRACT_VOLUME = 100
+CONTRACT_VOLUME = [50, 100, 150, 200]
 # number of offers a funder creates
 NEW_OFFERS_PER_FUNDER = 3
 
@@ -86,13 +86,15 @@ loop do
       STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
       STDOUT.flush
       # get a random open issue
-      issue_uuid = Issue.where(stm_status: 'open').order('random()').first.uuid
+      issue = Issue.where(stm_status: 'open').order('random()').first
+      break if issue.nil?
       # args is a hash
       args  = {
         user_uuid: funder_uuid,
-        price: UNFIXED_PRICE.sample,  # always fixed price 1
-        volume: CONTRACT_VOLUME,
-        stm_issue_uuid: issue_uuid,
+        price: UNFIXED_PRICE.sample,
+        volume: CONTRACT_VOLUME.sample,
+        stm_issue_uuid: issue.uuid,
+        stm_tracker_uuid: Issue.where(uuid: issue.uuid).first.stm_tracker_uuid,
         expiration: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE),
         maturation: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE)
       }
@@ -121,6 +123,7 @@ loop do
 
       # get a random open issue
       issue = Issue.where(stm_status: 'open').order('random()').first
+      break if issue.nil?
       # find a task to work on
       issue.jfields['skill'].to_a.shuffle.each do |task, completed|
         # skip task, if user already chose a task this turn
@@ -152,14 +155,14 @@ loop do
           # puts offers.to_sql
           # puts ""
           # accept offer
-          if !offer.nil? && offer.valid?
-            # projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
-            # if projection
-            #   counter = projection.offer
-            #   if counter.valid?
-            #     ContractCmd::Cross.new(counter, :expand).project
-            #   end
-            # end
+          if offer && !offer.nil? && offer.valid?
+            projection = OfferCmd::CreateCounter.new(offer, {user_uuid: worker_uuid}).project
+            if projection
+              counter = projection.offer
+              if counter.valid?
+                ContractCmd::Cross.new(counter, :expand).project
+              end
+            end
           end
         end
       end
@@ -179,6 +182,11 @@ loop do
       sleep(1)
     end
   end
+  while Issue.open.count == 0 do
+    puts "no more issues ... paused for 10 seconds ..."
+    sleep(10)
+  end
+
 end
 puts ""
 puts "DONE"

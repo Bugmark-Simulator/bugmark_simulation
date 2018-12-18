@@ -3,6 +3,8 @@ ul.navbar-nav.mr-auto
     == nav_link("Project Metrics Dashbaord" , "/project")
     == nav_link("Issue Tracker"                    , "/issues")
     == nav_link("Market Place"                 , "/contracts")
+    - if current_user.id == 1
+      == nav_link("RESEARCHER CONTROL PANEL"                 , "/admin")
 
 ul.navbar-nav.navbar-text.mx-auto
   - if logged_in?

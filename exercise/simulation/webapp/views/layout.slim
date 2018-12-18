@@ -34,5 +34,5 @@ html[lang="en-US"]
           .row
             .col-md-6.text-center
               | Powered by Bugmark
-            .col-md-6.text-center This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%m/%d")}
+            .col-md-6.text-center This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%m/%d")}. Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds.
     == yield_content :page_js

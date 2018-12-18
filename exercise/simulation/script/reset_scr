@@ -24,6 +24,29 @@ Exchange.load_rails
 
 # ----- Reset Everything -----
 puts 'Resetting Bugmark Exchange'
+
+sql = "TRUNCATE TABLE
+  amendments
+, ar_internal_metadata
+, bugmtimes
+, contracts
+, escrows
+, events
+, issue_comments
+, issues
+, log
+, offers
+, positions
+, projections
+, schema_migrations
+, trackers
+, user_groups
+, user_memberships
+, users
+, work_queues
+RESTART IDENTITY CASCADE;"
+ActiveRecord::Base.connection.execute(sql)
+
 BugmHost.reset
 
 # ----- Delete graph images -----

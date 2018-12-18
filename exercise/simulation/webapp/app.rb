@@ -16,13 +16,57 @@ set :bind, '0.0.0.0'
 set :root, File.dirname(__FILE__)
 enable :sessions
 
+$run_nightly = nil
+$last_graph_update = nil
+$generate_graphs = true
+@getting_graph_pictures = false
+
+# record current BugmTime and SystemTime
+AppHelpers.record_bugm_system_times
+
+# always
+# - check the workqueue
+# - check for nightly
+# - create graphs
+# -
 Thread.new do
+  sleep(3)
   loop do
-    # always check the workqueue
-    AppHelpers.workqueue_sync
+    # sync workqueue
+    # Thread.new do
+      AppHelpers.workqueue_sync
+    # end
+    # run nightly script
+    # puts "test"
+    # puts "check nightly | Value: #{$run_nightly} | Nil: #{(!$run_nightly.nil?)} | Time: #{(!$run_nightly.nil?) && ($run_nightly < Time.now)} "
+    if ((!$run_nightly.nil?) && ($run_nightly < Time.now)) then
+      puts "=================== SIMULATE NEXT DAY: #{BugmTime.end_of_day(1).strftime("%Y-%m-%d")} ==================="
+      $run_nightly += TS.nightly_scr["seconds_for_day_switching"]
+      Thread.new do
+        AppHelpers.next_day
+        $generate_graphs = true
+      end
+    end
+    # only get graphs, if the process is not yet running
+    # only get graphs if they were requested
+    if !@getting_graph_pictures && $generate_graphs then
+      # announce that the process is running
+      @getting_graph_pictures = true
+      # reset requeest bit
+      $generate_graphs = false
+      puts "=================== UPDATE GRAPHS ==================="
+      Thread.new do
+        AppHelpers.update_graphs
+        $last_graph_update = Time.now
+        puts "=================== FINISHED GRAPHS ==================="
+        @getting_graph_pictures = false
+      end
+    end
+    # sleep briefly to avoid overloading
     sleep 1
   end
 end
+
 
 helpers AppHelpers
 
@@ -686,23 +730,50 @@ end
 # ----- admin -----
 
 get "/admin" do
-  protected!
-  trmt = current_user["jfields"]["treatment"]
-  redirect "/account" if trmt == "no-metrics" || trmt == "health-metrics" || trmt == "market-metrics" || trmt == "both-metrics"
-  @users = User.all
-  @contracts = Contract.open
-  @offers = Offer.open
+  admin_only!
   slim :admin
 end
 
 
+get "/admin/users" do
+  admin_only!
+
+  @users = User.all
+  @contracts = Contract.open
+  @offers = Offer.open
+  slim :admin_users
+end
+
+
 get "/admin/user/:uuid" do
-  protected!
-  trmt = current_user["jfields"]["treatment"]
-  redirect "/account" if trmt == "no-metrics" || trmt == "health-metrics" || trmt == "market-metrics" || trmt == "both-metrics"
+  admin_only!
+
   @user = User.where(uuid: params['uuid']).first
   slim :admin_user
 end
+
+get "/admin/startstopnighlty" do
+  admin_only!
+  # binding.pry
+  if $run_nightly.nil?
+    $run_nightly = Time.now
+    puts "=================== STARTING SIMULATION ==================="
+  else
+    $run_nightly = nil
+    puts "=================== STOPPING SIMULATION ==================="
+  end
+  # binding.pry
+  redirect '/admin'
+end
+
+get "/admin/nextday" do
+  admin_only!
+  puts "=================== MANUAL NEXT DAY ==================="
+  AppHelpers.next_day
+  $generate_graphs = true
+  redirect '/admin'
+end
+
 
 # get "/admin/sync" do
 #   script = File.expand_path("../script/issue_sync_all", __dir__)

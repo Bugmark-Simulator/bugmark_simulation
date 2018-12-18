@@ -33,11 +33,22 @@ TS.user_gen_scr["create_users"].each do |users|
   if(users['number_of_new_users'] > 0) then
     (1..users['number_of_new_users']).each do |i|
       username= SecureRandom.hex(2)
+      emailaddr = username+'@example.com'
       userpassword = SecureRandom.hex(2)
+      # nice user name
+      if User.count < TS.usernames.count then
+        TS.usernames.shuffle.each do |potential_name|
+          potential_name = potential_name.gsub(/[^0-9a-zA-Z]/i, '')
+          if User.where(name: potential_name).count == 0 then
+            username = potential_name
+            break
+          end
+        end
+      end
       opts = {
         balance: users['budget'],
         name: username,
-        email: username+'@example.com',
+        email: emailaddr,
         password: userpassword
       }
       userid = FB.create(:user, opts).user.id
