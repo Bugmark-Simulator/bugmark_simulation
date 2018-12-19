@@ -1,6 +1,8 @@
-.row.mb-1
-  .col-md-6
+.row
+  .col-md-12
     h2 Admin
+.row
+  .col-md-6
     div
       == start_stop_nightly
       .ml-1 Next day every #{TS.nightly_scr["seconds_for_day_switching"]} seconds | Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
@@ -10,7 +12,7 @@
     div Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
 
 
-  .col-md-6.text-right
+  .col-md-6
     a.btn.btn-primary[href="/admin/users"] Open Users Admin
     /a.btn.btn-primary[href="/admin/settings"] Settings Admin
 

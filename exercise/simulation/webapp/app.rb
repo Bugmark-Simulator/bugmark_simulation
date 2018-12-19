@@ -311,32 +311,22 @@ get "/issues_closed" do
   slim :issues
 end
 
-# render a dynamic SVG for the issues
-# get '/badge_ex/*' do |issue_exid|
-#   content_type 'image/svg+xml'
-#   cache_control :no_cache
-#   expires 0
-#   last_modified Time.now
-#   etag SecureRandom.hex(10)
-#   @issue = Issue.find_by_exid(issue_exid.split(".").first)
-#   erb :badge
-# end
 
 # ----- offers -----
 
 # show one offer
-# get "/offers/:uuid" do
-#   protected!
-#   @offer = Offer.find_by_uuid(params['uuid'])
-#   slim :offer
-# end
+get "/offers/:uuid" do
+  protected!
+  @offer = Offer.find_by_uuid(params['uuid'])
+  slim :offer
+end
 
 # list all offers
-# get "/offers" do
-#   protected!
-#   @offers = Offer.open.with_issue.all
-#   slim :offers
-# end
+get "/offers" do
+  protected!
+  @offers = Offer.open.with_issue.all
+  slim :offers
+end
 
 # cancel an offer
 get "/offer_cancel/:offer_uuid" do
@@ -352,13 +342,14 @@ post "/offer_create/:issue_uuid" do
   protected!
   uuid  = params['issue_uuid']
   issue = Issue.find_by_uuid(uuid)
+  maturation = params['maturation'] ? params['maturation'] : BugmTime.end_of_day(4)
   opts = {
     aon:            params['side'] == 'unfixed' ? true : false ,
     price:          params['side'] == 'unfixed' ? 0.80 : 0.20  ,
     volume:         params['value'].to_i                       ,
     user_uuid:      current_user.uuid,
-    maturation:     Time.parse(params['maturation']).change(hour: 23, min: 55),
-    expiration:     Time.parse(params['maturation']).change(hour: 23, min: 50),
+    maturation:     Time.parse(maturation).change(hour: 23, min: 55),
+    expiration:     Time.parse(maturation).change(hour: 23, min: 50),
     poolable:       false,
     stm_issue_uuid: uuid,
     stm_tracker_uuid: issue.stm_tracker_uuid
@@ -455,13 +446,14 @@ post "/position_sell/:position_uuid" do
   else
     issue    = position.offer.issue
     value    = params['value'].to_i.to_f
-    price    = (position.volume.to_f - value) / Position.volume.to_f
+    price    = (position.volume.to_f - value) / position.volume.to_f
     result   = OfferCmd::CreateSell.new(position, price: price)
     alt = result.project
-    if project.nil?
+    if alt.nil?
       flash[:warning] = "could not create sale offer"
+    else
+      flash[:success] = "You have made an offer to sell your position"
     end
-    flash[:success] = "You have made an offer to sell your position"
     # activity log
     sql_uuid = ActiveRecord::Base.connection.quote(issue.uuid)
     log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
@@ -584,6 +576,29 @@ post "/set_username" do
   redirect "/account"
 end
 
+post "/set_password" do
+  protected!
+  user = current_user
+  new_password = ActiveRecord::Base.connection.quote(params['newPassword'])
+  user.password = new_password
+  if user.save
+    flash[:success] = "Changed Password, please login again"
+    # update last activity on issue
+    issue_update_sql = "update users
+            set jfields = jsonb_set(jfields, '{\"password\"}', jsonb #{new_password})
+            WHERE uuid = '#{current_user.uuid}';"
+    ActiveRecord::Base.connection.execute(issue_update_sql) unless user.email == "admin@bugmark.net"
+    redirect "logout"
+  else
+    flash[:danger] = user.errors.messages.values.flatten.join(" ")
+  end
+  # activity log
+  log_sql = "Insert into log (user_uuid, time, page)
+    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'account/set_password');"
+  ActiveRecord::Base.connection.execute(log_sql)
+  redirect "/account"
+end
+
 # ------------ create user account ------------
 # get "/account_creation" do
 #   slim :account_creation
@@ -627,6 +642,7 @@ post "/login" do
     log_sql = "Insert into log (user_uuid, time, page)
       values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'login');"
     ActiveRecord::Base.connection.execute(log_sql)
+    redirect path || "/admin"
     redirect path || "/project"
   when ! user
     word = (/@/ =~ params["usermail"]) ? "Email Address" : "Username"
@@ -774,6 +790,14 @@ get "/admin/nextday" do
   redirect '/admin'
 end
 
+get "/admin/login_as/:uuid" do
+  # admin_only!
+  user = User.where(uuid: params['uuid']).first
+  session[:usermail] = user.email
+  session[:consent]  = true
+  redirect '/project'
+end
+
 
 # get "/admin/sync" do
 #   script = File.expand_path("../script/issue_sync_all", __dir__)
@@ -794,4 +818,18 @@ end
 get "/coffee/*.js" do
   filename = params[:splat].first
   coffee "coffee/#{filename}".to_sym
+end
+
+# don't freak out when a url is not defined:
+get '*' do
+  redirect '/'
+end
+post '*' do
+  redirect '/'
+end
+put '*' do
+  redirect '/'
+end
+delete '*' do
+  redirect '/'
 end

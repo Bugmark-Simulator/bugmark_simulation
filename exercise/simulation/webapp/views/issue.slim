@@ -23,6 +23,10 @@ css:
     p
       b Project:<br/>
       == Tracker.where(uuid: @issue.stm_tracker_uuid).first.name
+      div
+        a[href='/project##{@issue.stm_tracker_uuid}'] Go to Projects Dashboard
+      div
+        a[href="/project_issues/#{@issue.stm_tracker_uuid}"] View issues for this project
     p
       b Status:<br/>
       == @issue.stm_status
@@ -45,6 +49,7 @@ css:
             td = task
             td == task_action(task, @issue.uuid, status)
             td #{queue_task_time(task)} seconds
+    a[href='/account'] View my Queue
 
 .row[style="background-color:#eee"]
   .row-12.mx-auto.mt-2
@@ -52,6 +57,7 @@ css:
 
 .row
   .col-12.py-2
+    h3 Open Offers
     table.table.table-sm
       thead
         tr
@@ -65,34 +71,113 @@ css:
           th Worker cost
           th Payout
           th Maturation
-          th
           th Resolution
           th
       tbody
+        / then display BU offers
         - @issue.offers_bu.each do |offer|
+          - next unless offer.is_open?
           tr
-            td = user_name(offer.user)
+            td == offer_funder_link(current_user, offer)
             td #{offer.value.to_i} tokens
             td == offer_worker_link(current_user, offer)
             td #{offer.fixer_cost.to_i} tokens
             td #{offer.volume} tokens
             td == offer_maturation_date(offer)
-            /td
-              /i.fa.fa-calendar-times.exDate[title="offer expires<br/>#{offer_expiration_date(offer)}"]
             td == offer_awardee(offer)
             td
-              - if offer.user.uuid == current_user.uuid
-                a.cancelOffer[href="/offer_cancel/#{offer.uuid}"]
-                  i.fa.fa-window-close-o
-        / - @issue.offers_sf.without_branch_position.each do |offer|
-        /   tr
-        /     td > #{user_name(offer.user)}
-        /     td #{offer.value.to_i} tokens
-        /     td == offer_worker_link(current_user, offer, "position_buy")
-        /     td #{20 - offer.value.to_i} tokens
-        /     td #{offer.volume} tokens
-        /     td == offer_maturation_date(offer)
-        /     td == offer_awardee(offer)
+              - if (offer.user.uuid == current_user.uuid) && offer.is_open?
+                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+        / then display BF offers
+        - @issue.offers_bf.each do |offer|
+          - next unless offer.is_open?
+          tr
+            td == offer_funder_link(current_user, offer)
+            td #{offer.value.to_i} tokens
+            td == offer_worker_link(current_user, offer)
+            td #{offer.fixer_cost.to_i} tokens
+            td #{offer.volume} tokens
+            td == offer_maturation_date(offer)
+            td == offer_awardee(offer)
+            td
+              - if (offer.user.uuid == current_user.uuid) && offer.is_open?
+                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+
+    h3 Accepted Offers
+    table.table.table-sm
+      thead
+        tr
+          th
+            ' Funder
+          th Funder cost
+          th
+            ' Worker
+          th Worker cost
+          th Payout
+          th Maturation
+          th Resolution
+          th
+      tbody
+        / first display matched contracts
+        - @issue.offers_bu.crossed.each do |offer|
+          tr
+            td == offer_funder_link(current_user, offer)
+            td #{offer.value.to_i} tokens
+            td == offer_worker_link(current_user, offer)
+            td #{offer.fixer_cost.to_i} tokens
+            td #{offer.volume} tokens
+            td == offer_maturation_date(offer)
+            td == offer_awardee(offer)
+            td
+              - if (offer.user.uuid == current_user.uuid) && offer.is_open?
+                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+
+    h3 Expired or Canceled Offers
+    table.table.table-sm
+      thead
+        tr
+          th
+            ' Funder
+          th Funder cost
+          th
+            ' Worker
+          th Worker cost
+          th Payout
+          th Maturation
+          th Resolution
+          th
+      tbody
+        / then display BU offers
+        - @issue.offers_bu.each do |offer|
+          - next if offer.is_crossed?
+          - next if offer.is_open?
+          tr
+            td == offer_funder_link(current_user, offer)
+            td #{offer.value.to_i} tokens
+            td == offer_worker_link(current_user, offer)
+            td #{offer.fixer_cost.to_i} tokens
+            td #{offer.volume} tokens
+            td == offer_maturation_date(offer)
+            td == offer_awardee(offer)
+            td
+              - if (offer.user.uuid == current_user.uuid) && offer.is_open?
+                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+        / then display BF offers
+        - @issue.offers_bf.each do |offer|
+          - next if offer.is_crossed?
+          - next if offer.is_open?
+          tr
+            td == offer_funder_link(current_user, offer)
+            td #{offer.value.to_i} tokens
+            td == offer_worker_link(current_user, offer)
+            td #{offer.fixer_cost.to_i} tokens
+            td #{offer.volume} tokens
+            td == offer_maturation_date(offer)
+            td == offer_awardee(offer)
+            td
+              - if (offer.user.uuid == current_user.uuid) && offer.is_open?
+                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+
 
 .row[style="background-color:#eee"]
   .row-12.mx-auto.mt-2
@@ -165,9 +250,9 @@ css:
             .col-md-6
               p[style='margin-bottom: 20px;'] <b>Matures in</b><br/>
               .btn-group.btn-group-toggle#maturation[data-toggle="buttons"]
-                - BugmTime.next_week_ends.each_with_index do |date, idx|
+                - [1,2,3,7,10,14].each do |days|
                   label.btn.btn-secondary.btn-sm
-                    input[type="radio" value="#{dstr(date)}" name="maturation" id="mat#{idx}"] #{dvis(date)}
+                    input[type="radio" value="#{dstr(BugmTime.end_of_day(days))}" name="maturation" id="mat#{days}" required] #{days} days
             .col-md-6
               /p <b>Expires</b><br/>
 

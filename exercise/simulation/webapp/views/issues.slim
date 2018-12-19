@@ -35,11 +35,11 @@ table.table#xtable
         td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
         /td = issue.stm_title
         td
-          = issue.offers_bu.open.count
+          = issue.offers.open.count
           '  /
-          = issue.offers_bu.open.pluck(:value).sum
+          = issue.offers.open.pluck(:value).sum
           '  tokens
-          == "<b>*</b>" if issue.offers_bu.open.pluck(:user_uuid).include?(current_user.uuid)
+          == "<b>*</b>" if issue.offers.open.pluck(:user_uuid).include?(current_user.uuid)
         td
           = (issue.offers.crossed.count.to_f / 2 ).to_i
           '  /

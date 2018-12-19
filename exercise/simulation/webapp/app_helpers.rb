@@ -167,7 +167,18 @@ module AppHelpers
   def offer_maturation_date(offer)
     return "TBD" if offer.expiration.nil?
     # color = BugmTime.now > offer.expiration ? "red" : "green"
-    date = offer.expiration.strftime("%m-%d %H:%M")
+    date = offer.expiration.strftime("%Y-%m-%d").to_date.mjd - BugmTime.now.to_date.mjd
+    if date > 1 then
+      return "In #{date} days"
+    elsif date == 1 then
+      return "In #{date} day"
+    elsif date < -1 then
+      return "#{date * -1} days ago"
+    elsif date == -1 then
+      return "#{date * -1} day ago"
+    else
+      return "In 0 days"
+    end
     # date_iso = offer.expiration.strftime("%Y%m%dT%H%M%S")
     # "<a target='_blank' style='color: #{color}' href='https://www.timeanddate.com/worldclock/fixedtime.html?iso=#{date_iso}&p1=217'>#{date}</a>"
     # date
@@ -176,65 +187,128 @@ module AppHelpers
   def offer_status_link(offer)
     case offer.status
     when 'crossed'
-      "<a href='/contracts/#{offer.position.contract.uuid}'>crossed</a>"
+      "<a href='/contracts/#{offer.position.contract.uuid}'>offer is accepted</a>"
     else
       offer.status
     end
   end
 
-  def offer_sell_link(offer)
-    counter = offer.position.counterpositions.first
-    ixid = offer.issue.xid.capitalize
-    oval = offer.value.to_i
+  def offer_sell_link(position)
+    ixid = position.offer.issue.xid.capitalize
+    oval = position.value.to_i
     "
-    <a href='#' class='ttip' data-oval='#{oval}' data-ixid='#{ixid}' data-toggle='tooltip' id='#{counter.uuid}'>
-    #{user_name(offer.position.counterusers.first)}
+    <a href='#' class='ttip' data-oval='#{oval}' data-ixid='#{ixid}' data-toggle='tooltip' id='#{position.uuid}'>
+    #{user_name(position.user)}
     </a>
     "
   end
 
-  def sellable_offer(user, offer)
-    return false unless user == offer.position.counterusers.first
-    poz  =  offer.position.counterpositions.first
-    user.positions.unresolved.fixed.unoffered.include?(poz)
+  def sellable_fixed_position(user, position)
+    return false unless position.user == user
+    user.positions.unresolved.fixed.unoffered.include?(position)
   end
+
+  def sellable_unfixed_position(user, position)
+    return false unless position.user == user
+    user.positions.unresolved.unfixed.unoffered.include?(position)
+  end
+
 
   def offer_worker_link(user, offer, action = "offer_accept")
     case offer.status
     when 'crossed'
-      if sellable_offer(current_user, offer)
-        offer_sell_link(offer)
+      if offer.type.include? "::Unfixed" then
+        position = offer.position.counterpositions.first
       else
-        user = offer.position.counterusers.first
-        user_name(user)
+        position = offer.position
+      end
+      if sellable_fixed_position(current_user, position)
+        offer_sell_link(position)
+      else
+        user_name(position.user)
       end
     when 'expired'
-      'EXPIRED'
-    when 'open'
-      if offer.user.uuid == user.uuid
-        "My Offer"
+      if offer.type.include? "::Fixed" then
+        user_name(offer.user)
       else
-        cost = offer.fixer_cost.to_i
-        "<a class='btn btn-primary btn-sm' href='/#{action}/#{offer.uuid}'>ACCEPT OFFER (cost: #{cost} tokens)</a>"
+        '<i>expired not accepted</i>'
+      end
+    when 'canceled'
+      if offer.type.include? "::Fixed" then
+        user_name(offer.user)
+      else
+        '<i>canceled</i>'
+      end
+    when 'open'
+      if offer.type.include? "::Fixed" then
+        user_name(offer.user)
+      else
+        if offer.user.uuid == user.uuid
+          "<a class='btn btn-primary btn-sm disabled' href='#'>cannot accept your own offer</a>"
+        else
+          cost = offer.fixer_cost.to_i
+          "<a class='btn btn-primary btn-sm' href='/#{action}/#{offer.uuid}'>ACCEPT OFFER (cost: #{cost} tokens)</a>"
+        end
       end
     end
   end
 
-  def offer_fund_link(user, issue)
-    # return "Already 3 offers today" if issue.offers_bu.where('expiration > ?', BugmTime.now).count > 2
-    return "Low Balance - Can't Fund Offers" if user.token_available < 10
-    return "You already placed an offer today" if issue_offerable?(user, issue)
-    "<a class='btn btn-primary btn-sm' href='/offer_fund/#{issue.uuid}'>FUND A NEW OFFER (cost: 10 tokens)</a>"
+  def offer_funder_link(user, offer, action = "offer_accept")
+    case offer.status
+    when 'crossed'
+      if offer.type.include? "::Fixed" then
+        position = offer.position.counterpositions.first
+      else
+        position = offer.position
+      end
+      if sellable_unfixed_position(current_user, position)
+        offer_sell_link(position)
+      else
+        user_name(position.user)
+      end
+    when 'expired'
+      if offer.type.include? "::Unfixed" then
+        user_name(offer.user)
+      else
+        '<i>expired not accepted</i>'
+      end
+    when 'canceled'
+      if offer.type.include? "::Unfixed" then
+        user_name(offer.user)
+      else
+        '<i>canceled</i>'
+      end
+    when 'open'
+      if offer.type.include? "::Unfixed" then
+        user_name(offer.user)
+      else
+        if offer.user.uuid == user.uuid
+          "<a class='btn btn-primary btn-sm disabled' href='#'>cannot accept your own offer</a>"
+        else
+          cost = offer.fixer_cost.to_i
+          "<a class='btn btn-primary btn-sm' href='/#{action}/#{offer.uuid}'>ACCEPT OFFER (cost: #{cost} tokens)</a>"
+        end
+      end
+    end
   end
 
-  def offer_fund_message(user, issue)
-    return "" if user.token_available < 10
-    return "" if issue_offerable?(user, issue)
-    "<i>Trader and worker both pay 10 tokens. Winner receives 20 tokens on maturation.</i>"
-  end
+  # def offer_fund_link(user, issue)
+  #   # return "Already 3 offers today" if issue.offers_bu.where('expiration > ?', BugmTime.now).count > 2
+  #   return "Low Balance - Can't Fund Offers" if user.token_available < 10
+  #   return "You already placed an offer today" if issue_offerable?(user, issue)
+  #   "<a class='btn btn-primary btn-sm' href='/offer_fund/#{issue.uuid}'>FUND A NEW OFFER (cost: 10 tokens)</a>"
+  # end
+
+  # def offer_fund_message(user, issue)
+  #   return "" if user.token_available < 10
+  #   return "" if issue_offerable?(user, issue)
+  #   "<i>Trader and worker both pay 10 tokens. Winner receives 20 tokens on maturation.</i>"
+  # end
 
   def offer_awardee(offer)
-    return "needs to be accepted" if offer.status != 'crossed'
+    return "ready to be accepted" if offer.status == 'open'
+    return "canceled" if offer.status == 'canceled'
+    return "expired on maturation; not accepted" if offer.status == 'expired'
     return "waiting for maturation" if offer.position.contract.status != 'resolved'
     user = Position.where("amendment_uuid = '#{offer.position.amendment.uuid}' AND side = '#{offer.position.contract.awardee}'").first.user
     # user = offer.escrow.where(side: contract.awardee).first.user
@@ -553,11 +627,11 @@ module AppHelpers
       out2 = "Task is completed"
     elsif queue_item.present?
       out2 = "<form class='form-work' method='post' action='/issue_task_queue_remove/#{issue_uuid}'>
-                You are working on it <button class='btn btn-sm btn-primary' type='submit' value='#{queue_item.first.id}' name='Cancel'>Remove from Work Queue</button>
+                You plan to work on it <button class='btn btn-sm btn-secondary' type='submit' value='#{queue_item.first.id}' name='Cancel'>Remove from my Queue</button>
               </form>"
     else
       out2 = "<form class='form-work' method='post' action='/issue_task_queue/#{issue_uuid}'>
-                <button class='btn btn-sm btn-primary' type='submit' value='#{task}' name='task'>Add to Work Queue</button>
+                <button class='btn btn-sm btn-primary' type='submit' value='#{task}' name='task'>Add task to my Queue</button>
               </form>"
     end
     return out2
@@ -567,21 +641,12 @@ module AppHelpers
 
   def progress(startwork, endwork)
     if DateTime.now.to_time.to_i < startwork.to_time.to_i
-      return "In queue"
+      return "Queued: requires <span class='sec-countodwn'>#{endwork.to_time.to_i - startwork.to_time.to_i}</span> sec. to complete"
     elsif DateTime.now.to_time.to_i < endwork.to_time.to_i
-      return "#{endwork.to_time.to_i - DateTime.now.to_time.to_i} Seconds"
+      return "In progress: #{endwork.to_time.to_i - DateTime.now.to_time.to_i} sec. until completion"
     else
       return "completed"
     end
-    #time_difference_in_sec = (DateTime.now.to_time.to_i - startwork.to_time.to_i).abs
-    #if time_difference_in_sec <= 180
-      # time_difference_in_sec_output = 180 - time_difference_in_sec
-  #  elsif updated_issue = FALSE
-  #    time_difference_in_sec_output = "In queue"
-    #else
-    #  time_difference_in_sec_output = "In queue"
-    #end
-    #return time_difference_in_sec_output
   end
 
   # ------ Delete Comment on an issue----

@@ -1,8 +1,8 @@
-h2 This is funder account dashboard testing
-h2 Account information for #{current_user.email}
+h2 Account for #{current_user.name}
 hr
-.row[style='margin-top: 20px;']
+.row.mt-2
   .col-md-6.d-flex.align-items-start.flex-column
+    h3 Account
     .p-2
       p Your current balance is <b>#{current_user.token_available}</b> tokens.
       p
@@ -13,38 +13,56 @@ hr
             a[href='/contracts'] View
             '  )
       p
-        ' You accepted the
-        a[href="/consent_form"] Informed Consent Form
-        '  on #{AccessLog.new(current_user.email).formatted_consent_date}
-    
+        form.form-inline[action="/set_username" method="post"]
+          label.mr-1[for="newName"] Your public username is:
+          input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new username" value="#{user_name}"]
+          button.btn.btn-primary[type="submit"] Change
+          div <i>Note:</i> Your username is visible to other participants.
+      p
+        form.form-inline[action="/set_password" method="post"]
+          label.mr-1[for="newPassword"] New password:
+          input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
+          button.btn.btn-primary[type="submit"] Change
+
   .col-md-6.d-flex.align-items-start.flex-column
-    .p-2
-      | Your current username is <b>#{user_name}</b>.
-        Your username is visible to other exercise participants.
-      form.form-inline[action="/set_username" method="post" style='margin-top: 10px;']
-        .form-group.mx-sm-3.mb-2
-          input[type="text" class="form-control" name="newName" placeholder="enter a new username"]
-        button.btn.btn-primary.mb-2[type="submit"] Change
-    .p-2.mt-auto[style='width: 100%']
+      h3 Queue
+      p You can add tasks to your queue. Tasks are completed automatically in order they were added.
       table.table.table-sm.table-bordered.table-hover
         thead
           tr
-            td[colspan=4] <b>Work Queue</b>
-          tr
-            td <b>Issue No</b>
-            td <b>Task</b>
-            td <b>Progress</b>
-            td <b>Action</b>
+            th Issue No
+            th Required Skill
+            th Status
+            th
         tbody
+          - if @work_queues.count == 0
+            tr
+              td[colspan="4"] <em>Info:</em> Go to an issue to add tasks to your Queue
           - @work_queues.each do |work_queue|
             tr
               td
                 a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
               td = work_queue.task
-              /td = work_queue.completed
               td = progress(work_queue.startwork, work_queue.completed)
               td
                 form.form-work[method='post']
-                  button.btn.btn-sm.btn-primary type="submit" value='#{work_queue.id}' name="Cancel"  Remove from Queue
-
-
+                  button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
+      p
+        strong <u>Explanation:</u>
+        '
+        ' Completing a task usually takes you
+        em #{TS.skills['seconds_per_normal_skill']}
+        '
+        ' seconds.
+        ' Your skills are
+        strong #{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
+        '
+        ' and those tasks take you only
+        em #{TS.skills['seconds_per_bonus_skill']}
+        '
+        ' seconds.
+        ' However, you are not good at other skills (#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"].join(', ')})
+        ' and these tasks take you
+        em #{TS.skills['seconds_per_malus_skill']}
+        '
+        ' seconds.

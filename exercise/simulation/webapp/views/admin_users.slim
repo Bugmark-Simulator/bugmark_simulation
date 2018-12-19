@@ -1,16 +1,18 @@
-.row[style='margin-bottom: 15px;']
-  .col-md-6
+.row
+  .col-md-12
     h2 Admin
+.row
+  .col-md-6
   .col-md-6.text-right
     small Users: #{@users.count} Offers: #{@offers.count} Contracts: #{@contracts.count}
 
 table.table#xtable
   thead
     tr
-      td ID
+      /td ID
       td Email
-      td Username
       td Password
+      td Username
       td Treatment
       td Type
       td Skill Bonus
@@ -20,17 +22,18 @@ table.table#xtable
   tbody
     - @users.each do |user|
       tr
-        td = user.xid
+        /td = user.xid
         td = user.email
-        td = user.name
         td = user["jfields"]["password"]
+        td = user.name
         td = user["jfields"]["treatment"]
         td = user["jfields"]["type"]
-        td = user["jfields"]["skill_bonus"]
-        td = user["jfields"]["skill_malus"]
-        td = user.balance
+        td = user["jfields"]["skill_bonus"] && user["jfields"]["skill_bonus"].join(', ')
+        td = user["jfields"]["skill_malus"] && user["jfields"]["skill_malus"].join(', ')
+        td = user.balance.round
         td
-          a[href="/admin/user/#{user.uuid}"] edit
+          a.mx-1.btn.btn-primary[href="/admin/user/#{user.uuid}"] edit
+          a.mx-1.btn.btn-danger[href="/admin/login_as/#{user.uuid}"] login as #{user.name}
 
 - content_for :page_js do
   javascript:
