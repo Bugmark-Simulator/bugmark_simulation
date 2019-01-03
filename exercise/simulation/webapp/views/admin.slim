@@ -32,7 +32,9 @@
               td = tracker.name
               td <b>#{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}</b> open issues
               td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
-              td TBD
+              td
+                a.btn.btn-primary[href="/admin/bot/#{tracker.uuid}"] Setup Bot
+                == btn_bot_start_stop(tracker.uuid)
         - else
           tr
             td[colspan=4] No projects

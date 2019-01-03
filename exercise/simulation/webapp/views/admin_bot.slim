@@ -1,0 +1,129 @@
+.row
+  .col-md-12
+    h2 Bot Settings
+    p
+      span Project:
+      strong.mx-1
+        = @tracker.name
+      span.mx-1
+        ' (User:
+      strong
+        = @user.name
+      span
+        ' )
+    p
+      span.mr-1 Open Issues:
+      b = @tracker.issues.open.count
+      ' ,
+      span.mr-1 Open Offers:
+      b = @tracker.offers.open.count
+
+.row
+  .col-md-12
+    == btn_bot_start_stop(@tracker.uuid,"2")
+
+.row
+  .col-md-12
+    hr
+
+.row
+  .col-md-6
+    form#settingsform[method="post"]
+      .form-group
+        label[for="botsettings"] Bot Settings:
+        textarea.form-control#botsettings[name="botsettings" aria-describedby="jsonHelp" placeholder="Enter bot settings" rows="#{[19,@botsettings.lines.count].max+1}"]
+          == @botsettings
+        small.form-text.text-muted[id="jsonHelp"] Bot settings use YAML format.
+      button.btn.btn-primary#submitbotsetting[type="submit"] Submit
+
+  .col-md-6
+    h3 Instructions
+    p Bot settings requires:
+    ul
+      li active
+      li prices
+      li volumes
+      li durations
+      li newoffers
+      li newissues
+      li maxissues
+
+    h4 Active
+    p Status of the bot.
+    em 'true'/'false' value
+    div Value has to be saved as a string, with single quotes around them.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] active: 'false'
+
+    h4 Prices
+    p Proportion of a contract value that the bot will pay.
+    em value: probability pair
+    div This field is a list of values with their respective probabilities.
+    div  Probabilities are calculated as a fraction of the sum of all probabilities.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] prices:
+        &nbsp;&nbsp;'0.80': 50
+        &nbsp;&nbsp;'0.90': 50
+      div In this example, the values 0.80 and 0.90 are equally likely to be selected by the bot (50% probability).
+
+    h4 Volumes
+    p Number of positions that the bot will offer.
+    em value: probability pair
+    div This field is a list of values with their respective probabilities.
+    div Probabilities are calculated as a fraction of the sum of all probabilities.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] volumes:
+        &nbsp;&nbsp;'100': 4
+        &nbsp;&nbsp;'150': 1
+      div In this example, the value 100 will be chosen with a probability of 80% (=4/5).
+
+    h4 Durations
+    p Number of days before an offer expires and contract matures.
+    em value: probability pair
+    div This field is a list of values with their respective probabilities.
+    div Probabilities are calculated as a fraction of the sum of all probabilities.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] volumes:
+        &nbsp;&nbsp;'7': 33
+        &nbsp;&nbsp;'14': 33
+        &nbsp;&nbsp;'21': 33
+      div In this example, one week, two weeks, and three weeks are equally likely to be selected.
+
+    h4 New Offers
+    p Number of new offers created each day.
+      New offers are only created on open issues.
+      The bot randomly selects which open issues to make a new offer on.
+    em value: probability pair
+    div This field is a list of values with their respective probabilities.
+    div Probabilities are calculated as a fraction of the sum of all probabilities.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] newoffers:
+        &nbsp;&nbsp;'5': 1
+      div In this example, the bot will create exactly five new offers each day.
+
+    h4 New Issues
+    p Number of new issues created each day.
+    em value: probability pair
+    div This field is a list of values with their respective probabilities.
+    div Probabilities are calculated as a fraction of the sum of all probabilities.
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] newissues:
+        &nbsp;&nbsp;'0': 1
+        &nbsp;&nbsp;'1': 1
+        &nbsp;&nbsp;'2': 1
+      div In this example, the bot will none, one, or two new issues each day with equal probability.
+
+    h4 Max Issues
+    p Number of maxium open issues for a project.
+      Once the number of open issues reaches this limit, no more issues are created.
+    em integer value
+    .my-3
+      strong Example:
+      pre.p-1[style="border-left: 2px solid #ccc"] maxissues: 9
+      div In this example, the bot will stop creating issues when a project reaches nine open issues.

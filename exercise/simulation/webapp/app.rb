@@ -791,11 +791,75 @@ get "/admin/nextday" do
 end
 
 get "/admin/login_as/:uuid" do
-  admin_only!
+  # admin_only!
   user = User.where(uuid: params['uuid']).first
   session[:usermail] = user.email
   session[:consent]  = true
   redirect '/project'
+end
+
+
+get "/admin/bot/:uuid" do
+  admin_only!
+  @tracker = Tracker.where(uuid: params['uuid']).first
+  @user = User.where("jfields->>'tracker' = '#{@tracker.uuid}'").first
+  if session[:tmp_json]
+    @botsettings = session[:tmp_json]
+    session[:tmp_json] = nil
+  else
+    @botsettings = @user.jfields['bot'].to_yaml
+  end
+  # binding.pry
+  @botsettings = @botsettings
+  slim :admin_bot
+end
+
+post "/admin/bot/:uuid" do
+  admin_only!
+  tracker = Tracker.where(uuid: params['uuid']).first
+  user = User.where("jfields->>'tracker' = '#{tracker.uuid}'").first
+  json = params['botsettings']
+  # binding.pry
+  # make sure json is valid
+  if valid_yaml?(json) then
+    # escape user input for sql
+    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(YAML.load(json)))
+    # update json in user
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb #{sql_json}) WHERE id = #{user.id};"
+    ActiveRecord::Base.connection.execute(sql)
+    # output success message
+    flash[:success] = "Saved bot settings for project #{tracker.name}"
+  else
+    # output error message
+    flash[:warning] = "Invalid YAML"
+    session[:tmp_json] = json
+  end
+  redirect "/admin/bot/#{tracker.uuid}"
+end
+
+get "/admin/run_bot/:uuid" do
+  admin_only!
+  tracker = Tracker.where(uuid: params['uuid']).first
+   # change status
+   if bot_running?(tracker) then
+     bot_stop(tracker)
+   else
+     bot_start(tracker)
+   end
+  redirect '/admin'
+end
+
+
+get "/admin/run_bot2/:uuid" do
+  admin_only!
+  tracker = Tracker.where(uuid: params['uuid']).first
+  # change status
+  if bot_running?(tracker) then
+    bot_stop(tracker)
+  else
+    bot_start(tracker)
+  end
+  redirect "/admin/bot/#{tracker.uuid}"
 end
 
 

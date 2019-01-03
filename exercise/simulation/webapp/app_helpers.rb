@@ -1,6 +1,7 @@
 require 'time'
 require 'yaml'
 require 'csv'
+require 'json'
 
 module AppHelpers
 
@@ -8,6 +9,20 @@ module AppHelpers
   if defined? ActionView
     # this line caused an error when including App Helpers as part of my script
     include ActionView::Helpers::DateHelper
+  end
+
+  def valid_json?(json)
+      JSON.parse(json)
+      return true
+    rescue JSON::ParserError => e
+      return false
+  end
+
+  def valid_yaml?(json)
+      YAML.load(json)
+      return true
+    rescue
+      return false
   end
 
   # ----- positions -----
@@ -1203,4 +1218,82 @@ module AppHelpers
       threads.each(&:join)
     end
   end
+
+  # ##############################################
+  # Simulate Funders
+  # ##############################################
+
+  def btn_bot_start_stop(tracker,variant = '')
+    # get current status of bot
+    sql = "WITH subq AS (SELECT users.jfields->'bot'->>'active' as status2 FROM users
+            WHERE jfields->>'tracker' = '#{tracker}')
+            SELECT CASE WHEN status2 IS NULL THEN 'false'
+            ELSE status2 END AS status
+            FROM subq;";
+    status = ActiveRecord::Base.connection.execute(sql).to_a
+    # binding.pry
+    # return appropriate button
+    if status[0]['status'].eql? "true" then
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success ml-1'>Running</a>"
+    else
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning ml-1'>Stopped</a>"
+    end
+  end
+
+  def bot_start(tracker)
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot,active}', jsonb '\"true\"')
+              WHERE jfields->>'tracker' = '#{tracker.uuid}'";
+    ActiveRecord::Base.connection.execute(sql)
+  end
+  def bot_stop(tracker)
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot,active}', jsonb '\"false\"')
+              WHERE jfields->>'tracker' = '#{tracker.uuid}'";
+    ActiveRecord::Base.connection.execute(sql)
+  end
+  def bot_running?(tracker)
+  sql = "WITH subq AS (SELECT users.jfields->'bot'->>'active' as status2 FROM users
+          WHERE jfields->>'tracker' = '#{tracker.uuid}')
+          SELECT CASE WHEN status2 IS NULL THEN 'false'
+          ELSE status2 END AS status
+          FROM subq;";
+  status = ActiveRecord::Base.connection.execute(sql).to_a
+  return status[0]["status"].eql? 'true'
+  end
+
+
+  # Utility function
+  def difficulty_picker(options)
+    # from https://stackoverflow.com/questions/19261061/picking-a-random-option-where-each-option-has-a-different-probability-of-being
+    current, max = 0, options.values.inject(:+)
+    random_value = rand(max) + 1
+    options.each do |key,val|
+       current += val
+       return key if random_value <= current
+    end
+  end
+
+  def sim_funders
+    User.where()
+  end
+
+  # simulate funder random pay
+  def sim_funder_randompay(user, issue, prices, volumes, durations)
+    # function being called by simulation for funder to do something
+
+    price = difficulty_picker(prices)
+    volume = difficulty_picker(volumes)
+    mat_days = difficulty_picker(maturation_days)
+
+    # args is a hash
+    args  = {
+      user_uuid: user.uuid,
+      price: price,
+      volume: volume,
+      stm_issue_uuid: issue.uuid,
+      maturation: mat_days
+    }
+    offer = FB.create(:offer_bu, args).offer
+    ContractCmd::Cross.new(offer, :expand).project
+  end
+
 end
