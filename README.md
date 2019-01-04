@@ -268,9 +268,9 @@ Open PostgreSQL database in console
 ## Roadmap
 
 - Software is developed in Summer 2018.
-- Pilot studies are run in September 2018.
-- Experiment is executed in November 2018.
-- Data analysis is planned for Spring of 2018.
+- Pilot studies are run in December 2018.
+- Experiment is executed in January 2019.
+- Data analysis is planned for Spring of 2019.
 
 ## How to Contribute
 
