@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 require 'yaml'
 require_relative "./hash_ext"
 
@@ -15,7 +16,7 @@ class TrialSettings
     end
 
     private
-    
+
     def gen_opts
       dir  = File.expand_path("./settings", TRIAL_DIR)
       Dir.glob("#{dir}/[a-z]*settings*.yml").reduce({}) do |acc, fn|

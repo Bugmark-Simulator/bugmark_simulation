@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# SPDX-License-Identifier: MPL-2.0
 #
 # to preview cronfile  : `whenever -f CronJobs`
 # to generate cronfile : `whenever -f CronJobs --update-crontab`
@@ -12,7 +13,7 @@
 
 BASEDIR = File.expand_path(__dir__)
 
-job_type :runscript, "cd #{BASEDIR} && :task" 
+job_type :runscript, "cd #{BASEDIR} && :task"
 
 every 15.minutes do
   runscript 'script/issue_sync_all'
@@ -25,4 +26,3 @@ end
 # every 1.day at '12:35am' do
 #   runscript 'script/reset_nightly'
 # end
-

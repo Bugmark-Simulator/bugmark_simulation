@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 class Exchange
   class << self
     def src_dir

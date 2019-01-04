@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 launchModal = (id)->
   $('.ttip').tooltip('hide')
   $('.obf').tooltip('hide')

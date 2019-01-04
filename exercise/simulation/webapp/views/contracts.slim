@@ -1,3 +1,4 @@
+/ SPDX-License-Identifier: MPL-2.0
 h2 #{@title} (#{@contracts.length})
 div
   == base_link("My Contracts", "/contracts")
@@ -28,4 +29,3 @@ table.table#xtable
 - content_for :page_js do
   javascript:
     $('#xtable').DataTable();
-

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MPL-2.0
 
 gemfile() {
   gem1=~/src/bugmark/exchange/Gemfile

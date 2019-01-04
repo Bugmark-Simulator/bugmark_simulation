@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 require_relative './string_ext'
 require 'yaml'
 

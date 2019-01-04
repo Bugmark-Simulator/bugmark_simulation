@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 require 'dotenv'
 
 def dotenv_trial_dir(path)

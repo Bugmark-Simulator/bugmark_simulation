@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# SPDX-License-Identifier: MPL-2.0
 
 Dir.chdir File.expand_path(__dir__)
 require_relative '../../Base/lib/dotenv'

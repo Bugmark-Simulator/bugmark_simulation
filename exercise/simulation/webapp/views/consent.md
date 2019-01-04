@@ -1,11 +1,11 @@
 # Informed Consent Form
 
 University of Nebraska at Omaha<br/>
-IRB PROTOCOL # 658-18-EX 
+IRB PROTOCOL # 658-18-EX
 
 ## Title of this Research Study
 
-Investigating the influence of signals on market tradng behavior
+Investigating the influence of signals on market trading behavior
 
 ## Study Participants
 
