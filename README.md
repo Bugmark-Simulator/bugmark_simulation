@@ -10,9 +10,7 @@ The Bugmark Simulation Platform is developed for research experiments. The objec
 
 ## Documentation
 
-_TODO:_ write the doc
-
-  * How to Configure
+  * How to Install and Configure
   * How to Run an Experiment
   * Where to Find Everything: Software Design
     * Structure of Repository
@@ -39,7 +37,7 @@ To be successful, we recommend good skills with the following:
 
 #### 0) Host Machine
 
-We assume that you're using **Ubuntu v16.04** as your host machine. Newer versions 
+We require **Ubuntu v16.04** for your host machine. Newer versions
 have known issues.
 
 Your host machine can exist in a few different forms:
@@ -71,13 +69,13 @@ Let's get started:
 2. Download the dev-machine Vagrantfile
    `wget raw.githubusercontent.com/Bugmark-Simulator/exchange/master/Vagrantfile`
 
-3. Run `vagrant up` to create a virtual machine.
+3. From the directory with the Vagrantfile, run `vagrant up` to create a virtual machine.
 
 4. Login to your virtual machine using `vagrant ssh`
 
 #### 1.a) Cloning the Bugmark Exchange
 
-**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `sudo adduser bugmarkstudy; sudo adduser bugmarkstudy sudo` 
+**NOTE:** Make sure you are not working as root user. If necessary, create a new user on Ubuntu. E.g. `sudo adduser bugmarkstudy; sudo adduser bugmarkstudy sudo`
 - to switch to new user, either logout and back in, or run `su - bugmarkstudy`
 
 
@@ -138,9 +136,10 @@ Follow these steps to bootstrap the app in your development environment.
 
 1. Get the host IP address `ifconfig`  
 
-2. On your local machine, add the VM IP Address to `/etc/hosts`
+2. On your local machine, add the VM IP address to `/etc/hosts`
 
-3. On your local machine, browse to `http://<hostname>:3000` (TODO: what ever service this is, we need to start it first)
+3. We will refer to your VM IP address as `<hostname>`
+
 
 
 ### 2.) Installation of Simulation Platform
@@ -213,13 +212,15 @@ Your platform is ready to go. The default admin account is
    - Password: grafana
 
   8. To setup the panels that display the graphs, go to `http://<ip-address-of-server>:3030/dashboard/import` and either select "Upload .json File" or copy past the content of [grafana-panels.json](./grafana-panels.json)
-    - Note: Might have to login first at `http://<ip-address-of-server>:3030/login`
+    - Note: Might have to login first at `http://<ip-address-of-server>:3030/login` using username: `admin` and password: `admin`
+    - Note: This Grafana dashboard uses Variables. The variables need only be updated if you want to view data from the dashboard.
 
-  9. [TODO] announce location of panels to simulator to display graphs
+  9. By default, URLs to view dashboards should not have changed.
+    If graphs do not show up in the simulation, try trouble shooting with the AppHelpers function `update_graphs`.
 
 ## Resetting Bugmark Exchange and all the database
 
-Run script reset_scr to reset exchange and all database `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
+Run script reset_scr to reset exchange and database `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 
 Alternatively, to destroy the database and setup from scratch:
 1. Go to the exchange `cd ~\src\exchange`
@@ -235,12 +236,19 @@ If InfluxDB or Grafana are not running:
 
 Following are the steps to setup the experiment
 1. Run the script to clean the bugmark excange `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
-  (Note: This step is not needed if you have setup a clean environment for the first time)
-2. Run the script to set the BugmTime (TODO: specify script)
-3. Run the script to create users  `./bugmark_simulation/exercise/simulation/script/user_gen_scr`
+2. Run the script to create users  `./bugmark_simulation/exercise/simulation/script/user_gen_scr`
+3. Go to the simulation application folder `cd ~/src/bugmark_simulation/exercise/simulation/webapp/`  
+4. Start the simulation platform `./run`
+5. On your local machine, browse to `http://<hostname>:4567`
+6. Login to using the admin account. Default:
+  - username: admin@bugmark.net
+  - password: bugmark
 
-When you run the experiment, you need to make sure the 'background services' are running:
-1. Run the script nightly (TODO: specify script)
+From the menu, go to "RESEARCHER CONTROL PANEL".
+1. Configure bots by clicking on "Setup Bot". Configuration instructions are provided in the application.
+2. The button "Open Users Admin" displays usernames and passwords for participants.
+  This page allows you as the admin to login as any user for trouble shooting and testing.
+3. Start the Simulation by clicking on the yellow button "Simulation is NOT running"
 
 
 ## Simulate user behavior
@@ -252,8 +260,8 @@ run a simulation script that executes simple user actions with some randomizatio
 2. To clean the database, run `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
 3. Next, create users by running `~/src/bugmark_simulation/exercise/simulation/script/user_gen_scr`
 4. Before we can simulate behavior, we need to generate issues `~/src/bugmark_simulation/exercise/simulation/script/issue_gen_scr`
-5. Now that we have a fully populated simulation setting with users, projects, and issues, we can start the background activity, which we call the nightly script `~/src/bugmark_simulation/exercise/simulation/script/nightly_scr`
-3. To simulate the behavior of funders and workers who create offers, do work, and form contracts, run `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder`
+5. Now that we have a fully populated simulation setting with users, projects, and issues, we can start the background activity. Do this from the RESEARCHER CONTROL PANEL using the yellow button "Simulation is NOT running".
+6. To simulate the behavior of funders and workers who create offers, do work, and form contracts, run `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder`
 
 ## Helpful Commands
 
