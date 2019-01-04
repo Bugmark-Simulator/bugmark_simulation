@@ -849,7 +849,7 @@ get "/admin/run_bot/:uuid" do
   redirect '/admin'
 end
 
-
+# same as above, but redirect to Bot Settings page
 get "/admin/run_bot2/:uuid" do
   admin_only!
   tracker = Tracker.where(uuid: params['uuid']).first
@@ -862,6 +862,13 @@ get "/admin/run_bot2/:uuid" do
   redirect "/admin/bot/#{tracker.uuid}"
 end
 
+get "/admin/issue_new/:uuid" do
+  admin_only!
+  tracker = Tracker.where(uuid: params["uuid"]).first
+  issue_create(tracker)
+  flash[:success] = 'One issue created for project #{tracker.name}'
+  redirect "/admin"
+end
 
 # get "/admin/sync" do
 #   script = File.expand_path("../script/issue_sync_all", __dir__)

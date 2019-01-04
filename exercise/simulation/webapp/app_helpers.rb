@@ -141,6 +141,34 @@ module AppHelpers
 
   # ----- issues -----
 
+  def issue_create(tracker)
+    # find next id
+    id = 1
+    id += Issue.last.id unless Issue.last.nil?
+    # prepare new issue
+    opts = {
+      stm_title: SecureRandom.hex(2),
+      stm_tracker_uuid: tracker.uuid,
+      stm_status: 'open',
+      stm_body: ' ',
+      exid: id
+    }
+    # create new issue
+    issueid = FB.create(:issue, opts).issue.id
+    # set skills requires for tasks on this issue
+    skill_array = TS.skills["task_skills"].sample(TS.skills["number_of_skills_per_issue"])
+    myhash = {"skill"=> {}}
+    skill_array.each do |i|
+      myhash["skill"]["#{i}"] = 0
+    end
+    myhash["created_at"] = BugmTime.now.strftime("%Y-%m-%d")
+    myhash["first_activity"] = ""
+    myhash["last_activity"] = ""
+    sql = "UPDATE issues SET jfields = '#{JSON.generate(myhash)}' WHERE id='#{issueid}';"
+    #binding.pry
+    ActiveRecord::Base.connection.execute(sql)
+  end
+
   def issue_offerable?(user, issue)
     issue.offers.where('expiration > ?', BugmTime.now).pluck(:user_uuid).include?(user.uuid)
   end
@@ -306,19 +334,6 @@ module AppHelpers
       end
     end
   end
-
-  # def offer_fund_link(user, issue)
-  #   # return "Already 3 offers today" if issue.offers_bu.where('expiration > ?', BugmTime.now).count > 2
-  #   return "Low Balance - Can't Fund Offers" if user.token_available < 10
-  #   return "You already placed an offer today" if issue_offerable?(user, issue)
-  #   "<a class='btn btn-primary btn-sm' href='/offer_fund/#{issue.uuid}'>FUND A NEW OFFER (cost: 10 tokens)</a>"
-  # end
-
-  # def offer_fund_message(user, issue)
-  #   return "" if user.token_available < 10
-  #   return "" if issue_offerable?(user, issue)
-  #   "<i>Trader and worker both pay 10 tokens. Winner receives 20 tokens on maturation.</i>"
-  # end
 
   def offer_awardee(offer)
     return "ready to be accepted" if offer.status == 'open'
@@ -1234,9 +1249,9 @@ module AppHelpers
     # binding.pry
     # return appropriate button
     if status[0]['status'].eql? "true" then
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success ml-1'>Running</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success'>Running</a>"
     else
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning ml-1'>Stopped</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning'>Stopped</a>"
     end
   end
 
@@ -1245,11 +1260,13 @@ module AppHelpers
               WHERE jfields->>'tracker' = '#{tracker.uuid}'";
     ActiveRecord::Base.connection.execute(sql)
   end
+
   def bot_stop(tracker)
     sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot,active}', jsonb '\"false\"')
               WHERE jfields->>'tracker' = '#{tracker.uuid}'";
     ActiveRecord::Base.connection.execute(sql)
   end
+
   def bot_running?(tracker)
   sql = "WITH subq AS (SELECT users.jfields->'bot'->>'active' as status2 FROM users
           WHERE jfields->>'tracker' = '#{tracker.uuid}')
@@ -1272,28 +1289,52 @@ module AppHelpers
     end
   end
 
-  def sim_funders
-    User.where()
-  end
-
-  # simulate funder random pay
-  def sim_funder_randompay(user, issue, prices, volumes, durations)
-    # function being called by simulation for funder to do something
-
-    price = difficulty_picker(prices)
-    volume = difficulty_picker(volumes)
-    mat_days = difficulty_picker(maturation_days)
-
-    # args is a hash
-    args  = {
-      user_uuid: user.uuid,
-      price: price,
-      volume: volume,
-      stm_issue_uuid: issue.uuid,
-      maturation: mat_days
-    }
-    offer = FB.create(:offer_bu, args).offer
-    ContractCmd::Cross.new(offer, :expand).project
-  end
+  # def self.sim_funders
+  #   # get all active bots
+  #   sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
+  #         SELECT uuid
+  #         FROM subq
+  #         WHERE status2 = 'true';";
+  #   active_bots = ActiveRecord::Base.connection.execute(sql).to_a
+  #   # simulate each bot
+  #   active_bots.each do |k|
+  #     # get user and tracker
+  #     user = User.where(uuid: k['uuid']).first
+  #     tracker = Tracker.where(uuid: user.jfields['tracker']).first
+  #
+  #     # first create new offers
+  #     newissues = difficulty_picker(user.jfields['bot']['newissues'])
+  #     maxissues = user.jfields['bot']['maxissues']
+  #     newissues.times do
+  #       break if maxissues <= tracker.issues.open.count
+  #
+  #     end
+  #
+  #
+  #     newoffers = difficulty_picker(user.jfields['bot']['newoffers'])
+  #     volumes = user.jfields['bot']['volumes']
+  #     prices = user.jfields['bot']['prices']
+  #     maxissues = user.jfields['bot']['maxissues']
+  # end
+  #
+  # # simulate funder random pay
+  # def sim_funder_randompay(user, issue, prices, volumes, durations)
+  #   # function being called by simulation for funder to do something
+  #
+  #   price = difficulty_picker(prices)
+  #   volume = difficulty_picker(volumes)
+  #   mat_days = difficulty_picker(maturation_days)
+  #
+  #   # args is a hash
+  #   args  = {
+  #     user_uuid: user.uuid,
+  #     price: price,
+  #     volume: volume,
+  #     stm_issue_uuid: issue.uuid,
+  #     maturation: mat_days
+  #   }
+  #   offer = FB.create(:offer_bu, args).offer
+  #   ContractCmd::Cross.new(offer, :expand).project
+  # end
 
 end

@@ -30,11 +30,15 @@
           - Tracker.all.each do |tracker|
             tr.projsel[projuuid="#{tracker.uuid}" projname="#{tracker.name}"]
               td = tracker.name
-              td <b>#{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}</b> open issues
+              td
+                .btn-group
+                  a.btn.btn-dark[href="/project_issues/#{tracker.uuid}"] #{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}
+                  a.btn.btn-primary[href="/admin/issue_new/#{tracker.uuid}"] +1
               td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
               td
-                a.btn.btn-primary[href="/admin/bot/#{tracker.uuid}"] Setup Bot
-                == btn_bot_start_stop(tracker.uuid)
+                .btn-group
+                  == btn_bot_start_stop(tracker.uuid)
+                  a.btn.btn-secondary[href="/admin/bot/#{tracker.uuid}"] Setup Bot
         - else
           tr
             td[colspan=4] No projects
