@@ -30,6 +30,20 @@ AppHelpers.record_bugm_system_times
 # - create graphs
 # -
 Thread.new do
+
+  # on init:
+  # get list of running simulations
+  sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
+        SELECT uuid
+        FROM subq
+        WHERE status2 = 'true';";
+  active_bots = ActiveRecord::Base.connection.execute(sql).to_a
+  # stop active bots
+  active_bots.each do |k|
+    AppHelpers.bot_stop(Tracker.where(uuid: User.where(uuid: k['uuid']).first.jfields['tracker']).first)
+  end
+
+  # loop to have asynchronous behavior
   sleep(3)
   loop do
     # sync workqueue
@@ -45,6 +59,7 @@ Thread.new do
       Thread.new do
         AppHelpers.next_day
         $generate_graphs = true
+        AppHelpers.sim_funders
       end
     end
     # only get graphs, if the process is not yet running
@@ -71,6 +86,11 @@ end
 helpers AppHelpers
 
 # ----- core app -----
+
+get "/tst" do
+  AppHelpers.sim_funders
+  redirect "/admin"
+end
 
 get "/" do
   if logged_in? then
@@ -358,6 +378,7 @@ post "/offer_create/:issue_uuid" do
     type = params['side'] == 'unfixed' ? :offer_bu : :offer_bf
     result = FB.create(type, opts).project
     offer = result.offer
+    ContractCmd::Cross.new(offer, :expand).project
     flash[:success] = "You have funded a new offer (#{offer.xid})"
   else
     flash[:danger] = "Something went wrong"
@@ -389,6 +410,7 @@ get "/offer_fund/:issue_uuid" do
   }
   if issue
     offer = FB.create(:offer_bu, opts).project.offer
+    ContractCmd::Cross.new(offer, :expand).project
     flash[:success] = "You have funded a new offer (#{offer.xid})"
   else
     flash[:danger] = "Something went wrong"
@@ -865,7 +887,7 @@ end
 get "/admin/issue_new/:uuid" do
   admin_only!
   tracker = Tracker.where(uuid: params["uuid"]).first
-  issue_create(tracker)
+  AppHelpers.issue_create(tracker)
   flash[:success] = 'One issue created for project #{tracker.name}'
   redirect "/admin"
 end

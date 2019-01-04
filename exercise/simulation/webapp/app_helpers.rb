@@ -141,7 +141,7 @@ module AppHelpers
 
   # ----- issues -----
 
-  def issue_create(tracker)
+  def self.issue_create(tracker)
     # find next id
     id = 1
     id += Issue.last.id unless Issue.last.nil?
@@ -190,6 +190,24 @@ module AppHelpers
   end
 
   # ----- offers -----
+
+  def self.offer_create_bu(user, issue, price, volume, maturation)
+
+      # args is a hash
+      args  = {
+        aon: false,
+        user_uuid: user.uuid,
+        price: price,
+        volume: volume,
+        stm_issue_uuid: issue.uuid,
+        stm_tracker_uuid: issue.stm_tracker_uuid,
+        maturation: BugmTime.end_of_day(maturation),
+        expiration: BugmTime.end_of_day(maturation)
+      }
+      offer = FB.create(:offer_bu, args).project.offer
+      ContractCmd::Cross.new(offer, :expand).project
+      offer.uuid
+  end
 
   def offer_id_link(offer)
     "<a href='/offers/#{offer.uuid}'>#{offer.xid}</a>"
@@ -1267,6 +1285,12 @@ module AppHelpers
     ActiveRecord::Base.connection.execute(sql)
   end
 
+  def self.bot_stop(tracker)
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot,active}', jsonb '\"false\"')
+              WHERE jfields->>'tracker' = '#{tracker.uuid}'";
+    ActiveRecord::Base.connection.execute(sql)
+  end
+
   def bot_running?(tracker)
   sql = "WITH subq AS (SELECT users.jfields->'bot'->>'active' as status2 FROM users
           WHERE jfields->>'tracker' = '#{tracker.uuid}')
@@ -1279,7 +1303,7 @@ module AppHelpers
 
 
   # Utility function
-  def difficulty_picker(options)
+  def self.difficulty_picker(options)
     # from https://stackoverflow.com/questions/19261061/picking-a-random-option-where-each-option-has-a-different-probability-of-being
     current, max = 0, options.values.inject(:+)
     random_value = rand(max) + 1
@@ -1289,33 +1313,57 @@ module AppHelpers
     end
   end
 
-  # def self.sim_funders
-  #   # get all active bots
-  #   sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
-  #         SELECT uuid
-  #         FROM subq
-  #         WHERE status2 = 'true';";
-  #   active_bots = ActiveRecord::Base.connection.execute(sql).to_a
-  #   # simulate each bot
-  #   active_bots.each do |k|
-  #     # get user and tracker
-  #     user = User.where(uuid: k['uuid']).first
-  #     tracker = Tracker.where(uuid: user.jfields['tracker']).first
-  #
-  #     # first create new offers
-  #     newissues = difficulty_picker(user.jfields['bot']['newissues'])
-  #     maxissues = user.jfields['bot']['maxissues']
-  #     newissues.times do
-  #       break if maxissues <= tracker.issues.open.count
-  #
-  #     end
-  #
-  #
-  #     newoffers = difficulty_picker(user.jfields['bot']['newoffers'])
-  #     volumes = user.jfields['bot']['volumes']
-  #     prices = user.jfields['bot']['prices']
-  #     maxissues = user.jfields['bot']['maxissues']
-  # end
+  def self.sim_funders
+    # get all active bots
+    sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
+          SELECT uuid
+          FROM subq
+          WHERE status2 = 'true';";
+    active_bots = ActiveRecord::Base.connection.execute(sql).to_a
+    # simulate each bot
+    active_bots.each do |k|
+      # get user and tracker
+      user = User.where(uuid: k['uuid']).first
+      tracker = Tracker.where(uuid: user.jfields['tracker']).first
+
+      puts "----- simulate project: #{tracker.name}"
+
+      # create new offers
+      if user.jfields['bot']['newissues'].nil?
+        puts "Error executing bot, missing information for project #{tracker.name}"
+        return
+      end
+      newissues = difficulty_picker(user.jfields['bot']['newissues']).to_i
+      maxissues = user.jfields['bot']['maxissues'].to_i
+      newissues.times do
+        break if maxissues <= tracker.issues.open.count
+        issue_create(tracker)
+      end
+
+      # create new offers
+      newoffers = difficulty_picker(user.jfields['bot']['newoffers']).to_i
+      prices = user.jfields['bot']['prices']
+      volumes = user.jfields['bot']['volumes']
+      maturations = user.jfields['bot']['maturations']
+
+      if newoffers.nil? || prices.nil? || newoffers.nil? || volumes.nil? || maturations.nil?
+        puts "Error executing bot, missing information for project #{tracker.name}"
+        return
+      end
+
+      # binding.pry
+      newoffers.times do
+        # find open issue to use, randomly select an issue
+        issue = tracker.issues.open.sample
+
+        # random pick offer parameters
+        price = difficulty_picker(prices).to_f
+        volume = difficulty_picker(volumes).to_i
+        maturation = difficulty_picker(maturations).to_i
+        offer_create_bu(user, issue, price, volume, maturation)
+      end
+    end
+  end
   #
   # # simulate funder random pay
   # def sim_funder_randompay(user, issue, prices, volumes, durations)
