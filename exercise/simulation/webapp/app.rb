@@ -777,9 +777,8 @@ end
 get "/admin/users" do
   admin_only!
 
+  @title = "Users Administration"
   @users = User.all
-  @contracts = Contract.open
-  @offers = Offer.open
   slim :admin_users
 end
 
@@ -789,6 +788,82 @@ get "/admin/user/:uuid" do
 
   @user = User.where(uuid: params['uuid']).first
   slim :admin_user
+end
+
+post "/admin/users_create" do
+  admin_only!
+  numnew = params["numnew"].to_i
+  treatment = params["treatment"].to_i
+  type = params["type"].to_i
+  bonuses = params["bonuses"].to_i
+  maluses = params["maluses"].to_i
+  balance = params["balance"].to_i
+  treatments = ["both-metrics", "market-metrics", "health-metrics", "no-metrics"]
+  types = ["worker", "funder"]
+
+  # create new users
+  numnew.times do
+    username= SecureRandom.hex(2)
+    emailaddr = username+'@example.com'
+    userpassword = SecureRandom.hex(2)
+    # nice user name
+    if User.count < TS.usernames.count then
+      TS.usernames.shuffle.each do |potential_name|
+        potential_name = potential_name.gsub(/[^0-9a-zA-Z]/i, '')
+        if User.where(name: potential_name).count == 0 then
+          username = potential_name
+          break
+        end
+      end
+    end
+    opts = {
+      balance: balance,
+      name: username,
+      email: emailaddr,
+      password: userpassword
+    }
+    userid = FB.create(:user, opts).user.id
+    # update user jfields through sql
+    skills = TS.skills["task_skills"].shuffle
+    bonus_skills = skills.pop(bonuses)
+    malus_skills = skills.pop(maluses)
+    sql = "UPDATE users SET jfields = '{\"skill_bonus\":#{bonus_skills},
+    \"skill_malus\":#{malus_skills},
+    \"password\":\"#{userpassword}\",\"type\":\"#{types[type]}\",
+    \"treatment\":\"#{treatments[treatment]}\",\"tracker\":\"\"}' WHERE id='#{userid}';"
+    ActiveRecord::Base.connection.execute(sql).to_a
+
+    # funders get assigned a tracker and simulation bot
+    if(types[type]=='funder') then
+      tracker = ""
+      # find a sensible projectname
+      trackername = SecureRandom.hex(2)
+      if Tracker.count < TS.projectnames.count then
+        TS.projectnames.shuffle.each do |potential_name|
+          if Tracker.where(name: potential_name).count == 0 then
+            trackername = potential_name
+            break
+          end
+        end
+      end
+      # generate a new tracker
+      opts = {
+        type: "Tracker::Test",
+        name: "#{trackername}"
+      }
+      tracker = FB.create(:tracker, opts).tracker.uuid
+
+
+      sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb '{\"active\":\"false\", \"prices\":{\"0.80\":20, \"0.85\":40, \"0.90\":30, \"0.95\":8, \"1.00\":2}, \"volumes\":{\"70\":10, \"80\":30, \"90\":40, \"100\":20}, \"maxissues\":9, \"newissues\":{\"9\":1, \"1\":0}, \"newoffers\":{\"5\":1}, \"maturations\":{\"1\":20, \"2\":20, \"4\":20, \"6\":20, \"8\":20}}') WHERE id='#{userid}';"
+      ActiveRecord::Base.connection.execute(sql).to_a
+      sql = "UPDATE users SET jfields = jsonb_set(jfields, '{tracker}', '\"#{tracker}\"') WHERE id='#{userid}';"
+      ActiveRecord::Base.connection.execute(sql).to_a
+    end
+    puts "new user: #{username} (#{userid})"
+  end
+  @title = "New Users"
+  @users = User.last(numnew)
+  slim :admin_users
 end
 
 get "/admin/startstopnighlty" do

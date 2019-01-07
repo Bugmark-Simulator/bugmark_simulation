@@ -1,41 +1,78 @@
 / SPDX-License-Identifier: MPL-2.0
 .row
   .col-md-12
-    h2 Admin
+    h2 = @title
 .row
-  .col-md-6
-  .col-md-6.text-right
-    small Users: #{@users.count} Offers: #{@offers.count} Contracts: #{@contracts.count}
-
-table.table#xtable
-  thead
-    tr
-      /td ID
-      td Email
-      td Password
-      td Username
-      td Treatment
-      td Type
-      td Skill Bonus
-      td Skill Malus
-      td Balance
-      td
-  tbody
-    - @users.each do |user|
-      tr
-        /td = user.xid
-        td = user.email
-        td = user["jfields"]["password"]
-        td = user.name
-        td = user["jfields"]["treatment"]
-        td = user["jfields"]["type"]
-        td = user["jfields"]["skill_bonus"] && user["jfields"]["skill_bonus"].join(', ')
-        td = user["jfields"]["skill_malus"] && user["jfields"]["skill_malus"].join(', ')
-        td = user.balance.round
-        td
-          a.mx-1.btn.btn-primary[href="/admin/user/#{user.uuid}"] edit
-          a.mx-1.btn.btn-danger[href="/admin/login_as/#{user.uuid}"] login as #{user.name}
-
+  .col-md-12
+    table.table#xtable
+      thead
+        tr
+          /td ID
+          td Email
+          td Password
+          td Username
+          td Treatment
+          td Type
+          td Skill Bonus
+          td Skill Malus
+          td Balance
+          td
+      tbody
+        - @users.each do |user|
+          tr
+            /td = user.xid
+            td = user.email
+            td = user["jfields"]["password"]
+            td = user.name
+            td = user["jfields"]["treatment"]
+            td = user["jfields"]["type"]
+            td = user["jfields"]["skill_bonus"] && user["jfields"]["skill_bonus"].join(', ')
+            td = user["jfields"]["skill_malus"] && user["jfields"]["skill_malus"].join(', ')
+            td = user.balance.round
+            td
+              a.mx-1.btn.btn-primary[href="/admin/user/#{user.uuid}"] edit
+              a.mx-1.btn.btn-danger[href="/admin/login_as/#{user.uuid}"] login as #{user.name}
+hr
+.row
+  .col-md-12
+    h2 Create New Users
+    form#newusers[method="post" action="/admin/users_create"]
+      .row
+        .col-md-2.form-group
+          label[for="numnew"] Number of new users
+          br
+          input.form-control[type="number" value="1" max="100" min="1" name="numnew"]
+        .col-md-2.form-group
+          label[for="treatment"] Treatment Group
+          br
+          select.form-control[name="treatment"]
+            option[value="0"] both-metrics
+            option[value="1"] market-metrics
+            option[value="2"] health-metrics
+            option[value="3"] no-metrics
+            /option[value="5" disabled] random
+        .col-md-2.form-group
+          label[for="type"] User Type
+          br
+          select.form-control[name="type"]
+            option[value="0"] worker
+            option[value="1"] funder
+            /option[value="3" disabled] random
+        .col-md-2.form-group
+          label[for="bonuses"] Skill Bonuses
+          br
+          input.form-control[type="number" value="3" max="#{TS.skills["task_skills"].count}", min="0" name="bonuses"]
+        .col-md-2.form-group
+          label[for="maluses"] Skill Maluses
+          br
+          input.form-control[type="number" value="3" max="#{TS.skills["task_skills"].count}", min="0" name="maluses"]
+        .col-md-2.form-group
+          label[for="balance"] Account Balance
+          br
+          input.form-control[type="number" value="100" min="0" name="balance"]
+      .row
+        .col-md-12
+          button.btn.btn-primary#submitnewusers[type="submit"] Create new users
 - content_for :page_js do
   javascript:
     $('#xtable').DataTable();
