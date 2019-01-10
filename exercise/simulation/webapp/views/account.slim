@@ -5,9 +5,9 @@ hr
   .col-md-6.d-flex.align-items-start.flex-column
     h3 Account
     .p-2
-      p Your current balance is <b>#{current_user.token_available}</b> tokens.
+      p Your current account balance is <b>#{current_user.token_available.to_i}</b> tokens.
       p
-        | You currently have <b>#{current_user.open_contracts.length}</b> open contracts.
+        | You currently have <b>#{current_user.open_contracts.length}</b> accepted offers.
         - if current_user.open_contracts.length > 0
           span
             '  (
@@ -18,12 +18,29 @@ hr
           label.mr-1[for="newName"] Your public username is:
           input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new username" value="#{user_name}"]
           button.btn.btn-primary[type="submit"] Change
-          div <i>Note:</i> Your username is visible to other participants.
+        div <i>Note:</i> Your username is visible to other participants.
       p
         form.form-inline[action="/set_password" method="post"]
-          label.mr-1[for="newPassword"] New password:
+          label.mr-1[for="newPassword"] Change password:
           input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
           button.btn.btn-primary[type="submit"] Change
+    hr
+    h4 Skills
+    .p-2
+      p As a participant in this experiment you are assigned skills.
+        Depending on these skills, you can complete some tasks faster than others.
+
+      table.table[style="width:100%"]
+        tr.row
+          th.col Skills level
+          th.col Skills
+          th.col Time to complete tasks
+        tr.row
+          td.col High
+          td.col &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
+          td.col #{TS.skills['seconds_per_bonus_skill']} seconds
+
+
 
   .col-md-6.d-flex.align-items-start.flex-column
       h3 Queue

@@ -10,7 +10,7 @@ ul.navbar-nav.mr-auto
 ul.navbar-nav.navbar-text.mx-auto
   - if logged_in?
     = " Simulation Day "
-    == BugmTime.now.strftime("%m/%d")
+    == BugmTime.now.strftime("%b %d")
     /= "; Day will changes every "
     /= "#{TS.nightly_scr.seconds_for_day_switching.to_i}"
     /= " Seconds"
