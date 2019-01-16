@@ -1,57 +1,15 @@
 / SPDX-License-Identifier: MPL-2.0
 .row
-  .col-md-4
-    h2[style='margin-bottom: 15px;'] #{@OpenClosed} Issues (#{@issues.count})
-  .col-md-8.text-right
-    .btn-group.btn-group-toggle.btn-group-sm[data-toggle="buttons"]
-      - if @OpenClosed == "Open"
-        label.btn.btn-secondary.active
-          input#allIssues[type="radio" name="options" autocomplete="off" checked] All Open Issues
-      - else
-        label.btn.btn-secondary
-          input#allIssues[type="radio" name="options" autocomplete="off" checked] All Open Issues
-      label.btn.btn-secondary
-        input#myIssues[type="radio" name="options" autocomplete="off"] My #{@OpenClosed} Issues
-      - if @OpenClosed == "Closed"
-        label.btn.btn-secondary.active
-          input#closedIssues[type="radio" name="options" autocomplete="off" checked] All Closed Issues
-      - else
-        label.btn.btn-secondary
-          input#closedIssues[type="radio" name="options" autocomplete="off" checked] All Closed Issues
+  .col-md-12
+    h2[style='margin-bottom: 15px;'] Issue Tracker
 
-table.table#xtable
-  thead
-    tr
-      td ID
-      td Project
-      /td Title
-      td Open Offers / Value
-      td Accepted Offers / Value
-      td Progress on Completing Tasks
-      /td Skills required
-  tbody
-    - @issues.each do |issue|
-      tr
-        td == issue_id_link(issue)
-        td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
-        /td = issue.stm_title
-        td
-          = issue.offers.open.count
-          '  /
-          = issue.offers.open.pluck(:value).sum
-          '  tokens
-          == "<b>*</b>" if issue.offers.open.pluck(:user_uuid).include?(current_user.uuid)
-        td
-          = (issue.offers.crossed.count.to_f / 2 ).to_i
-          '  /
-          = issue.offers.crossed.pluck(:value).sum
-          '  tokens
-          == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
-        td == "#{issue.jfields["skill"].map{|k,v| "<span style=\"color:#{v.to_i==1 ? 'green' : 'red'};#{(!current_user.jfields["skill_bonus"].nil? && current_user.jfields["skill_bonus"].include?(k)) ? 'font-weight: bold;' : ''}\">#{k}</span> (#{v.to_i==1 ? 'complete' : 'open'})"}.join(', ')}"
-        /td = issue.jfields["skill"].keys * ", "
 .row
-  .col-md-12.text-center
-    small <b>*</b> issues where you have an offer or contract
+  .col-md-12
+   p Projects in this issue tracker:
+   ul
+    - Tracker.all.each do |k|
+      li
+        = k.name
 
 - content_for :page_js do
   coffee:

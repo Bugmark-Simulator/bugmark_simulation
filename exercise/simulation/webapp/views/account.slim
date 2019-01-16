@@ -38,7 +38,15 @@ hr
         tr.row
           td.col High
           td.col &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
-          td.col #{TS.skills['seconds_per_bonus_skill']} seconds
+          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_bonus_skill'])} 
+        tr.row
+          td.col Normal
+          td.col &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"] && (TS.skills['task_skills'] - current_user["jfields"]["skill_bonus"] - current_user["jfields"]["skill_malus"]).join(', ') || TS.skills['task_skills'].join(', ')}
+          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_normal_skill'])}
+        tr.row
+          td.col Low
+          td.col &nbsp;#{current_user["jfields"]["skill_malus"] && current_user["jfields"]["skill_malus"].join(', ')}
+          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_malus_skill'])}
 
 
 
@@ -61,26 +69,26 @@ hr
               td
                 a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
               td = work_queue.task
-              td = progress(work_queue.startwork, work_queue.completed)
+              td == progress(work_queue.startwork, work_queue.completed)
               td
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
-      p
-        strong <u>Explanation:</u>
-        '
-        ' Completing a task usually takes you
-        em #{TS.skills['seconds_per_normal_skill']}
-        '
-        ' seconds.
-        ' Your skills are
-        strong #{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
-        '
-        ' and those tasks take you only
-        em #{TS.skills['seconds_per_bonus_skill']}
-        '
-        ' seconds.
-        ' However, you are not good at other skills (#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"].join(', ')})
-        ' and these tasks take you
-        em #{TS.skills['seconds_per_malus_skill']}
-        '
-        ' seconds.
+/      p
+/        strong <u>Explanation:</u>
+/        '
+/        ' Completing a task usually takes you
+/        em #{TS.skills['seconds_per_normal_skill']}
+/        '
+/        ' seconds.
+/        ' Your skills are
+/        strong #{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
+/        '
+/        ' and those tasks take you only
+/        em #{TS.skills['seconds_per_bonus_skill']}
+/        '
+/        ' seconds.
+/        ' However, you are not good at other skills (#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"].join(', ')})
+/        ' and these tasks take you
+/        em #{TS.skills['seconds_per_malus_skill']}
+/        '
+/        ' seconds.

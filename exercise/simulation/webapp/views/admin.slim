@@ -6,11 +6,41 @@
   .col-md-6
     div
       == start_stop_nightly
-      .ml-1 Next day every #{TS.nightly_scr["seconds_for_day_switching"]} seconds | Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
+      .ml-1
+        ' Next day every
+        ' 
+        = TS.nightly_scr["seconds_for_day_switching"]
+        '
+        ' seconds | Next day in
+        - if $run_nightly.nil?
+          ' NEVER
+        - else
+          span[class="countdown-sec" secs="#{($run_nightly - Time.now).round}"]
+            = ($run_nightly - Time.now).round
+        '
+        ' seconds
+
       a.btn.btn-danger[href="/admin/nextday"] Manually Go to Next day
     h3 Status
-    div Last graph update: #{$last_graph_update.nil? ? "NEVER" : (Time.now - $last_graph_update).round } seconds ago
-    div Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds
+    div
+      ' Last graph update:
+      '
+      - if $last_graph_update.nil?
+        span NEVER
+      - else
+        span[class="countup-sec" secs="#{(Time.now - $last_graph_update).round}"]
+          = (Time.now - $last_graph_update).round
+      '
+      ' seconds ago
+    div
+      ' Next day in
+      - if $run_nightly.nil?
+        ' NEVER
+      - else
+        span[class="countdown-sec" secs="#{($run_nightly - Time.now).round}"]
+          = ($run_nightly - Time.now).round
+      '
+      ' seconds
 
 
   .col-md-6

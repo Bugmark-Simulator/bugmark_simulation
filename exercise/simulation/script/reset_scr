@@ -34,6 +34,7 @@ sql = "TRUNCATE TABLE
 , escrows
 , events
 , issue_comments
+, issue_new_comments
 , issues
 , log
 , offers
@@ -54,14 +55,5 @@ BugmHost.reset
 Dir.glob("#{TS.graph_file_for_webapp_public}*.png").each { |file|
   File.delete(file)
 }
-
-
-
-
-
-
-
-
-
 
 puts 'DONE'

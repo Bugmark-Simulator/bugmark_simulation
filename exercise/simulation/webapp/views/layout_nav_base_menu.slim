@@ -3,15 +3,16 @@ ul.navbar-nav.mr-auto
   - if logged_in? && consented?
     == nav_link("Projects Dashbaord" , "/project")
     == nav_link("Issue Tracker"                    , "/issues")
-    == nav_link("Market Place"                 , "/contracts")
+    == nav_link("Accepted Offers"                  , "/contracts")
     - if current_user.id == 1
       == nav_link("RESEARCHER CONTROL PANEL"                 , "/admin")
 
 ul.navbar-nav.navbar-text.mx-auto
   - if logged_in?
-    = " Simulation Day "
+    = " Now: "
     == BugmTime.now.strftime("%b %d")
     /= "; Day will changes every "
+    == $run_nightly.nil? ? "" : " (<span class='countup' secs='#{(Time.now.to_i - $run_nightly.to_i + TS.nightly_scr["seconds_for_day_switching"]).round}'>00:00</span>)"
     /= "#{TS.nightly_scr.seconds_for_day_switching.to_i}"
     /= " Seconds"
 

@@ -158,6 +158,9 @@ get "/issues/:uuid" do
   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issue_detail',#{sql_uuid});"
   ActiveRecord::Base.connection.execute(log_sql)
+  # mark comments on this issue as read
+  unread_comments_sql = "DELETE FROM issue_new_comments WHERE issue_uuid = '#{@issue.uuid}' AND user_uuid = '#{current_user.uuid}';"
+  ActiveRecord::Base.connection.execute(unread_comments_sql)
   slim :issue
 end
 
@@ -221,6 +224,13 @@ post "/issue_comments/:uuid" do
           set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
           WHERE uuid = '#{@issue.uuid}';"
   ActiveRecord::Base.connection.execute(issue_update_sql)
+  # record that an unread comment exists
+  unread_comments_sql = "Insert into issue_new_comments (issue_uuid, user_uuid, new_comments)
+    SELECT '#{@issue.uuid}', users.uuid, '1'
+    FROM users
+    ON CONFLICT (issue_uuid, user_uuid) DO
+    UPDATE SET new_comments = issue_new_comments.new_comments + 1;"
+  ActiveRecord::Base.connection.execute(unread_comments_sql)
   # activity log
   sql_uuid = ActiveRecord::Base.connection.quote(params['uuid'])
   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
@@ -264,7 +274,7 @@ get "/project_issues" do
     project = Tracker.where(uuid: session[:project_issues]).first
     redirect "/project_issues/#{project.uuid}"
   else
-    redirect "/issues"
+    redirect "/project_issues/#{Tracker.first.uuid}"
   end
 end
 
@@ -311,13 +321,16 @@ end
 # list all open issues
 get "/issues" do
   protected!
-  @OpenClosed = "Open"
-  @issues = Issue.open
-  # activity log
-  log_sql = "Insert into log (user_uuid, time, page)
-    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
-  ActiveRecord::Base.connection.execute(log_sql)
-  slim :issues
+  # @OpenClosed = "Open"
+  # @issues = Issue.open
+  # # activity log
+  # log_sql = "Insert into log (user_uuid, time, page)
+  #   values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'issues');"
+  # ActiveRecord::Base.connection.execute(log_sql)
+  # slim :issues
+
+  # remove a universal issues tracker
+  redirect "/project_issues"
 end
 
 # list closed issues
@@ -442,7 +455,7 @@ get "/offer_accept/:offer_uuid" do
   else
     counter   = OfferCmd::CreateCounter.new(offer, poolable: false, user_uuid: user_uuid).project.offer
     contract  = ContractCmd::Cross.new(counter, :expand).project.contract
-    flash[:success] = "You have formed a new contract"
+    flash[:success] = "You have accepted an offer"
     redirect "/issues/#{offer.stm_issue_uuid}"
   end
 end
@@ -498,7 +511,7 @@ get "/position_buy/:offer_uuid" do
   obj       = ContractCmd::Cross.new(counter, :transfer)
   contract  = obj.project.contract
   binding.pry
-  flash[:success] = "You have formed a new contract"
+  flash[:success] = "You have accepted an offer"
   # activity log
   sql_uuid = ActiveRecord::Base.connection.quote(contract.issue.uuid)
   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
@@ -548,7 +561,7 @@ end
 # funder account
 get "/account" do
   protected!
-  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).order('startwork')
+  @work_queues = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").order('startwork')
   # activity log
   log_sql = "Insert into log (user_uuid, time, page)
     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'account');"
@@ -964,7 +977,7 @@ get "/admin/issue_new/:uuid" do
   admin_only!
   tracker = Tracker.where(uuid: params["uuid"]).first
   AppHelpers.issue_create(tracker)
-  flash[:success] = 'One issue created for project #{tracker.name}'
+  flash[:success] = "One issue created for project #{tracker.name}"
   redirect "/admin"
 end
 

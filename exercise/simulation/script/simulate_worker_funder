@@ -51,7 +51,7 @@ UNFIXED_PRICE = [0.5, 0.6, 0.7, 0.75 ,0.80, 0.85, 0.90, 0.95, 1.0]
 # volume of contracts in tokens
 CONTRACT_VOLUME = [50, 100, 150, 200]
 # number of offers a funder creates
-NEW_OFFERS_PER_FUNDER = 3
+NEW_OFFERS_PER_FUNDER = 0
 
 # ----- users -----
   funders = []
@@ -73,35 +73,35 @@ loop do
   # how many workers need their turn and want to do more
   do_more = 0
 
-  # funders randomly fund issues several times per turn
-  NEW_OFFERS_PER_FUNDER.times do
-    # update output
-    funder_ran = 0
-    new_offers_ran += 1
-    STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
-    STDOUT.flush
-    # choose order in which funders go randomly
-    funders.shuffle.each do |funder_uuid|
-      # update output
-      funder_ran += 1
-      STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
-      STDOUT.flush
-      # get a random open issue
-      issue = Issue.where(stm_status: 'open').order('random()').first
-      break if issue.nil?
-      # args is a hash
-      args  = {
-        user_uuid: funder_uuid,
-        price: UNFIXED_PRICE.sample,
-        volume: CONTRACT_VOLUME.sample,
-        stm_issue_uuid: issue.uuid,
-        stm_tracker_uuid: Issue.where(uuid: issue.uuid).first.stm_tracker_uuid,
-        expiration: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE),
-        maturation: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE)
-      }
-      FB.create(:offer_bu, args)
-    end
-  end
+  # # funders randomly fund issues several times per turn
+  # NEW_OFFERS_PER_FUNDER.times do
+  #   # update output
+  #   funder_ran = 0
+  #   new_offers_ran += 1
+  #   STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
+  #   STDOUT.flush
+  #   # choose order in which funders go randomly
+  #   funders.shuffle.each do |funder_uuid|
+  #     # update output
+  #     funder_ran += 1
+  #     STDOUT.write "\rrun #{i}: #{new_offers_ran}/#{NEW_OFFERS_PER_FUNDER} offers x #{funder_ran}/#{funders.length} funders  | #{workers_ran}/#{workers.length} workers"
+  #     STDOUT.flush
+  #     # get a random open issue
+  #     issue = Issue.where(stm_status: 'open').order('random()').first
+  #     break if issue.nil?
+  #     # args is a hash
+  #     args  = {
+  #       user_uuid: funder_uuid,
+  #       price: UNFIXED_PRICE.sample,
+  #       volume: CONTRACT_VOLUME.sample,
+  #       stm_issue_uuid: issue.uuid,
+  #       stm_tracker_uuid: Issue.where(uuid: issue.uuid).first.stm_tracker_uuid,
+  #       expiration: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE),
+  #       maturation: BugmTime.end_of_day(MATURATION_DAYS_IN_FUTURE)
+  #     }
+  #     FB.create(:offer_bu, args)
+  #   end
+  # end
 
 
   workers.shuffle.each do |worker_uuid|

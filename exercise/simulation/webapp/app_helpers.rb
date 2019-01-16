@@ -130,6 +130,25 @@ module AppHelpers
     BugmTime.end_of_day.strftime("%Y%m%dT%H%M%S")
   end
 
+  def real_seconds_to_simulated_time(sec)
+    sec_per_day = TS.nightly_scr["seconds_for_day_switching"]
+    days = (sec / sec_per_day).floor
+    sec2 = sec % sec_per_day
+    hours = (sec2*24/sec_per_day).floor
+    sec2 = (sec2*24) % sec_per_day
+    minutes = (sec2/60).ceil
+    result = ""
+    if days > 0 then
+      result = "#{result} #{days}d "
+    end
+    if( hours < 10) then
+      result = "#{result} 0#{hours}:00"
+    else
+      result = "#{result} #{hours}:00"
+    end
+    return result
+  end
+
   # ----- info icon -----
 
   def i_circle
@@ -175,7 +194,7 @@ module AppHelpers
   end
 
   def issue_id_link(issue)
-    "<a href='/issues/#{issue.uuid}'>#{issue.xid}</a>"
+    "<a href='/issues/#{issue.uuid}'>Issue ##{issue.id}</a>"
   end
 
   def issue_status(issue)
@@ -284,11 +303,12 @@ module AppHelpers
       else
         position = offer.position
       end
-      if sellable_fixed_position(current_user, position)
-        offer_sell_link(position)
-      else
+      # disable CreateSell
+      # if sellable_fixed_position(current_user, position)
+        # offer_sell_link(position)
+      # else
         user_name(position.user)
-      end
+      # end
     when 'expired'
       if offer.type.include? "::Fixed" then
         user_name(offer.user)
@@ -323,11 +343,12 @@ module AppHelpers
       else
         position = offer.position
       end
-      if sellable_unfixed_position(current_user, position)
-        offer_sell_link(position)
-      else
+      # disable resell
+      # if sellable_unfixed_position(current_user, position)
+        # offer_sell_link(position)
+      # else
         user_name(position.user)
-      end
+      # end
     when 'expired'
       if offer.type.include? "::Unfixed" then
         user_name(offer.user)
@@ -376,16 +397,31 @@ module AppHelpers
   end
 
   def contract_mature_date(contract)
-    color = BugmTime.now > contract.maturation ? "red" : "green"
-    date = contract.maturation.strftime("%m-%d %H:%M %Z")
-    "<span style='color: #{color};'>#{date}</span>"
+    return "TBD" if contract.maturation.nil?
+    # color = BugmTime.now > offer.expiration ? "red" : "green"
+    date = contract.maturation.strftime("%Y-%m-%d").to_date.mjd - BugmTime.now.to_date.mjd
+    if date > 1 then
+      return "In #{date} days"
+    elsif date == 1 then
+      return "In #{date} day"
+    elsif date < -1 then
+      return "#{date * -1} days ago"
+    elsif date == -1 then
+      return "#{date * -1} day ago"
+    else
+      return "In 0 days"
+    end
+    # color = BugmTime.now > contract.maturation ? "red" : "green"
+    # date = contract.maturation.strftime("%m-%d %H:%M %Z")
+    # "<span style='color: #{color};'>#{date}</span>"
   end
+
 
   def contract_status(contract)
     case contract.status
-    when "open"     then "<i class='fa fa-unlock'></i> open"
-    when "matured"  then "<i class='fa fa-lock'></i> matured"
-    when "resolved" then "<i class='fa fa-check'></i> resolved"
+    when "open"     then "open"
+    when "matured"  then "matured"
+    when "resolved" then "resolved"
     else "UNKNOWN_CONTRACT_STATE"
     end
   end
@@ -690,11 +726,26 @@ module AppHelpers
 
   def progress(startwork, endwork)
     if DateTime.now.to_time.to_i < startwork.to_time.to_i
-      return "Queued: requires <span class='sec-countodwn'>#{endwork.to_time.to_i - startwork.to_time.to_i}</span> sec. to complete"
+      sec = endwork.to_time.to_i - startwork.to_time.to_i
+      return "Queued: requires #{real_seconds_to_simulated_time(sec)} to complete"
     elsif DateTime.now.to_time.to_i < endwork.to_time.to_i
-      return "In progress: #{endwork.to_time.to_i - DateTime.now.to_time.to_i} sec. until completion"
+      sec = endwork.to_time.to_i - DateTime.now.to_time.to_i
+      return "In progress: <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_time(sec)}</span> until completion"
     else
-      return "completed"
+      # not needed, since we don't display these
+      return "Completed"
+    end
+  end
+
+  def queue_length(user = current_user)
+    # TODO: finish this function
+    result = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").pluck("MAX(completed) AS completein")[0]
+    if result.nil?
+      return "<a href='/account'>Your queue</a> is empty, next task you add will be worked on immediately."
+    else
+      sec = result.to_s.to_datetime.to_i - Time.now.to_i
+      cnt = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count
+      return "<a href='/account'>Your queue</a> is has #{cnt} tasks, the next task you add will begin in <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_time(sec)}</span>."
     end
   end
 
@@ -1138,16 +1189,16 @@ module AppHelpers
       # puts "graphs for project #{Tracker.where(uuid: project_uuid).first.name}"
       # get all pictures for this project at the same time
       threads = []
-      # contract fix rate
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-1', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-1', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png")
-          # puts "graph: 1 - contract fix rate"
-        end
-      )
+      # # contract fix rate
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-1', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-1', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png")
+      #     # puts "graph: 1 - contract fix rate"
+      #   end
+      # )
       # payout vs potential
       threads.push(
         Thread.new do
@@ -1178,16 +1229,16 @@ module AppHelpers
           # puts "graph: 4 - open offer count and volume"
         end
       )
-      # maturation days offers summary
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-5', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-5', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png")
-          # puts "graph: 5 - maturation days offers summary"
-        end
-      )
+      # # maturation days offers summary
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-5', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-5', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png")
+      #     # puts "graph: 5 - maturation days offers summary"
+      #   end
+      # )
       # open issues
       threads.push(
         Thread.new do
@@ -1198,16 +1249,16 @@ module AppHelpers
           # puts "graph: 6 - open issues"
         end
       )
-      # closed issues
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-7', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-7', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png")
-          # puts "graph: 7 - closed issues"
-        end
-      )
+      # # closed issues
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-7', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-7', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png")
+      #     # puts "graph: 7 - closed issues"
+      #   end
+      # )
       # issue resolution efficiency
       threads.push(
         Thread.new do
@@ -1218,16 +1269,16 @@ module AppHelpers
           # puts "graph: 8 - issue resolution efficiency"
         end
       )
-      # open issue age
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-9', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-9', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png")
-          # puts "graph: 9 - open issue age"
-        end
-      )
+      # # open issue age
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-9', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-9', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png")
+      #     # puts "graph: 9 - open issue age"
+      #   end
+      # )
       # first response days
       threads.push(
         Thread.new do
@@ -1238,16 +1289,16 @@ module AppHelpers
           # puts "graph: 10 - first response days"
         end
       )
-      # issue resolution days
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-11', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-11', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png")
-          # puts "graph: 11 - issue resolution days"
-        end
-      )
+      # # issue resolution days
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-11', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-11', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png")
+      #     # puts "graph: 11 - issue resolution days"
+      #   end
+      # )
       # wait until pictures for this project are stored before going to the next project
       threads.each(&:join)
     end

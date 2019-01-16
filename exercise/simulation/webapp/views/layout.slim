@@ -22,7 +22,7 @@ html[lang="en-US"]
     script[src="/js/app.js"]
     script[src="/js/moment.js"]
     script[src="/js/underscore.js"]
-  body
+  body[seconds_per_day="#{TS.nightly_scr["seconds_for_day_switching"]}"]
     == slim @navbar || :layout_nav_base_bar
     .container-fluid[style="margin-top: 65px;"]
       - flash.keys.each do |type|
@@ -35,5 +35,65 @@ html[lang="en-US"]
           .row
             .col-md-6.text-center
               | Powered by Bugmark
-            .col-md-6.text-center This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%b %d")}. Next day in #{$run_nightly.nil? ? "NEVER" : ($run_nightly - Time.now).round} seconds.
+            .col-md-6.text-center
+              ' This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%b %d")}.
+              - if $run_nightly.nil?
+                ' Simulation is currently NOT running.
+              - else
+                ' Next day in
+                == " <span class='countdown-sec' secs='#{($run_nightly - Time.now).round}'>#{($run_nightly - Time.now).round}</span>"
+                '
+                ' seconds.
     == yield_content :page_js
+
+    javascript:
+      var sec_per_day = parseInt($('body').attr('seconds_per_day'))
+      if(sec_per_day < 1) {
+        sec_per_day = 1
+      }
+      function seconds_to_days(sec){
+        days = Math.floor(sec / sec_per_day)
+        sec2 = sec % sec_per_day
+        hours = Math.floor(sec2*24/sec_per_day)
+        sec2 = (sec2*24) % sec_per_day
+        minutes = Math.ceil(sec2/60)
+        result = ""
+        if( days > 0) {
+        result += days + 'd '
+        }
+        if( hours < 10) {
+          result += "0" + hours + ":00"
+        } else {
+          result += hours + ":00"
+        }
+        return result
+      }
+      //console.log(sec_per_day)
+      var x = setInterval(function(){
+        $('.countdown').each(function(){
+          sec = parseInt($(this).attr("secs")) - 1
+          if(sec < 0){
+            sec = 0
+          }
+          $(this).text(seconds_to_days(sec))
+          $(this).attr("secs", sec)
+        })
+        $('.countdown-sec').each(function(){
+          sec = parseInt($(this).attr("secs")) - 1
+          $(this).text(sec)
+          $(this).attr("secs", sec)
+        })
+        $('.countup').each(function(){
+          sec = parseInt($(this).attr("secs")) + 1
+          if(sec < 0){
+            sec = 0
+          }
+          $(this).text(seconds_to_days(sec))
+          $(this).attr("secs", sec)
+        })
+        $('.countup-sec').each(function(){
+          sec = parseInt($(this).attr("secs")) + 1
+          $(this).text(sec)
+          $(this).attr("secs", sec)
+        })
+      }, 1000);

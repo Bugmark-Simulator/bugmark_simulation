@@ -1,8 +1,16 @@
 / SPDX-License-Identifier: MPL-2.0
 .row
-  .col-md-4
-    h2[style='margin-bottom: 15px;'] #{@OpenClosed} Issues (#{@issues.count}) for project #{@project.name}
-  .col-md-8.text-right
+  .col-md-7
+    h2[style='margin-bottom: 15px;']
+      ' #{@OpenClosed} Issues (#{@issues.count}) for project
+      select#selectproject
+        - Tracker.all.each do |k|
+          - if k.uuid == @project.uuid
+            option[value="#{k.uuid}" selected] = k.name
+          - else
+            option[value="#{k.uuid}"] = k.name
+
+  .col-md-5.text-right
     .btn-group.btn-group-toggle.btn-group-sm[data-toggle="buttons"]
       - if @OpenClosed == "Open"
         label.btn.btn-secondary.active
@@ -22,36 +30,42 @@
 table.table#xtable
   thead
     tr
-      td ID
+      td Issue
       td Project
+      td Tasks
+      td Unred Messages
       /td Title
-      td Open Offers / Value
-      td Accepted Offers / Value
-      td Progress on Completing Tasks
+      /td Open Offers / Value
+      /td Accepted Offers / Value
+      /td Progress on Completing Tasks
       /td Skills required
   tbody
     - @issues.each do |issue|
       tr
         td == issue_id_link(issue)
         td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
+        td = issue.jfields["skill"].map{|k,v| "#{k}"}.join(', ')
+        td
+          - newcom = Issue_New_Comment.where(issue_uuid: issue.uuid).where(user_uuid: current_user.uuid).first
+          = newcom.nil? ? "0" : "#{newcom.new_comments}"
         /td = issue.stm_title
-        td
-          = issue.offers_bu.open.count
-          '  /
-          = issue.offers_bu.open.pluck(:value).sum
-          '  tokens
-          == "<b>*</b>" if issue.offers_bu.open.pluck(:user_uuid).include?(current_user.uuid)
-        td
-          = (issue.offers.crossed.count.to_f / 2 ).to_i
-          '  /
-          = issue.offers.crossed.pluck(:value).sum
-          '  tokens
-          == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
-        td == "#{issue.jfields["skill"].map{|k,v| "<span style=\"color:#{v.to_i==1 ? 'green' : 'red'};#{(!current_user.jfields["skill_bonus"].nil? && current_user.jfields["skill_bonus"].include?(k)) ? 'font-weight: bold;' : ''}\">#{k}</span> (#{v.to_i==1 ? 'complete' : 'open'})"}.join(', ')}"
+        /td
+        /  = issue.offers_bu.open.count
+        /  '  /
+        /  = issue.offers_bu.open.pluck(:value).sum
+        /  '  tokens
+        /  == "<b>*</b>" if issue.offers_bu.open.pluck(:user_uuid).include?(current_user.uuid)
+        /td
+        /  = (issue.offers.crossed.count.to_f / 2 ).to_i
+        /  '  /
+        /  = issue.offers.crossed.pluck(:value).sum
+        /  '  tokens
+        /  == "<b>*</b>" if issue.offers_bf.pluck(:user_uuid).include?(current_user.uuid)
+        /td == "#{issue.jfields["skill"].map{|k,v| "<span style=\"color:#{v.to_i==1 ? 'green' : 'red'};#{(!current_user.jfields["skill_bonus"].nil? && current_user.jfields["skill_bonus"].include?(k)) ? 'font-weight: bold;' : ''}\">#{k}</span> (#{v.to_i==1 ? 'complete' : 'open'})"}.join(', ')}"
         /td = issue.jfields["skill"].keys * ", "
-.row
-  .col-md-12.text-center
-    small <b>*</b> issues where you have an offer or contract
+/.row
+/  .col-md-12.text-center
+/    small <b>*</b> issues where you have an offer or contract
 
 - content_for :page_js do
   coffee:
@@ -76,3 +90,13 @@ table.table#xtable
       $('#myIssues').on  "focus", setMyIssues
       $('#allIssues').on "focus", setAllIssues
       $('#closedIssues').on "focus", setClosedIssues
+javascript:
+  $('#selectproject').change(function(){
+    console.log($(this).val())
+    re = /_closed/
+    if(re.test(window.location.href)) {
+        window.location = "/project_issues_closed/" + $(this).val()
+    } else {
+      window.location = "/project_issues/" + $(this).val()
+    }
+  })
