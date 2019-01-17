@@ -38,21 +38,23 @@ hr
         tr.row
           td.col High
           td.col &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
-          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_bonus_skill'])} 
+          td.col #{real_seconds_to_simulated_hours(TS.skills['seconds_per_bonus_skill'])}
         tr.row
           td.col Normal
           td.col &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"] && (TS.skills['task_skills'] - current_user["jfields"]["skill_bonus"] - current_user["jfields"]["skill_malus"]).join(', ') || TS.skills['task_skills'].join(', ')}
-          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_normal_skill'])}
+          td.col #{real_seconds_to_simulated_hours(TS.skills['seconds_per_normal_skill'])}
         tr.row
           td.col Low
           td.col &nbsp;#{current_user["jfields"]["skill_malus"] && current_user["jfields"]["skill_malus"].join(', ')}
-          td.col #{real_seconds_to_simulated_time(TS.skills['seconds_per_malus_skill'])}
+          td.col #{real_seconds_to_simulated_hours(TS.skills['seconds_per_malus_skill'])}
 
 
 
   .col-md-6.d-flex.align-items-start.flex-column
       h3 Queue
       p You can add tasks to your queue. Tasks are completed automatically in order they were added.
+      p
+        == queue_length(current_user)
       table.table.table-sm.table-bordered.table-hover
         thead
           tr

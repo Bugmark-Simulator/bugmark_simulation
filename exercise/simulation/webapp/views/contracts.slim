@@ -1,9 +1,17 @@
 / SPDX-License-Identifier: MPL-2.0
-h2 #{@title} (#{@contracts.length})
-div
-  == base_link("My Accepted Offers", "/contracts")
-  '  |
-  == base_link("All Accepted Offers", "/contracts_all")
+.row
+  .col-md-7
+    h2 #{@title} (#{@contracts.length})
+  .col-md-5.text-right
+    .btn-group.btn-group-sm
+      - if @title == "All Accepted Offers"
+        a.btn.btn-secondary[href="/contracts"] My Accepted Offers
+        a.btn.btn-secondary.active[href="/contracts_all"] All Accepted Offers
+      - else
+        a.btn.btn-secondary.active[href="/contracts"] My Accepted Offers
+        a.btn.btn-secondary[href="/contracts_all"] All Accepted Offers
+
+
 div &nbsp;
 table.table#xtable
   thead

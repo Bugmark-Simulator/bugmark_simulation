@@ -34,16 +34,18 @@ html[lang="en-US"]
         small
           .row
             .col-md-6.text-center
-              | Powered by Bugmark
-            .col-md-6.text-center
-              ' This simulation operates on a simulated time. Current day in simulation: #{BugmTime.now.strftime("%b %d")}.
-              - if $run_nightly.nil?
-                ' Simulation is currently NOT running.
-              - else
-                ' Next day in
-                == " <span class='countdown-sec' secs='#{($run_nightly - Time.now).round}'>#{($run_nightly - Time.now).round}</span>"
-                '
-                ' seconds.
+              /| Powered by Bugmark
+            .col-md-6.text-right
+              /' This simulation operates on a simulated time.
+              /' Current day in simulation: #{BugmTime.now.strftime("%b %d")}.
+              ' Simulation day X of 30.
+              /- if $run_nightly.nil?
+              /  ' Simulation is currently NOT running.
+              /- else
+              /  ' Next day in
+              /  == " <span class='countdown-sec' secs='#{($run_nightly - Time.now).round}'>#{($run_nightly - Time.now).round}</span>"
+              /  '
+              /  ' seconds.
     == yield_content :page_js
 
     javascript:
@@ -51,7 +53,7 @@ html[lang="en-US"]
       if(sec_per_day < 1) {
         sec_per_day = 1
       }
-      function seconds_to_days(sec){
+      function seconds_to_timeofday(sec){
         days = Math.floor(sec / sec_per_day)
         sec2 = sec % sec_per_day
         hours = Math.floor(sec2*24/sec_per_day)
@@ -61,34 +63,58 @@ html[lang="en-US"]
         if( days > 0) {
         result += days + 'd '
         }
-        if( hours < 10) {
-          result += "0" + hours + ":00"
+        if( hours < 12) {
+          result += "" + hours + "am"
         } else {
-          result += hours + ":00"
+          if( hours > 12){
+            hours -= 12
+          }
+          result += hours + "pm"
         }
         return result
       }
+      function seconds_to_hours(sec){
+        days = Math.floor(sec / sec_per_day)
+        sec2 = sec % sec_per_day
+        hours = Math.ceil(sec2*24/sec_per_day)
+        result = ""
+        if( days > 0) {
+        result += days + 'd '
+        }
+        result += "" + hours + "h"
+        return result
+      }
+
       //console.log(sec_per_day)
       var x = setInterval(function(){
+        $('.updatecal').each(function(){
+          sec = parseInt($(this).attr("seconds_into_day")) + 1
+          date = new Date($(this).attr("date"))
+          date_opt = {month: 'short', day: 'numeric'}
+          if(sec < 0){
+            // don't allow negative numbers
+            sec = 0
+          }
+          if( sec >= sec_per_day){
+            //next day
+            date.setDate(date.getDate() + Math.floor(sec/sec_per_day))
+            $(this).attr("date", date.toDateString())
+            sec = sec % sec_per_day
+          }
+          $(this).text(new Intl.DateTimeFormat('en-US', date_opt).format(date) + ', ' + seconds_to_timeofday(sec))
+          $(this).attr("seconds_into_day", sec)
+        })
         $('.countdown').each(function(){
           sec = parseInt($(this).attr("secs")) - 1
           if(sec < 0){
             sec = 0
           }
-          $(this).text(seconds_to_days(sec))
+          $(this).text(seconds_to_hours(sec))
           $(this).attr("secs", sec)
         })
         $('.countdown-sec').each(function(){
           sec = parseInt($(this).attr("secs")) - 1
           $(this).text(sec)
-          $(this).attr("secs", sec)
-        })
-        $('.countup').each(function(){
-          sec = parseInt($(this).attr("secs")) + 1
-          if(sec < 0){
-            sec = 0
-          }
-          $(this).text(seconds_to_days(sec))
           $(this).attr("secs", sec)
         })
         $('.countup-sec').each(function(){

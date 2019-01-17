@@ -85,21 +85,21 @@ hr
 /    .col-md-4
 /    .col-md-8
 /      p Metrics updated #{$last_graph_update.nil? ? "NEVER" : (Time.now - $last_graph_update).round } seconds ago
-  javascript:
-    $('tr.projsel').first().css('background', 'yellow')
-    $('tr.projsel').css('cursor', 'pointer').click(function(){
-      $('tr.projsel').css('background', '')
-      $(this).css('background', 'yellow')
-      $('span.metricprojectname').text($(this).attr('projname'))
-      projuuid = $(this).attr('projuuid')
-      datestr = ''+Math.round((new Date()).getTime()/10000)
-      $('img.projgraph').each(function(){
-        newurl = $(this).attr('imgsrc') +"?"+ datestr
-        newurl = newurl.replace('projectuuid', projuuid)
-        $(this).attr('src', newurl)
-      })
+javascript:
+  $('tr.projsel').first().css('background', 'yellow')
+  $('tr.projsel').css('cursor', 'pointer').click(function(){
+    $('tr.projsel').css('background', '')
+    $(this).css('background', 'yellow')
+    $('span.metricprojectname').text($(this).attr('projname'))
+    projuuid = $(this).attr('projuuid')
+    datestr = ''+Math.round((new Date()).getTime()/10000)
+    $('img.projgraph').each(function(){
+      newurl = $(this).attr('imgsrc') +"?"+ datestr
+      newurl = newurl.replace('projectuuid', projuuid)
+      $(this).attr('src', newurl)
     })
-    proj_uuid = window.location.toString().split('#')[1]
-    if (proj_uuid){
-      $('tr.projsel[projuuid='+proj_uuid+']').click()
-    }
+  })
+  proj_uuid = window.location.toString().split('#')[1]
+  if (proj_uuid){
+    $('tr.projsel[projuuid='+proj_uuid+']').click()
+  }

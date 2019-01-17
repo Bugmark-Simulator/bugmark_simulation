@@ -180,20 +180,8 @@ end
 
 post "/issue_task_queue_remove/:uuid" do
   protected!
-  cancelsql = "SELECT startwork, EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer as full, EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer as partial FROM work_queues WHERE id=#{params["Cancel"]} ;"
-  shifts = ActiveRecord::Base.connection.execute(cancelsql).first
-  if shifts['partial'] > 2
-    cancelsql = "UPDATE work_queues SET removed = now() WHERE id=#{params["Cancel"]} ;"
-    ActiveRecord::Base.connection.execute(cancelsql).to_a
-    if shifts['partial'] < shifts['full']
-      shift = "'#{shifts['partial']} seconds'"
-    elsif
-      shift = "'#{shifts['full']} seconds'"
-    end
-    cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
-    WHERE startwork > timestamp '#{shifts["startwork"]}' and user_uuid = '#{current_user.uuid}'  ;"
-    shifts = ActiveRecord::Base.connection.execute(cancelsql).to_a
-  end
+  queue_id = params["Cancel"].to_i
+  queue_remove_task(queue_id)
   # activity log
   sql_uuid = ActiveRecord::Base.connection.quote(params['uuid'])
   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
@@ -535,7 +523,7 @@ end
 # list my contracts
 get "/contracts" do
   protected!
-  @title     = "My Contracts"
+  @title     = "My Accepted Offers"
   @contracts = current_user.contracts
   # activity log
   log_sql = "Insert into log (user_uuid, time, page)
@@ -547,7 +535,7 @@ end
 # list all contracts
 get "/contracts_all" do
   protected!
-  @title     = "All Contracts"
+  @title     = "All Accepted Offers"
   @contracts = Contract.all
   # activity log
   log_sql = "Insert into log (user_uuid, time, page)
@@ -978,6 +966,16 @@ get "/admin/issue_new/:uuid" do
   tracker = Tracker.where(uuid: params["uuid"]).first
   AppHelpers.issue_create(tracker)
   flash[:success] = "One issue created for project #{tracker.name}"
+  redirect "/admin"
+end
+get "/admin/issue_new/:uuid/:count" do
+  admin_only!
+  tracker = Tracker.where(uuid: params["uuid"]).first
+  count = params["count"].to_i
+  count.times do
+    AppHelpers.issue_create(tracker)
+  end
+  flash[:success] = "#{count} issues created for project #{tracker.name}"
   redirect "/admin"
 end
 

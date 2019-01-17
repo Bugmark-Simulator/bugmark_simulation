@@ -7,16 +7,9 @@
     div
       == start_stop_nightly
       .ml-1
-        ' Next day every
-        ' 
-        = TS.nightly_scr["seconds_for_day_switching"]
+        ' Simulation speed: One day every
         '
-        ' seconds | Next day in
-        - if $run_nightly.nil?
-          ' NEVER
-        - else
-          span[class="countdown-sec" secs="#{($run_nightly - Time.now).round}"]
-            = ($run_nightly - Time.now).round
+        = TS.nightly_scr["seconds_for_day_switching"]
         '
         ' seconds
 
@@ -55,6 +48,7 @@
           th Project
           th Open Issues
           th Open Offers
+          th Open Contracts
           th Bots
       tbody
         - if Tracker.count > 0
@@ -65,7 +59,9 @@
                 .btn-group
                   a.btn.btn-dark[href="/project_issues/#{tracker.uuid}"] #{Issue.open.where(stm_tracker_uuid: tracker.uuid).count}
                   a.btn.btn-primary[href="/admin/issue_new/#{tracker.uuid}"] +1
+                  a.btn.btn-info[href="/admin/issue_new/#{tracker.uuid}/10"] +10
               td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
+              td = Contract.open.where(stm_tracker_uuid: tracker.uuid).count
               td
                 .btn-group
                   == btn_bot_start_stop(tracker.uuid)

@@ -130,22 +130,17 @@ module AppHelpers
     BugmTime.end_of_day.strftime("%Y%m%dT%H%M%S")
   end
 
-  def real_seconds_to_simulated_time(sec)
+  def real_seconds_to_simulated_hours(sec)
     sec_per_day = TS.nightly_scr["seconds_for_day_switching"]
     days = (sec / sec_per_day).floor
     sec2 = sec % sec_per_day
     hours = (sec2*24/sec_per_day).floor
-    sec2 = (sec2*24) % sec_per_day
-    minutes = (sec2/60).ceil
+
     result = ""
     if days > 0 then
       result = "#{result} #{days}d "
     end
-    if( hours < 10) then
-      result = "#{result} 0#{hours}:00"
-    else
-      result = "#{result} #{hours}:00"
-    end
+    result = "#{result} #{hours}h"
     return result
   end
 
@@ -252,13 +247,13 @@ module AppHelpers
     if date > 1 then
       return "In #{date} days"
     elsif date == 1 then
-      return "In #{date} day"
+      return "Tomorrow"
     elsif date < -1 then
       return "#{date * -1} days ago"
     elsif date == -1 then
-      return "#{date * -1} day ago"
+      return "Yesterday"
     else
-      return "In 0 days"
+      return "Today"
     end
     # date_iso = offer.expiration.strftime("%Y%m%dT%H%M%S")
     # "<a target='_blank' style='color: #{color}' href='https://www.timeanddate.com/worldclock/fixedtime.html?iso=#{date_iso}&p1=217'>#{date}</a>"
@@ -484,9 +479,9 @@ module AppHelpers
 
   def start_stop_nightly
     if $run_nightly.nil? then
-      return "<a href='/admin/startstopnighlty' class='btn btn-warning'> Simulation is NOT running </a>"
+      return "<a href='/admin/startstopnighlty' class='btn btn-warning'> Simulation is NOT running (click to start)</a>"
     else
-      return "<a href='/admin/startstopnighlty' class='btn btn-success'> Simulation is RUNNING</a>"
+      return "<a href='/admin/startstopnighlty' class='btn btn-success'> Simulation is RUNNING (click to stop)</a>"
     end
   end
 
@@ -706,6 +701,52 @@ module AppHelpers
     ActiveRecord::Base.connection.execute(sql).to_a
   end
 
+  # for use with get/post requests (duplicate below)
+  def queue_remove_task(queue_id)
+    queue_id = ActiveRecord::Base.connection.quote(queue_id)
+    getqueuesql = "SELECT user_uuid
+                        , startwork
+                        , EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer AS full
+                        , EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer AS partial
+                  FROM work_queues WHERE id=#{queue_id} ;"
+    shifts = ActiveRecord::Base.connection.execute(getqueuesql).first
+    if shifts['partial'] > 2
+      cancelsql = "UPDATE work_queues SET removed = NOW() WHERE id=#{queue_id} ;"
+      ActiveRecord::Base.connection.execute(cancelsql)
+      if shifts['partial'] < shifts['full']
+        shift = "'#{shifts['partial']} seconds'"
+      elsif
+        shift = "'#{shifts['full']} seconds'"
+      end
+      cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+      WHERE startwork > timestamp '#{shifts["startwork"]}' AND user_uuid = '#{shifts["user_uuid"]}'  ;"
+      shifts = ActiveRecord::Base.connection.execute(cancelsql)
+    end
+  end
+
+  # for use in work_queue_sync (duplicate above)
+  def self.queue_remove_task(queue_id)
+    queue_id = ActiveRecord::Base.connection.quote(queue_id)
+    getqueuesql = "SELECT user_uuid
+                        , startwork
+                        , EXTRACT(EPOCH FROM (completed - startwork))::numeric::integer AS full
+                        , EXTRACT(EPOCH FROM(completed - current_timestamp))::numeric::integer AS partial
+                  FROM work_queues WHERE id=#{queue_id} ;"
+    shifts = ActiveRecord::Base.connection.execute(getqueuesql).first
+    if shifts['partial'] > 2
+      cancelsql = "UPDATE work_queues SET removed = NOW() WHERE id=#{queue_id} ;"
+      ActiveRecord::Base.connection.execute(cancelsql)
+      if shifts['partial'] < shifts['full']
+        shift = "'#{shifts['partial']} seconds'"
+      elsif
+        shift = "'#{shifts['full']} seconds'"
+      end
+      cancelsql = "UPDATE work_queues SET completed = completed - INTERVAL #{shift}, startwork = startwork - INTERVAL #{shift}
+      WHERE startwork > timestamp '#{shifts["startwork"]}' AND user_uuid = '#{shifts["user_uuid"]}'  ;"
+      shifts = ActiveRecord::Base.connection.execute(cancelsql)
+    end
+  end
+
   def task_action(task,issue_uuid,status)
     queue_item = Work_queue.where(user_uuid: current_user.uuid).where(issue_uuid: issue_uuid).where(task: task).where(removed: [nil, ""])
     if status == 1
@@ -727,10 +768,10 @@ module AppHelpers
   def progress(startwork, endwork)
     if DateTime.now.to_time.to_i < startwork.to_time.to_i
       sec = endwork.to_time.to_i - startwork.to_time.to_i
-      return "Queued: requires #{real_seconds_to_simulated_time(sec)} to complete"
+      return "Queued: requires #{real_seconds_to_simulated_hours(sec)} to complete"
     elsif DateTime.now.to_time.to_i < endwork.to_time.to_i
       sec = endwork.to_time.to_i - DateTime.now.to_time.to_i
-      return "In progress: <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_time(sec)}</span> until completion"
+      return "In progress: <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_hours(sec)}</span> until completion"
     else
       # not needed, since we don't display these
       return "Completed"
@@ -741,11 +782,11 @@ module AppHelpers
     # TODO: finish this function
     result = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").pluck("MAX(completed) AS completein")[0]
     if result.nil?
-      return "<a href='/account'>Your queue</a> is empty, next task you add will be worked on immediately."
+      return "Your queue is empty, <strong>next task you add</strong> will be worked on immediately."
     else
       sec = result.to_s.to_datetime.to_i - Time.now.to_i
       cnt = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count
-      return "<a href='/account'>Your queue</a> is has #{cnt} tasks, the next task you add will begin in <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_time(sec)}</span>."
+      return "Your queue is has #{cnt} tasks, the <strong>next task you add</strong> will begin in <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_hours(sec)}</span>."
     end
   end
 
@@ -1097,43 +1138,54 @@ module AppHelpers
   end
 
   def self.workqueue_sync
-    un_marked_list_sql = "Select id, issue_uuid, task from work_queues
-      where updated_issue = false
-      and completed < now()
-      and (removed > completed OR removed IS NULL); "
+    # get completed tasks that have not updated issue yet
+    un_marked_list_sql = "SELECT id, issue_uuid, task FROM work_queues
+      WHERE updated_issue = FALSE
+      AND completed < NOW()
+      AND (removed > completed OR removed IS NULL); "
     un_marked_lists = ActiveRecord::Base.connection.execute(un_marked_list_sql).to_a
 
     # Update Issue table J-field for issue/task completed
     updated_ids = []
     un_marked_lists.each do |i|
+      # collect ids of tasks that were used to update issues
       updated_ids.push(i['id'])
-      # puts i["issue_uuid"]
+      # update issue that task is complete
       issue_update = "UPDATE issues
       SET jfields = replace(jfields::TEXT, '\"#{i["task"]}\": 0','\"#{i["task"]}\": 1')::jsonb
       WHERE uuid='#{i["issue_uuid"]}'
       ;"
-      issue_update_sql = "update issues
-          set jfields = jsonb_set(jfields, '{\"first_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+      ActiveRecord::Base.connection.execute(issue_update)
+      # update first activity on issue, if applicable
+      issue_update_sql = "UPDATE issues
+          SET jfields = jsonb_set(jfields, '{\"first_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
           WHERE uuid = '#{i["issue_uuid"]}'
           AND jfields->>'first_activity' = '';"
       ActiveRecord::Base.connection.execute(issue_update_sql)
-      issue_update_sql = "update issues
-              set jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+      # update recent activity on issue
+      issue_update_sql = "UPDATE issues
+              SET jfields = jsonb_set(jfields, '{\"last_activity\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
               WHERE uuid = '#{i["issue_uuid"]}';"
       ActiveRecord::Base.connection.execute(issue_update_sql)
-
-      #binding.pry
-      ActiveRecord::Base.connection.execute(issue_update)
+      # remove queued tasks from other users for same task
+      tasks_no_longer_needed_sql = "SELECT id FROM work_queues
+      WHERE issue_uuid = '#{i['issue_uuid']}'
+      AND task = '#{i['task']}'
+      AND (removed > completed OR removed IS NULL)
+      AND completed > NOW();"
+      tasks_no_longer_needed = ActiveRecord::Base.connection.execute(tasks_no_longer_needed_sql).to_a
+      tasks_no_longer_needed.each do |rem_task_id|
+        queue_remove_task(rem_task_id.values[0])
+      end
+      # Check all the skills of an issue are worked on and mark it closed
       task_completed = Issue.where(uuid: "#{i["issue_uuid"]}").first.jfields["skill"]
       ex_id = Issue.where(uuid: "#{i["issue_uuid"]}").first.exid
       check = true
-      # Check all the skills of an issue are worked on and mark it closed
       task_completed.each do |key, value|
         if value == 0
           check = false
         end
       end
-
       if check == true
         IssueCmd::Sync.new({exid: ex_id, stm_status: "closed"}).project
         issue_update_sql = "update issues
@@ -1142,8 +1194,9 @@ module AppHelpers
         ActiveRecord::Base.connection.execute(issue_update_sql)
       end
     end
+    # remember that issue was updated
     if updated_ids.length > 0
-      work_queue_update_sql = "update work_queues SET updated_issue = TRUE WHERE id IN (#{updated_ids * ","});"
+      work_queue_update_sql = "UPDATE work_queues SET updated_issue = TRUE WHERE id IN (#{updated_ids * ","});"
       ActiveRecord::Base.connection.execute(work_queue_update_sql)
     end
   end
@@ -1319,9 +1372,9 @@ module AppHelpers
     # binding.pry
     # return appropriate button
     if status[0]['status'].eql? "true" then
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success'>Running</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success'>Running (click to stop)</a>"
     else
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning'>Stopped</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning'>Stopped (click to start)</a>"
     end
   end
 

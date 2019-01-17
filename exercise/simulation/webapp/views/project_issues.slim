@@ -33,7 +33,7 @@ table.table#xtable
       td Issue
       td Project
       td Tasks
-      td Unred Messages
+      td Messages
       /td Title
       /td Open Offers / Value
       /td Accepted Offers / Value
@@ -46,8 +46,11 @@ table.table#xtable
         td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
         td = issue.jfields["skill"].map{|k,v| "#{k}"}.join(', ')
         td
+          = Issue_Comment.where(issue_uuid: issue.uuid).count
           - newcom = Issue_New_Comment.where(issue_uuid: issue.uuid).where(user_uuid: current_user.uuid).first
-          = newcom.nil? ? "0" : "#{newcom.new_comments}"
+          - unless newcom.nil?
+            sup.ml-1[style="color:red"]
+              ' new: #{newcom.new_comments}
         /td = issue.stm_title
         /td
         /  = issue.offers_bu.open.count

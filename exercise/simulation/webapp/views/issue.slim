@@ -49,9 +49,21 @@ css:
             td Task #{counter}
             td = task
             td == task_action(task, @issue.uuid, status)
-            td #{real_seconds_to_simulated_time(queue_task_time(task))}
-    /a[href='/account'] View my Queue
-    == queue_length(current_user)
+            td #{real_seconds_to_simulated_hours(queue_task_time(task))}
+    - if Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count == 0
+      p
+        a[href='/account'] Your queue
+        '
+        ' is empty, the next task you add will be worked on immediately.
+    - else
+      p
+        a[href='/account'] Your queue
+        '
+        ' has
+        = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count
+        '
+        ' tasks.
+      /== queue_length(current_user)
 
 .row[style="background-color:#eee"]
   .row-12.mx-auto.mt-2
@@ -167,7 +179,7 @@ css:
 
 .row[style="background-color:#eee"]
   .row-12.mx-auto.mt-2
-    h2 Comments for this issue
+    h2 Messages for this issue
 
 .row
   .col-md-1
