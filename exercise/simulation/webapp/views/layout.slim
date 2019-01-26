@@ -106,16 +106,34 @@ html[lang="en-US"]
         })
         $('.countdown').each(function(){
           sec = parseInt($(this).attr("secs")) - 1
-          if(sec < 0){
+          if(sec <= 0){
             sec = 0
+            if ($(this).parents('table#accountqueue').length) {
+              $(this).parent('td').text('Completed')
+              // idea: remove row... but add empty row if last row
+            }
+          } else {
+            $(this).text(seconds_to_hours(sec))
+            $(this).attr("secs", sec)
           }
-          $(this).text(seconds_to_hours(sec))
-          $(this).attr("secs", sec)
         })
         $('.countdown-sec').each(function(){
           sec = parseInt($(this).attr("secs")) - 1
           $(this).text(sec)
           $(this).attr("secs", sec)
+        })
+        $('.queue_delay').each(function(){
+          sec = parseInt($(this).attr("secs")) - 1
+          $(this).attr("secs", sec)
+          if(sec <= 0){
+            dur = parseInt($(this).attr("duration"))
+            new_html = "In progress: <span class='countdown' secs='" +
+                       dur +
+                       "'>" +
+                       seconds_to_hours(dur) +
+                      "</span> until completion";
+            $(this).parent('td').html(new_html);
+          }
         })
         $('.countup-sec').each(function(){
           sec = parseInt($(this).attr("secs")) + 1

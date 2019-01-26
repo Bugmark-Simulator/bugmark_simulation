@@ -768,7 +768,7 @@ module AppHelpers
   def progress(startwork, endwork)
     if DateTime.now.to_time.to_i < startwork.to_time.to_i
       sec = endwork.to_time.to_i - startwork.to_time.to_i
-      return "Queued: requires #{real_seconds_to_simulated_hours(sec)} to complete"
+      return "Queued: <span class='queue_delay' secs='#{startwork.to_time.to_i - DateTime.now.to_time.to_i}' duration='#{sec}'>requires #{real_seconds_to_simulated_hours(sec)} to complete</span>"
     elsif DateTime.now.to_time.to_i < endwork.to_time.to_i
       sec = endwork.to_time.to_i - DateTime.now.to_time.to_i
       return "In progress: <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_hours(sec)}</span> until completion"
