@@ -1,9 +1,9 @@
 ---
-webapp_url:   soak:4567
+webapp_url:   localhost:4567
 tracker_type: yaml
 tracker_name: /tmp/trader_tracker.yml
 repo_url:     github.com/bugmark-trial/trader1
 start_date:   2018-05-29
 finish_date:  2018-06-01
-graph_time_window_seconds: 2592000
+graph_time_window_seconds: 433000
 graph_file_for_webapp_public: "../webapp/public/graph/"

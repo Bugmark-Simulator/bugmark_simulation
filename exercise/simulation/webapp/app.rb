@@ -873,6 +873,7 @@ get "/admin/startstopnighlty" do
   if $run_nightly.nil?
     $run_nightly = Time.now
     puts "=================== STARTING SIMULATION ==================="
+    sleep(1.5)
   else
     $run_nightly = nil
     puts "=================== STOPPING SIMULATION ==================="
@@ -884,6 +885,10 @@ end
 get "/admin/nextday" do
   admin_only!
   puts "=================== MANUAL NEXT DAY ==================="
+  unless $run_nightly.nil?
+    # if simulation is running, reset clock
+    $run_nightly = Time.now + TS.nightly_scr["seconds_for_day_switching"]
+  end
   AppHelpers.next_day
   $generate_graphs = true
   redirect '/admin'

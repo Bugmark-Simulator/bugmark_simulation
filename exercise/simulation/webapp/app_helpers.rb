@@ -206,11 +206,11 @@ module AppHelpers
 
   # ----- offers -----
 
-  def self.offer_create_bu(user, issue, price, volume, maturation)
+  def self.offer_create_bu(user, issue, price, volume, maturation, aon = false)
 
       # args is a hash
       args  = {
-        aon: false,
+        aon: aon,
         user_uuid: user.uuid,
         price: price,
         volume: volume,
@@ -838,7 +838,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "fixed_total",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {fixedtotalratio: ratio, fixed_contract: fixed, total_contract: total},
           timestamp: timeobject.to_i
@@ -894,7 +895,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "payout_potential",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {payoutpotentialratio: ratio, payout_contract: payout, potential_contract: potential},
           timestamp: timeobject.to_i
@@ -919,7 +921,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "variance_of_offer",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {minvol: minvol, maxvol: maxvol, avgvol: avgvol},
           timestamp: timeobject.to_i
@@ -942,7 +945,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "open_offer_count_and_volume",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {offer_volume: vol, offer_count: total},
           timestamp: timeobject.to_i
@@ -956,7 +960,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "open_issues",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {open_issues: open_issue},
           timestamp: timeobject.to_i
@@ -964,13 +969,14 @@ module AppHelpers
         InfluxStats.write_point "GraphData", args
       end
 
-      # Graph data for Open Issues
+      # Graph data for Closed Issues
       closed_issue = Issue.closed.where(stm_tracker_uuid: project_uuid).count
       if USE_INFLUX == true
         args = {
           tags: {
             graph: "closed_issues",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {closed_issues: closed_issue},
           timestamp: timeobject.to_i
@@ -989,7 +995,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "open_issue_age",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {open_issue_age: open_issue_age},
           timestamp: timeobject.to_i
@@ -1021,7 +1028,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "abandoned_vs_open",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {abandoned_vs_open: abandoned_pct},
           timestamp: timeobject.to_i
@@ -1071,7 +1079,8 @@ module AppHelpers
         args = {
           tags: {
             graph: "first_response_days",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {first_response_days: first_response_days},
           timestamp: timeobject.to_i
@@ -1117,13 +1126,33 @@ module AppHelpers
         args = {
           tags: {
             graph: "issue_resolution_days",
-            project: "#{project_uuid}"
+            project: "#{project_uuid}",
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
           },
           values: {issue_resolution_days: issue_resolution_days},
           timestamp: timeobject.to_i
         }
         InfluxStats.write_point "GraphData", args
       end
+
+      # Graph data for Average price
+      if USE_INFLUX == true
+        prices = Offer.open.where(stm_tracker_uuid: project_uuid).where(type: 'Offer::Buy::Unfixed').pluck('price')
+        if prices.count > 0
+          avg_price = prices.avg
+          args = {
+            tags: {
+              graph: "avg_price_buy_unfixed",
+              project: "#{project_uuid}",
+              project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+            },
+            values: {avg_price_buy_unfixed: avg_price},
+            timestamp: timeobject.to_i
+          }
+          InfluxStats.write_point "GraphData", args
+        end
+      end
+
 
     end #tracker.each
   end
@@ -1352,6 +1381,16 @@ module AppHelpers
       #     # puts "graph: 11 - issue resolution days"
       #   end
       # )
+      # open offers across all projects
+      threads.push(
+        Thread.new do
+          open('/tmp/bugm-sim-graph-19', 'wb') do |file|
+            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=19&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+          end
+          FileUtils.mv('/tmp/bugm-sim-graph-19', "./#{TS.graph_file_for_webapp_public}distribution_open_offers.png")
+          # puts "graph: 10 - first response days"
+        end
+      )
       # wait until pictures for this project are stored before going to the next project
       threads.each(&:join)
     end
@@ -1465,7 +1504,7 @@ module AppHelpers
         price = difficulty_picker(prices).to_f
         volume = difficulty_picker(volumes).to_i
         maturation = difficulty_picker(maturations).to_i
-        offer_create_bu(user, issue, price, volume, maturation)
+        offer_create_bu(user, issue, price, volume, maturation, true)
       end
     end
   end

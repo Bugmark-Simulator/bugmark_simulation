@@ -43,7 +43,8 @@ hr
       </br>
 
       /p Open offer Count and Volume
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_offer_count_vol.png' imgsrc='/graph/projectuuid_open_offer_count_vol.png']
+      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_offer_count_vol.png' imgsrc='/graph/projectuuid_open_offer_count_vol.png']
+      img.mt-1.projgraph[src="/graph/distribution_open_offers.png?#{Time.now.to_i}"]
       /</br>
 
       /p Maturation Days Offer Summary
@@ -56,7 +57,7 @@ hr
       /images are created by the nightly script
 
       /p Open Issues
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
+      /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
       </br>
 
       /p Closed Issues
@@ -93,7 +94,7 @@ javascript:
     $('span.metricprojectname').text($(this).attr('projname'))
     projuuid = $(this).attr('projuuid')
     datestr = ''+Math.round((new Date()).getTime()/10000)
-    $('img.projgraph').each(function(){
+    $('img.projgraph[imgsrc]').each(function(){
       newurl = $(this).attr('imgsrc') +"?"+ datestr
       newurl = newurl.replace('projectuuid', projuuid)
       $(this).attr('src', newurl)
