@@ -14,6 +14,9 @@ hr
             th <b>Open Offers</b>
         tbody
           - if Tracker.count > 0
+            - unless @treatment == 'no-metrics'
+              tr.projsel[projuuid="all" projname="All"]
+                td[colspan="3"] Compare all projects
             - Tracker.all.each do |tracker|
               tr.projsel[projuuid="#{tracker.uuid}" projname="#{tracker.name}"]
                 td = tracker.name
@@ -22,12 +25,20 @@ hr
                 td = Offer.open.where(stm_tracker_uuid: tracker.uuid).count
           - else
             tr
-              td[colspan=3] No projects
+              td[colspan="3"] No projects
 
   - unless @treatment == 'health-metrics' || @treatment == 'no-metrics' || Tracker.count == 0
     .col-md-4
-      p <b>Market Place Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span>
+      p <b>Market Place Metrics</b> for project: <span class="metricprojectname">All</span>
       /images are created by the nightly script
+
+      /p Prices
+      img.mt-1.projgraph[src='/graph/all_prices.png' imgsrc='/graph/projectuuid_prices.png']
+      </br>
+
+      /p Open Offers
+      img.mt-1.projgraph[src='/graph/all_open_offers.png' imgsrc='/graph/projectuuid_open_offers.png']
+      /</br>
 
       /p Contract fixed Rate
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_contract_fix_rate.png' imgsrc='/graph/projectuuid_contract_fix_rate.png']
@@ -35,16 +46,16 @@ hr
       /NOTE: activated in nighlty script if you want this graph
 
       /p Payout vs Potential
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_payout_vs_potential.png' imgsrc='/graph/projectuuid_payout_vs_potential.png']
-      </br>
+      /img.mt-1.projgraph[src='/graph/all_payout_vs_potential.png' imgsrc='/graph/projectuuid_payout_vs_potential.png']
+      /</br>
 
       /p Variance of Offer Volumes
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_var_offer_volumes.png' imgsrc='/graph/projectuuid_var_offer_volumes.png']
-      </br>
+      /img.mt-1.projgraph[src='/graph/all_var_offer_volumes.png' imgsrc='/graph/projectuuid_var_offer_volumes.png']
+      /</br>
 
       /p Open offer Count and Volume
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_offer_count_vol.png' imgsrc='/graph/projectuuid_open_offer_count_vol.png']
-      img.mt-1.projgraph[src="/graph/distribution_open_offers.png?#{Time.now.to_i}"]
+      /img.mt-1.projgraph[src="/graph/distribution_open_offers.png?#{Time.now.to_i}"]
       /</br>
 
       /p Maturation Days Offer Summary
@@ -56,17 +67,25 @@ hr
       p <b>Issue Tracker Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span>
       /images are created by the nightly script
 
+      /p Skills demanded for project
+      img.mt-1.projgraph[src='/graph/all_skills.png' imgsrc='/graph/projectuuid_skills.png']
+      </br>
+
+      /p New messages for project
+      img.mt-1.projgraph[src='/graph/all_messages.png' imgsrc='/graph/projectuuid_messages.png']
+      </br>
+
       /p Open Issues
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
-      </br>
+      /</br>
 
       /p Closed Issues
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_closed_issues.png' imgsrc='/graph/projectuuid_closed_issues.png']
       /</br>
 
       /p Issue Resolution Efficiency
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_efficiency.png' imgsrc='/graph/projectuuid_issue_resolution_efficiency.png']
-      </br>
+      /img.mt-1.projgraph[src='/graph/all_issue_resolution_efficiency.png' imgsrc='/graph/projectuuid_issue_resolution_efficiency.png']
+      /</br>
 
       /p Open Issue Age
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issue_age.png' imgsrc='/graph/projectuuid_open_issue_age.png']
@@ -74,8 +93,8 @@ hr
       /NOTE: activated in nighlty script if you want this graph
 
       /p First Response After Days
-      img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_first_response_days.png' imgsrc='/graph/projectuuid_first_response_days.png']
-      </br>
+      /img.mt-1.projgraph[src='/graph/all_first_response_days.png' imgsrc='/graph/projectuuid_first_response_days.png']
+      /</br>
 
       /p Issues Closed Afer Days
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_issue_resolution_days.png' imgsrc='/graph/projectuuid_issue_resolution_days.png']

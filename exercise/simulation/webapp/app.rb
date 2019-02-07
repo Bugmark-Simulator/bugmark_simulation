@@ -366,7 +366,7 @@ post "/offer_create/:issue_uuid" do
   issue = Issue.find_by_uuid(uuid)
   maturation = params['maturation'] ? params['maturation'] : BugmTime.end_of_day(4)
   opts = {
-    aon:            params['side'] == 'unfixed' ? true : false ,
+    aon:            true,
     price:          params['side'] == 'unfixed' ? 0.80 : 0.20  ,
     volume:         params['value'].to_i                       ,
     user_uuid:      current_user.uuid,
@@ -396,34 +396,35 @@ end
 
 
 # fund an offer
-get "/offer_fund/:issue_uuid" do
-  protected!
-  uuid  = params['issue_uuid']
-  issue = Issue.find_by_uuid(uuid)
-  opts = {
-    price:          0.50,
-    volume:         20,
-    user_uuid:      current_user.uuid,
-    maturation:     BugmTime.end_of_day,
-    expiration:     BugmTime.end_of_day,
-    poolable:       false,
-    stm_issue_uuid: uuid,
-    stm_tracker_uuid: issue.stm_tracker_uuid
-  }
-  if issue
-    offer = FB.create(:offer_bu, opts).project.offer
-    ContractCmd::Cross.new(offer, :expand).project
-    flash[:success] = "You have funded a new offer (#{offer.xid})"
-  else
-    flash[:danger] = "Something went wrong"
-  end
-  # activity log
-  sql_uuid = ActiveRecord::Base.connection.quote(uuid)
-  log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
-    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'fund_offer/unfixed',#{sql_uuid});"
-  ActiveRecord::Base.connection.execute(log_sql)
-  redirect "/issues/#{uuid}"
-end
+# get "/offer_fund/:issue_uuid" do
+#   protected!
+#   uuid  = params['issue_uuid']
+#   issue = Issue.find_by_uuid(uuid)
+#   opts = {
+#     aon:            true,
+#     price:          0.50,
+#     volume:         20,
+#     user_uuid:      current_user.uuid,
+#     maturation:     BugmTime.end_of_day,
+#     expiration:     BugmTime.end_of_day,
+#     poolable:       false,
+#     stm_issue_uuid: uuid,
+#     stm_tracker_uuid: issue.stm_tracker_uuid
+#   }
+#   if issue
+#     offer = FB.create(:offer_bu, opts).project.offer
+#     ContractCmd::Cross.new(offer, :expand).project
+#     flash[:success] = "You have funded a new offer (#{offer.xid})"
+#   else
+#     flash[:danger] = "Something went wrong"
+#   end
+#   # activity log
+#   sql_uuid = ActiveRecord::Base.connection.quote(uuid)
+#   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
+#     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'fund_offer/unfixed',#{sql_uuid});"
+#   ActiveRecord::Base.connection.execute(log_sql)
+#   redirect "/issues/#{uuid}"
+# end
 
 # accept offer and form a contract
 get "/offer_accept/:offer_uuid" do
@@ -887,9 +888,17 @@ get "/admin/nextday" do
   puts "=================== MANUAL NEXT DAY ==================="
   unless $run_nightly.nil?
     # if simulation is running, reset clock
-    $run_nightly = Time.now + TS.nightly_scr["seconds_for_day_switching"]
+    $run_nightly = Time.now
+    sleep(1.5)
+  else
+    # run manually
+    AppHelpers.next_day
+    $generate_graphs = true
   end
-  AppHelpers.next_day
+  redirect '/admin'
+end
+get "/admin/draw_graphs" do
+  admin_only!
   $generate_graphs = true
   redirect '/admin'
 end
@@ -899,7 +908,7 @@ get "/admin/login_as/:uuid" do
   user = User.where(uuid: params['uuid']).first
   session[:usermail] = user.email
   session[:consent]  = true
-  redirect '/project'
+  redirect '/admin'
 end
 
 
@@ -939,6 +948,52 @@ post "/admin/bot/:uuid" do
     session[:tmp_json] = json
   end
   redirect "/admin/bot/#{tracker.uuid}"
+end
+
+get "/admin/run_bot/:uuid" do
+  admin_only!
+  if params['uuid'] == "all"
+    tracker = Tracker.all
+  else
+    tracker = Tracker.where(uuid: params['uuid'])
+  end
+  # change status
+  tracker.each do |t|
+    if bot_running?(t) then
+      bot_stop(t)
+    else
+      bot_start(t)
+    end
+  end
+  redirect '/admin'
+end
+
+get "/admin/stop_bot/:uuid" do
+  admin_only!
+  if params['uuid'] == "all"
+    tracker = Tracker.all
+  else
+    tracker = Tracker.where(uuid: params['uuid'])
+  end
+  # change status
+  tracker.each do |t|
+    bot_stop(t)
+  end
+  redirect '/admin'
+end
+
+get "/admin/start_bot/:uuid" do
+  admin_only!
+  if params['uuid'] == "all"
+    tracker = Tracker.all
+  else
+    tracker = Tracker.where(uuid: params['uuid'])
+  end
+  # change status
+  tracker.each do |t|
+    bot_start(t)
+  end
+  redirect '/admin'
 end
 
 get "/admin/run_bot/:uuid" do

@@ -5,7 +5,7 @@
 .row
   .col-md-6
     div
-      == start_stop_nightly
+      == btn_start_stop_nightly
       .ml-1
         ' Simulation speed: One day every
         '
@@ -13,7 +13,8 @@
         '
         ' seconds
 
-      a.btn.btn-danger[href="/admin/nextday"] Manually Go to Next day
+      a.btn.btn-secondary[href="/admin/nextday"] Go to Next day
+      a.ml-1.btn.btn-secondary[href="/admin/draw_graphs"] Redraw Graphs
     h3 Status
     div
       ' Last graph update:
@@ -49,7 +50,12 @@
           th Open Issues
           th Open Offers
           th Open Contracts
-          th Bots
+          th
+            ' Bots
+            .btn-group
+              a.btn.btn-success[href="/admin/start_bot/all"] Start all
+              a.btn.btn-danger[href="/admin/stop_bot/all"] Stop all
+
       tbody
         - if Tracker.count > 0
           - Tracker.all.each do |tracker|

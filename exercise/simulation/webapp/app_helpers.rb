@@ -206,11 +206,12 @@ module AppHelpers
 
   # ----- offers -----
 
-  def self.offer_create_bu(user, issue, price, volume, maturation, aon = false)
+  def self.offer_create_bu(user, issue, price, volume, maturation, aon = true, poolable = false)
 
       # args is a hash
       args  = {
         aon: aon,
+        poolable: poolable,
         user_uuid: user.uuid,
         price: price,
         volume: volume,
@@ -477,9 +478,9 @@ module AppHelpers
     request.path_info == path
   end
 
-  def start_stop_nightly
+  def btn_start_stop_nightly
     if $run_nightly.nil? then
-      return "<a href='/admin/startstopnighlty' class='btn btn-warning'> Simulation is NOT running (click to start)</a>"
+      return "<a href='/admin/startstopnighlty' class='btn btn-danger'> Simulation is NOT running (click to start)</a>"
     else
       return "<a href='/admin/startstopnighlty' class='btn btn-success'> Simulation is RUNNING (click to stop)</a>"
     end
@@ -807,351 +808,420 @@ module AppHelpers
   def self.grafana_graph_data(timeobject = BugmTime.now)
     # Graph data for Contract fixed rate vs total
 
+    # Make sure all data points are on the same time point
+    timestamp = timeobject.to_i
+    # do this for each project
     Tracker.pluck('uuid').each do |project_uuid|
-      # Contract Fix Rate
-      ###################
-      sql = "WITH f_contr AS (
-            SELECT COUNT(*) AS fixed_contr
-            FROM contracts
-            JOIN issues ON contracts.stm_issue_uuid=issues.uuid
-            WHERE awarded_to = 'fixed'
-            AND TO_CHAR(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-            AND issues.stm_tracker_uuid = '#{project_uuid}'
-            )
-            , a_contr AS (
-            SELECT COUNT(*) AS all_contr
-            FROM contracts
-            JOIN issues ON contracts.stm_issue_uuid=issues.uuid
-            WHERE to_char(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-            AND issues.stm_tracker_uuid = '#{project_uuid}'
-            )
-            SELECT fixed_contr
-            , all_contr
-            , CASE WHEN all_contr=0 THEN 0.0 ELSE CAST(fixed_contr AS DOUBLE PRECISION)/CAST(all_contr AS DOUBLE PRECISION) END AS ratio
-            FROM f_contr
-            , a_contr;";
-      result =ActiveRecord::Base.connection.execute(sql).to_a.first
-      fixed = result['fixed_contr'].to_f
-      total = result['all_contr'].to_f
-      ratio = result['ratio'].to_f
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "fixed_total",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {fixedtotalratio: ratio, fixed_contract: fixed, total_contract: total},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
 
-      # Graph data for Payout vs Potential
-      # sql_payout = "select sum(fixed_value) + sum(unfixed_value) as payout
-      #               from escrows
-      #               join contracts on escrows.contract_uuid = contracts.uuid
-      #               join issues on contracts.stm_issue_uuid=issues.uuid
-      #               where contracts.awarded_to = 'fixed'
-      #               and to_char(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-      #               and issues.stm_tracker_uuid = '#{project_uuid}';"
-      # sql_potential = "select sum(fixed_value) + sum(unfixed_value) as potential
-      #                 from escrows
-      #                 join contracts on escrows.contract_uuid = contracts.uuid
-      #                 join issues on contracts.stm_issue_uuid=issues.uuid
-      #                 where to_char(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-      #                 and issues.stm_tracker_uuid = '#{project_uuid}';"
-      sql = "WITH payout_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS payout
-                FROM escrows
-                JOIN contracts on escrows.contract_uuid = contracts.uuid
-                JOIN issues on contracts.stm_issue_uuid=issues.uuid
-                WHERE contracts.awarded_to = 'fixed'
-                AND contracts.status = 'resolved'
-                AND TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-                AND issues.stm_tracker_uuid = '#{project_uuid}'
-              )
-              , potential_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS potential
-                FROM escrows
-                JOIN contracts ON escrows.contract_uuid = contracts.uuid
-                JOIN issues ON contracts.stm_issue_uuid=issues.uuid
-                WHERE TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
-                AND contracts.status = 'resolved'
-                AND issues.stm_tracker_uuid = '#{project_uuid}'
-              )
-              SELECT payout
-              , potential
-              , CASE WHEN potential=0 THEN 0.0 ELSE CAST(payout AS DOUBLE PRECISION)/CAST(potential AS DOUBLE PRECISION) END AS ratio
-              FROM payout_sql, potential_sql;"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      payout = result['payout'].to_f
-      potential = result['potential'].to_f
-      ratio = result['ratio'].to_f
-      #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-      # fixed_total = 0.0
-      # if total > 0.0
-      #   fixed_total = (fixed / total).to_f
-      # end
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "payout_potential",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {payoutpotentialratio: ratio, payout_contract: payout, potential_contract: potential},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-
-      # Graph data for Variance of offer volumes
-      sql = "SELECT MIN(volume * price) AS minvol
-                , MAX(volume * price) AS maxvol
-                , AVG(volume * price) AS avgvol
-                FROM offers
-                JOIN issues ON offers.stm_issue_uuid=issues.uuid
-                WHERE status = 'open'
-                AND issues.stm_tracker_uuid = '#{project_uuid}';"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      minvol =result['minvol'].to_f
-      maxvol = result['maxvol'].to_f
-      avgvol = result['avgvol'].to_f
-      #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "variance_of_offer",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {minvol: minvol, maxvol: maxvol, avgvol: avgvol},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-
-      # Graph data for Variance of offer volumes
-      sql = "SELECT SUM(volume) AS vol
-                , COUNT(*) AS total
-                FROM offers
-                JOIN issues ON offers.stm_issue_uuid=issues.uuid
-                WHERE status = 'open'
-                AND issues.stm_tracker_uuid = '#{project_uuid}';"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      vol = result['vol'].to_f
-      total = result['total'].to_f
-      #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "open_offer_count_and_volume",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {offer_volume: vol, offer_count: total},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-
-      # Graph data for Open Issues
-      open_issue = Issue.open.where(stm_tracker_uuid: project_uuid).count
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "open_issues",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {open_issues: open_issue},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-
-      # Graph data for Closed Issues
-      closed_issue = Issue.closed.where(stm_tracker_uuid: project_uuid).count
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "closed_issues",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {closed_issues: closed_issue},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-
-      # Graph data for Open Issue Age
-      sql = "SELECT SUM(CAST('#{timeobject.strftime("%Y-%m-%d")}' AS DATE) - CAST(CAST(jfields->'created_at' AS TEXT) AS DATE))/COUNT(*) AS avg_days
-              FROM issues
-              WHERE issues.stm_status = 'open'
+    # Graph data for Variance of offer prices
+    sql = "SELECT MIN(price) AS minprice
+              , MAX(price) AS maxprice
+              , AVG(price) AS avgprice
+              FROM offers
+              JOIN issues ON offers.stm_issue_uuid=issues.uuid
+              WHERE status = 'open'
+              AND offers.type = 'Offer::Buy::Unfixed'
               AND issues.stm_tracker_uuid = '#{project_uuid}';"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      open_issue_age = result['avg_days'].to_f
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "open_issue_age",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {open_issue_age: open_issue_age},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    minprice =result['minprice'].to_f
+    maxprice = result['maxprice'].to_f
+    avgprice = result['avgprice'].to_f
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "variance_of_price",
+          project: "#{project_uuid}",
+          project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+        },
+        values: {minprice: minprice, maxprice: maxprice, avgprice: avgprice},
+        timestamp: timestamp
+      }
+      InfluxStats.write_point "GraphData", args
+    end
 
-      # Graph data for abandoned percentage of open issues (Issue Resolution Efficiency)
-      sql = "WITH total_count_tbl AS
-              (
-                SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS total_count_fld
-                FROM issues
-                WHERE issues.stm_status = 'open'
-                AND issues.stm_tracker_uuid = '#{project_uuid}'
-              )
-              , abandoned_tbl AS
-              (
-                SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS abandoned_fld
-                FROM issues
-                WHERE issues.stm_status = 'open'
-                AND CAST(jfields->>'last_activity' AS TEXT) < '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
-                AND issues.stm_tracker_uuid = '#{project_uuid}'
-              )
-              SELECT CASE WHEN total_count_fld=0 THEN 0.0 ELSE abandoned_fld / total_count_fld END AS abandoned_pct
-              FROM abandoned_tbl, total_count_tbl;"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      abandoned_pct = result['abandoned_pct'].to_f
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "abandoned_vs_open",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {abandoned_vs_open: abandoned_pct},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
+    # Graph data for Offer count and volume
+    sql = "SELECT SUM(volume) AS vol
+              , COUNT(*) AS total
+              FROM offers
+              JOIN issues ON offers.stm_issue_uuid=issues.uuid
+              WHERE status = 'open'
+              AND issues.stm_tracker_uuid = '#{project_uuid}';"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    vol = result['vol'].to_f
+    total = result['total'].to_f
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "open_offer_count_and_volume",
+          project: "#{project_uuid}",
+          project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+        },
+        values: {offer_volume: vol, offer_count: total},
+        timestamp: timestamp
+      }
+      InfluxStats.write_point "GraphData", args
+    end
 
-      # Graph data for First Response Days
-      sql = "SELECT
-                (
-                  CAST(
-                    SUM(
-                      CAST(
-                        CAST(
-                          jfields->'first_activity' AS TEXT
-                        ) AS DATE
-                      )
-                      -
-                      CAST(
-                        CAST(
-                          jfields->'created_at' AS TEXT
-                        ) AS DATE
-                      )
-                    ) AS DOUBLE PRECISION
-                  )
-                  /
-                  CAST(
-                    COUNT(*) AS DOUBLE PRECISION
-                  )
-                ) AS avg_days
-              FROM issues
-              WHERE
-              (
-                issues.stm_status = 'open'
-                OR
-                (
-                  issues.stm_status = 'closed'
-                  AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
-                )
-              )
-              AND issues.stm_tracker_uuid = '#{project_uuid}'
-              AND jfields->>'first_activity' <> ''
-              ;"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      first_response_days = result['avg_days'].to_f
-      if USE_INFLUX == true
+    # Graph data for skills in demand
+    sql = "SELECT count(CASE WHEN jfields->'skill'->>'Python' = '0' THEN 1 END) AS has_python
+          , count(CASE WHEN jfields->'skill'->>'SQL' = '0' THEN 1 END) AS has_sql
+          , count(CASE WHEN jfields->'skill'->>'PHP' = '0' THEN 1 END) AS has_php
+          , count(CASE WHEN jfields->'skill'->>'Java' = '0' THEN 1 END) AS has_java
+          , count(CASE WHEN jfields->'skill'->>'Swift' = '0' THEN 1 END) AS has_swift
+          , count(CASE WHEN jfields->'skill'->>'HTML' = '0' THEN 1 END) AS has_html
+          , count(CASE WHEN jfields->'skill'->>'Ruby' = '0' THEN 1 END) AS has_ruby
+          , count(CASE WHEN jfields->'skill'->>'C++' = '0' THEN 1 END) AS has_cpp
+          FROM issues
+          WHERE stm_tracker_uuid = '#{project_uuid}'
+          AND stm_status = 'open';"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    skill_demand = Hash.new
+    skill_demand["Python"] = result['has_python'].to_f
+    skill_demand["SQL"] = result['has_sql'].to_f
+    skill_demand["PHP"] = result['has_php'].to_f
+    skill_demand["Java"] = result['has_java'].to_f
+    skill_demand["Swift"] = result['has_swift'].to_f
+    skill_demand["HTML"] = result['has_html'].to_f
+    skill_demand["Ruby"] = result['has_ruby'].to_f
+    skill_demand["C++"] = result['has_cpp'].to_f
+    if USE_INFLUX == true
+      skill_demand.each do |key, value|
         args = {
           tags: {
-            graph: "first_response_days",
+            graph: "open_issue_skills",
             project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+            project_name: "#{Tracker.where(uuid: project_uuid).first.name}",
+            skill: key
           },
-          values: {first_response_days: first_response_days},
-          timestamp: timeobject.to_i
+          values: {tasks: value},
+          timestamp: timestamp
         }
         InfluxStats.write_point "GraphData", args
       end
+    end
 
-      # Graph data for Issues Resolution Days ( Closed After Days)
-      sql = "SELECT
-                (
-                  CAST(
-                    SUM(
-                      CAST(
-                        CAST(
-                          jfields->'closed_on' AS TEXT
-                        ) AS DATE
-                      )
-                      -
-                      CAST(
-                        CAST(
-                          jfields->'created_at' AS TEXT
-                        ) AS DATE
-                      )
-                    ) AS DOUBLE PRECISION
-                  )
-                  /
-                  CAST(
-                    COUNT(*) AS DOUBLE PRECISION
-                  )
-                ) AS avg_days
-              FROM issues
-              WHERE
-              (
-                issues.stm_status = 'closed'
-                AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -100).strftime("%Y-%m-%d")}'
-              )
-              AND issues.stm_tracker_uuid = '#{project_uuid}'
-              ;"
-      result = ActiveRecord::Base.connection.execute(sql).to_a.first
-      issue_resolution_days = 0
-      issue_resolution_days = result['avg_days'].to_f unless result.nil?
-      if USE_INFLUX == true
-        args = {
-          tags: {
-            graph: "issue_resolution_days",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-          },
-          values: {issue_resolution_days: issue_resolution_days},
-          timestamp: timeobject.to_i
-        }
-        InfluxStats.write_point "GraphData", args
-      end
+    # Graph data for Offer count and volume
+    sql = "SELECT count(*) AS new_comments FROM issue_comments
+          JOIN issues ON issues.uuid = issue_comments.issue_uuid
+          WHERE TO_CHAR(issue_comments.comment_date, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+          AND issues.stm_tracker_uuid = '#{project_uuid}';"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    new_comments = result['new_comments'].to_i
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "new_comments",
+          project: "#{project_uuid}",
+          project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+        },
+        values: {new_comments: new_comments},
+        timestamp: timestamp
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
+      # # Contract Fix Rate
+      # sql = "WITH f_contr AS (
+      #       SELECT COUNT(*) AS fixed_contr
+      #       FROM contracts
+      #       JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+      #       WHERE awarded_to = 'fixed'
+      #       AND TO_CHAR(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+      #       AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #       )
+      #       , a_contr AS (
+      #       SELECT COUNT(*) AS all_contr
+      #       FROM contracts
+      #       JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+      #       WHERE to_char(maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+      #       AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #       )
+      #       SELECT fixed_contr
+      #       , all_contr
+      #       , CASE WHEN all_contr=0 THEN 0.0 ELSE CAST(fixed_contr AS DOUBLE PRECISION)/CAST(all_contr AS DOUBLE PRECISION) END AS ratio
+      #       FROM f_contr
+      #       , a_contr;";
+      # result =ActiveRecord::Base.connection.execute(sql).to_a.first
+      # fixed = result['fixed_contr'].to_f
+      # total = result['all_contr'].to_f
+      # ratio = result['ratio'].to_f
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "fixed_total",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {fixedtotalratio: ratio, fixed_contract: fixed, total_contract: total},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Payout vs Potential
+      # sql = "WITH payout_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS payout
+      #           FROM escrows
+      #           JOIN contracts on escrows.contract_uuid = contracts.uuid
+      #           JOIN issues on contracts.stm_issue_uuid=issues.uuid
+      #           WHERE contracts.awarded_to = 'fixed'
+      #           AND contracts.status = 'resolved'
+      #           AND TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+      #           AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         )
+      #         , potential_sql AS (select SUM(fixed_value) + SUM(unfixed_value) AS potential
+      #           FROM escrows
+      #           JOIN contracts ON escrows.contract_uuid = contracts.uuid
+      #           JOIN issues ON contracts.stm_issue_uuid=issues.uuid
+      #           WHERE TO_CHAR(contracts.maturation, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
+      #           AND contracts.status = 'resolved'
+      #           AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         )
+      #         SELECT payout
+      #         , potential
+      #         , CASE WHEN potential=0 THEN 0.0 ELSE CAST(payout AS DOUBLE PRECISION)/CAST(potential AS DOUBLE PRECISION) END AS ratio
+      #         FROM payout_sql, potential_sql;"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # payout = result['payout'].to_f
+      # potential = result['potential'].to_f
+      # ratio = result['ratio'].to_f
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "payout_potential",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {payoutpotentialratio: ratio, payout_contract: payout, potential_contract: potential},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Variance of offer volumes
+      # sql = "SELECT MIN(volume * price) AS minvol
+      #           , MAX(volume * price) AS maxvol
+      #           , AVG(volume * price) AS avgvol
+      #           FROM offers
+      #           JOIN issues ON offers.stm_issue_uuid=issues.uuid
+      #           WHERE status = 'open'
+      #           AND offers.type = 'Offer::Buy::Unfixed'
+      #           AND issues.stm_tracker_uuid = '#{project_uuid}';"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # minvol =result['minvol'].to_f
+      # maxvol = result['maxvol'].to_f
+      # avgvol = result['avgvol'].to_f
+      # #path = File.expand_path("./public/csv/fixed_total.csv", __dir__)
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "variance_of_offer",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {minvol: minvol, maxvol: maxvol, avgvol: avgvol},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Open Issues
+      # open_issue = Issue.open.where(stm_tracker_uuid: project_uuid).count
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "open_issues",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {open_issues: open_issue},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Closed Issues
+      # closed_issue = Issue.closed.where(stm_tracker_uuid: project_uuid).count
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "closed_issues",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {closed_issues: closed_issue},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Open Issue Age
+      # sql = "SELECT SUM(CAST('#{timeobject.strftime("%Y-%m-%d")}' AS DATE) - CAST(CAST(jfields->'created_at' AS TEXT) AS DATE))/COUNT(*) AS avg_days
+      #         FROM issues
+      #         WHERE issues.stm_status = 'open'
+      #         AND issues.stm_tracker_uuid = '#{project_uuid}';"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # open_issue_age = result['avg_days'].to_f
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "open_issue_age",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {open_issue_age: open_issue_age},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for abandoned percentage of open issues (Issue Resolution Efficiency)
+      # sql = "WITH total_count_tbl AS
+      #         (
+      #           SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS total_count_fld
+      #           FROM issues
+      #           WHERE issues.stm_status = 'open'
+      #           AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         )
+      #         , abandoned_tbl AS
+      #         (
+      #           SELECT CAST(COUNT(*) AS DOUBLE PRECISION) AS abandoned_fld
+      #           FROM issues
+      #           WHERE issues.stm_status = 'open'
+      #           AND CAST(jfields->>'last_activity' AS TEXT) < '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
+      #           AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         )
+      #         SELECT CASE WHEN total_count_fld=0 THEN 0.0 ELSE abandoned_fld / total_count_fld END AS abandoned_pct
+      #         FROM abandoned_tbl, total_count_tbl;"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # abandoned_pct = result['abandoned_pct'].to_f
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "abandoned_vs_open",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {abandoned_vs_open: abandoned_pct},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for First Response Days
+      # sql = "SELECT
+      #           (
+      #             CAST(
+      #               SUM(
+      #                 CAST(
+      #                   CAST(
+      #                     jfields->'first_activity' AS TEXT
+      #                   ) AS DATE
+      #                 )
+      #                 -
+      #                 CAST(
+      #                   CAST(
+      #                     jfields->'created_at' AS TEXT
+      #                   ) AS DATE
+      #                 )
+      #               ) AS DOUBLE PRECISION
+      #             )
+      #             /
+      #             CAST(
+      #               COUNT(*) AS DOUBLE PRECISION
+      #             )
+      #           ) AS avg_days
+      #         FROM issues
+      #         WHERE
+      #         (
+      #           issues.stm_status = 'open'
+      #           OR
+      #           (
+      #             issues.stm_status = 'closed'
+      #             AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -14).strftime("%Y-%m-%d")}'
+      #           )
+      #         )
+      #         AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         AND jfields->>'first_activity' <> ''
+      #         ;"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # first_response_days = result['avg_days'].to_f
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "first_response_days",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {first_response_days: first_response_days},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
+
+      # # Graph data for Issues Resolution Days ( Closed After Days)
+      # sql = "SELECT
+      #           (
+      #             CAST(
+      #               SUM(
+      #                 CAST(
+      #                   CAST(
+      #                     jfields->'closed_on' AS TEXT
+      #                   ) AS DATE
+      #                 )
+      #                 -
+      #                 CAST(
+      #                   CAST(
+      #                     jfields->'created_at' AS TEXT
+      #                   ) AS DATE
+      #                 )
+      #               ) AS DOUBLE PRECISION
+      #             )
+      #             /
+      #             CAST(
+      #               COUNT(*) AS DOUBLE PRECISION
+      #             )
+      #           ) AS avg_days
+      #         FROM issues
+      #         WHERE
+      #         (
+      #           issues.stm_status = 'closed'
+      #           AND CAST(jfields->>'last_activity' AS TEXT) > '#{BugmTime.now.advance(:days => -100).strftime("%Y-%m-%d")}'
+      #         )
+      #         AND issues.stm_tracker_uuid = '#{project_uuid}'
+      #         ;"
+      # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+      # issue_resolution_days = 0
+      # issue_resolution_days = result['avg_days'].to_f unless result.nil?
+      # if USE_INFLUX == true
+      #   args = {
+      #     tags: {
+      #       graph: "issue_resolution_days",
+      #       project: "#{project_uuid}",
+      #       project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #     },
+      #     values: {issue_resolution_days: issue_resolution_days},
+      #     timestamp: timestamp
+      #   }
+      #   InfluxStats.write_point "GraphData", args
+      # end
 
       # Graph data for Average price
-      if USE_INFLUX == true
-        prices = Offer.open.where(stm_tracker_uuid: project_uuid).where(type: 'Offer::Buy::Unfixed').pluck('price')
-        if prices.count > 0
-          avg_price = prices.avg
-          args = {
-            tags: {
-              graph: "avg_price_buy_unfixed",
-              project: "#{project_uuid}",
-              project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
-            },
-            values: {avg_price_buy_unfixed: avg_price},
-            timestamp: timeobject.to_i
-          }
-          InfluxStats.write_point "GraphData", args
-        end
-      end
+      # if USE_INFLUX == true
+      #   prices = Offer.open.where(stm_tracker_uuid: project_uuid).where(type: 'Offer::Buy::Unfixed').pluck('price')
+      #   if prices.count > 0
+      #     avg_price = prices.avg
+      #     args = {
+      #       tags: {
+      #         graph: "avg_price_buy_unfixed",
+      #         project: "#{project_uuid}",
+      #         project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+      #       },
+      #       values: {avg_price_buy_unfixed: avg_price},
+      #       timestamp: timestamp
+      #     }
+      #     InfluxStats.write_point "GraphData", args
+      #   end
+      # end
 
 
     end #tracker.each
@@ -1267,50 +1337,126 @@ module AppHelpers
 
   def self.update_graphs
     # puts "Nightly Step 6: store graphs in static files"
+
+    # get graphs that compare across projects
+    threads = []
+    # Market Metric: open offers across all projects
+    threads.push(
+      Thread.new do
+        graphid="19"
+        open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+        end
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_open_offers.png")
+      end
+    )
+    # Market Metric: price averages of all projects
+    threads.push(
+      Thread.new do
+        graphid="21"
+        open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+        end
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_prices.png")
+      end
+    )
+    # Health Metric: Skills in demand in all projects
+    threads.push(
+      Thread.new do
+        graphid="24"
+        open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+        end
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_skills.png")
+      end
+    )
+    threads.each(&:join)
+    # Health Metric: New messages by project
+    threads.push(
+      Thread.new do
+        graphid="26"
+        open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+          file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+        end
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_messages.png")
+      end
+    )
+    threads.each(&:join)
+
+    # get detailed graphs for each project
     Tracker.pluck('uuid').shuffle.each do |project_uuid|
-      # puts "graphs for project #{Tracker.where(uuid: project_uuid).first.name}"
+      project_name = Tracker.where(uuid: project_uuid).first.name
       # get all pictures for this project at the same time
       threads = []
-      # # contract fix rate
+      # Market Metric: open offer count
+      threads.push(
+        Thread.new do
+          graphid="8"
+          open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+          end
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offers.png")
+        end
+      )
+      # Market Metric; price ranges of individual projects
+      threads.push(
+        Thread.new do
+          graphid="20"
+          open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+          end
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_prices.png")
+        end
+      )
+      # Health Metric: Skills in demand
+      threads.push(
+        Thread.new do
+          graphid="23"
+          open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+          end
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_skills.png")
+        end
+      )
+      # Health Metric: Skills in demand
+      threads.push(
+        Thread.new do
+          graphid="27"
+          open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+          end
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_messages.png")
+        end
+      )
+      # wait until pictures for this project are stored before going to the next project
+      threads.each(&:join)
+      # contract fix rate
       # threads.push(
       #   Thread.new do
       #     open('/tmp/bugm-sim-graph-1', 'wb') do |file|
       #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=2&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
       #     end
       #     FileUtils.mv('/tmp/bugm-sim-graph-1', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_contract_fix_rate.png")
-      #     # puts "graph: 1 - contract fix rate"
       #   end
       # )
       # payout vs potential
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-2', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-2', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_payout_vs_potential.png")
-          # puts "graph: 2 - payout vs potential"
-        end
-      )
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-2', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=4&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-2', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_payout_vs_potential.png")
+      #   end
+      # )
       # variance of offer volumes
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-3', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-3', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_var_offer_volumes.png")
-          # puts "graph: 3 - variance of offer volumes"
-        end
-      )
-      # open offer count and volume
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-4', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=8&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-4', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offer_count_vol.png")
-          # puts "graph: 4 - open offer count and volume"
-        end
-      )
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-3', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=6&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-3', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_var_offer_volumes.png")
+      #   end
+      # )
       # # maturation days offers summary
       # threads.push(
       #   Thread.new do
@@ -1318,19 +1464,17 @@ module AppHelpers
       #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=10&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i - 60*60*24}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
       #     end
       #     FileUtils.mv('/tmp/bugm-sim-graph-5', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_maturation_days_offer_summary.png")
-      #     # puts "graph: 5 - maturation days offers summary"
       #   end
       # )
       # open issues
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-6', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=12&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-6', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issues.png")
-          # puts "graph: 6 - open issues"
-        end
-      )
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-6', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=12&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-6', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issues.png")
+      #   end
+      # )
       # # closed issues
       # threads.push(
       #   Thread.new do
@@ -1338,19 +1482,17 @@ module AppHelpers
       #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=13&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
       #     end
       #     FileUtils.mv('/tmp/bugm-sim-graph-7', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_closed_issues.png")
-      #     # puts "graph: 7 - closed issues"
       #   end
       # )
       # issue resolution efficiency
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-8', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=16&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-8', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_efficiency.png")
-          # puts "graph: 8 - issue resolution efficiency"
-        end
-      )
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-8', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=16&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-8', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_efficiency.png")
+      #   end
+      # )
       # # open issue age
       # threads.push(
       #   Thread.new do
@@ -1358,19 +1500,17 @@ module AppHelpers
       #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=14&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
       #     end
       #     FileUtils.mv('/tmp/bugm-sim-graph-9', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_issue_age.png")
-      #     # puts "graph: 9 - open issue age"
       #   end
       # )
       # first response days
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-10', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=15&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-10', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_first_response_days.png")
-          # puts "graph: 10 - first response days"
-        end
-      )
+      # threads.push(
+      #   Thread.new do
+      #     open('/tmp/bugm-sim-graph-10', 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=15&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv('/tmp/bugm-sim-graph-10', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_first_response_days.png")
+      #   end
+      # )
       # # issue resolution days
       # threads.push(
       #   Thread.new do
@@ -1378,22 +1518,10 @@ module AppHelpers
       #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=17&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
       #     end
       #     FileUtils.mv('/tmp/bugm-sim-graph-11', "./#{TS.graph_file_for_webapp_public}#{project_uuid}_issue_resolution_days.png")
-      #     # puts "graph: 11 - issue resolution days"
       #   end
       # )
-      # open offers across all projects
-      threads.push(
-        Thread.new do
-          open('/tmp/bugm-sim-graph-19', 'wb') do |file|
-            file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=19&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
-          end
-          FileUtils.mv('/tmp/bugm-sim-graph-19', "./#{TS.graph_file_for_webapp_public}distribution_open_offers.png")
-          # puts "graph: 10 - first response days"
-        end
-      )
-      # wait until pictures for this project are stored before going to the next project
-      threads.each(&:join)
     end
+
   end
 
   # ##############################################

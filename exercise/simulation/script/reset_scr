@@ -56,4 +56,77 @@ Dir.glob("#{TS.graph_file_for_webapp_public}*.png").each { |file|
   File.delete(file)
 }
 
+# create funder projects
+# NOTE: This is important to ensure we have the same project names when we reset
+# we need the project names for the GRAFANA dashboard definitions
+numnew = 4
+treatment = 0
+type = 1
+bonuses = 3
+maluses = 2
+balance = 999999999999999
+treatments = ["both-metrics", "market-metrics", "health-metrics", "no-metrics"]
+types = ["worker", "funder"]
+user_names = [""]
+project_names = ["Anjou", "Bosc", "Forelle", "Seckel"]
+
+# create new users
+numnew.times do |i|
+  username= SecureRandom.hex(2)
+  emailaddr = username+'@example.com'
+  userpassword = SecureRandom.hex(2)
+  # nice user name
+  if User.count < TS.usernames.count then
+    TS.usernames.shuffle.each do |potential_name|
+      potential_name = potential_name.gsub(/[^0-9a-zA-Z]/i, '')
+      if User.where(name: potential_name).count == 0 then
+        username = potential_name
+        break
+      end
+    end
+  end
+  opts = {
+    balance: balance,
+    name: username,
+    email: emailaddr,
+    password: userpassword
+  }
+  userid = FB.create(:user, opts).user.id
+  # update user jfields through sql
+  skills = TS.skills["task_skills"].shuffle
+  bonus_skills = skills.pop(bonuses)
+  malus_skills = skills.pop(maluses)
+  sql = "UPDATE users SET jfields = '{\"skill_bonus\":#{bonus_skills},
+  \"skill_malus\":#{malus_skills},
+  \"password\":\"#{userpassword}\",\"type\":\"#{types[type]}\",
+  \"treatment\":\"#{treatments[treatment]}\",\"tracker\":\"\"}' WHERE id='#{userid}';"
+  ActiveRecord::Base.connection.execute(sql).to_a
+
+  # funders get assigned a tracker and simulation bot
+  if(types[type]=='funder') then
+    tracker = ""
+    # find a sensible projectname
+    trackername = SecureRandom.hex(2)
+    if Tracker.count < TS.projectnames.count then
+      if Tracker.where(name: project_names[i]).count == 0 then
+        trackername = project_names[i]
+      end
+    end
+    # generate a new tracker
+    opts = {
+      type: "Tracker::Test",
+      name: "#{trackername}"
+    }
+    tracker = FB.create(:tracker, opts).tracker.uuid
+
+
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb '{\"active\":\"false\", \"prices\":{\"0.80\":20, \"0.85\":40, \"0.90\":30, \"0.95\":8, \"1.00\":2}, \"volumes\":{\"70\":10, \"80\":30, \"90\":40, \"100\":20}, \"maxissues\":9, \"newissues\":{\"9\":1, \"1\":0}, \"newoffers\":{\"5\":1}, \"maturations\":{\"1\":20, \"2\":20, \"4\":20, \"6\":20, \"8\":20}}') WHERE id='#{userid}';"
+    ActiveRecord::Base.connection.execute(sql).to_a
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{tracker}', '\"#{tracker}\"') WHERE id='#{userid}';"
+    ActiveRecord::Base.connection.execute(sql).to_a
+  end
+  puts "new user: #{username} (#{userid})"
+end
+
+
 puts 'DONE'
