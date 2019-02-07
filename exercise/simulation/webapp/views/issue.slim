@@ -187,15 +187,15 @@ css:
     table.table.table-sm[style='margin-top: 10px;']
       thead
         tr
-          th User
-          th Comments
-          th Posted
+          th Message
+          th[width="10%"] From User
+          th[width="10%"] Posted
           /th Action
       tbody
         - @comments.each do |comment|
           tr
-            td == comment.user_name
             td == comment.comment
+            td == comment.user_name
             td
               == BugmTime.now.to_date.mjd - comment.comment_date.strftime("%Y-%m-%d").to_date.mjd
               '
@@ -204,15 +204,13 @@ css:
   .col-md-1
 
 /h3 Comment on issue to coordinate with others to complete the tasks.
-.row
-  .col-md-4
-  .col-md-4
-    .wrapper
-      form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
-        textarea.form-control[name="Comments" placeholder="Write your comment here to coordinate with others to complete the tasks." required="required"]
-        p
-        button.btn.btn-lg.btn-primary.btn-block type="Comments"  Save Comment
-  .col-md-4
+form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
+  .row
+    .col-md-1
+    .col-md-7
+      textarea.form-control[name="Comments" placeholder="Write your message here to coordinate with others to complete the tasks." required="required"]
+    .col-md-4
+      button.btn.btn-primary[type="Comments"] Post Message
 
 .modal#modalOb
   .modal-dialog.modal-lg

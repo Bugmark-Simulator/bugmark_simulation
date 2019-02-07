@@ -363,34 +363,42 @@ end
 post "/offer_create/:issue_uuid" do
   protected!
   uuid  = params['issue_uuid']
-  issue = Issue.find_by_uuid(uuid)
-  maturation = params['maturation'] ? params['maturation'] : BugmTime.end_of_day(4)
-  opts = {
-    aon:            true,
-    price:          params['side'] == 'unfixed' ? 0.80 : 0.20  ,
-    volume:         params['value'].to_i                       ,
-    user_uuid:      current_user.uuid,
-    maturation:     Time.parse(maturation).change(hour: 23, min: 55),
-    expiration:     Time.parse(maturation).change(hour: 23, min: 50),
-    poolable:       false,
-    stm_issue_uuid: uuid,
-    stm_tracker_uuid: issue.stm_tracker_uuid
-  }
-  if issue
-    type = params['side'] == 'unfixed' ? :offer_bu : :offer_bf
-    result = FB.create(type, opts).project
-    offer = result.offer
-    ContractCmd::Cross.new(offer, :expand).project
-    flash[:success] = "You have funded a new offer (#{offer.xid})"
-  else
-    flash[:danger] = "Something went wrong"
-  end
   # activity log
   sql_uuid = ActiveRecord::Base.connection.quote(uuid)
   sql_side = ActiveRecord::Base.connection.quote("create_offer/#{params['side']}")
   log_sql = "Insert into log (user_uuid, time, page, issue_uuid)
-    values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', #{sql_side} ,#{sql_uuid});"
+  values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', #{sql_side} ,#{sql_uuid});"
   ActiveRecord::Base.connection.execute(log_sql)
+  # do stuff
+  issue = Issue.find_by_uuid(uuid)
+  volume = params['value'].to_i
+  price = params['side'] == 'unfixed' ? 0.80 : 0.20
+  type = params['side'] == 'unfixed' ? :offer_bu : :offer_bf
+  maturation = params['maturation'] ? params['maturation'] : BugmTime.end_of_day(4)
+
+  cost_of_offer = (volume * price).to_i
+  if current_user.balance.to_i < cost_of_offer then
+    flash[:warning] = "You needed #{cost_of_offer} tokens to create this offer but only have #{current_user.balance.to_i} tokens."
+  else
+    opts = {
+      aon:            true,
+      price:          price,
+      volume:         volume,
+      user_uuid:      current_user.uuid,
+      maturation:     Time.parse(maturation).change(hour: 23, min: 55),
+      expiration:     Time.parse(maturation).change(hour: 23, min: 50),
+      poolable:       false,
+      stm_issue_uuid: uuid,
+      stm_tracker_uuid: issue.stm_tracker_uuid
+    }
+    if issue
+      offer = FB.create(type, opts).project.offer
+      ContractCmd::Cross.new(offer, :expand).project
+      flash[:success] = "You successfully created a new offer"
+    else
+      flash[:danger] = "Something went wrong"
+    end
+  end
   redirect "/issues/#{uuid}"
 end
 
