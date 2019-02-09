@@ -5,7 +5,6 @@
 .row
   .col-md-6
     div
-      == btn_start_stop_nightly
       .ml-1
         ' Simulation speed: One day every
         '
@@ -13,8 +12,37 @@
         '
         ' seconds
 
-      a.btn.btn-secondary[href="/admin/nextday"] Go to Next day
-      a.ml-1.btn.btn-secondary[href="/admin/draw_graphs"] Redraw Graphs
+      == btn_start_stop_nightly
+      p Do not use this button in conjunction a sessions
+
+      h3 Session Control
+
+      - if $current_session.nil?
+        form.form-inline.mb-2[action="/admin/session/create" method="post"]
+          .form-group
+            label[for="daysinsession"] Simulate days
+            input.form-control#daysinsession.mx-2[type="number" min="1" value="30" length="2" name="daysinsession"]
+          button.btn.btn-primary Start new Session
+      - else
+        /0 = not running
+        - status = 0
+        - if $session_wait
+          /1 = waiting
+          - status = 1
+        - elsif $session_survey
+          /3 = survey
+          - status = 3
+        - elsif !$run_nightly.nil?
+          /2 = experiment
+          - status = 2
+
+        .btn-group.btn-group.toggle
+          a.btn.btn-lg.disabled[href="#" class="#{(status == 1 ? 'btn-success' : 'btn-secondary')}"] 1) Waiting
+          a.btn.btn-lg[href="/admin/session/start" class="#{(status == 2 ? 'btn-success' : 'btn-secondary')} #{(status > 2 ? 'disabled' : '')}"] 2) Simulation
+          a.btn.btn-lg[href="/admin/session/survey" class="#{(status == 3 ? 'btn-success' : 'btn-secondary')}"] 3) Survey
+          a.btn.btn-lg.btn-secondary[href="/admin/session/stop"] 4) End Session
+
+
     h3 Status
     div
       ' Last graph update:
@@ -37,7 +65,12 @@
       ' seconds
 
 
-  .col-md-6
+  .col-md-6.mb-3
+    h3 Manual operations
+    a.ml-1.btn.btn-secondary[href="/admin/nextday"] Go to Next day
+    a.ml-1.btn.btn-secondary[href="/admin/draw_graphs"] Redraw Graphs
+
+    h3 Setup
     a.btn.btn-primary[href="/admin/users"] Open Users Admin
     /a.btn.btn-primary[href="/admin/settings"] Settings Admin
 
@@ -53,8 +86,8 @@
           th
             ' Bots
             .btn-group
-              a.btn.btn-success[href="/admin/start_bot/all"] Start all
-              a.btn.btn-danger[href="/admin/stop_bot/all"] Stop all
+              a.btn.btn-success[href="/admin/start_bot/all"] Activate all
+              a.btn.btn-danger[href="/admin/stop_bot/all"] Deactivate all
 
       tbody
         - if Tracker.count > 0

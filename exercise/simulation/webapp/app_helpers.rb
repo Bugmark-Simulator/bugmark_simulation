@@ -479,10 +479,12 @@ module AppHelpers
   end
 
   def btn_start_stop_nightly
+    da = false # deactivated
+    da = true unless $current_session.nil?
     if $run_nightly.nil? then
-      return "<a href='/admin/startstopnighlty' class='btn btn-danger'> Simulation is NOT running (click to start)</a>"
+      return "<a href='/admin/startstopnighlty' class='btn btn-secondary #{'disabled' if da}'>Simulation NOT running</a>"
     else
-      return "<a href='/admin/startstopnighlty' class='btn btn-success'> Simulation is RUNNING (click to stop)</a>"
+      return "<a href='/admin/startstopnighlty' class='btn btn-success #{'disabled' if da}'> Stop Simulation</a>"
     end
   end
 
@@ -600,13 +602,14 @@ module AppHelpers
 
   def admin_only!
     protected!
-    trmt = current_user["jfields"]["treatment"]
-    redirect "/account" if trmt == "no-metrics" || trmt == "health-metrics" || trmt == "market-metrics" || trmt == "both-metrics"
+    redirect "/account" unless current_user.id == 1
   end
 
   def protected!
     authenticated!
     consented!
+    wait!
+    survey!
   end
 
   def authenticated!
@@ -619,6 +622,22 @@ module AppHelpers
   def consented!
     return if consented?
     redirect "/consent_form"
+  end
+
+  def wait!
+    # admin does not need to wait
+    return if current_user.id == 1
+    # only let participants wait if requested
+    return unless $session_wait
+    redirect "/wait"
+  end
+
+  def survey!
+    # admin does not need to take survey
+    return if current_user.id == 1
+    # only redirect to survey if set
+    return unless $session_survey
+    redirect "/questions"
   end
 
   # ----- offer helpers
@@ -1539,9 +1558,9 @@ module AppHelpers
     # binding.pry
     # return appropriate button
     if status[0]['status'].eql? "true" then
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success'>Running (click to stop)</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-success'>Active (click to deactivate)</a>"
     else
-      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-warning'>Stopped (click to start)</a>"
+      return "<a href='/admin/run_bot#{variant}/#{tracker}' class='btn btn-outline-danger'>Inactive (click to activate)</a>"
     end
   end
 

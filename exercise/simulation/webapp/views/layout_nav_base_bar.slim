@@ -5,4 +5,8 @@ nav.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark
   a.navbar-brand[href="/account"]
     | Bugmark
   .collapse.navbar-collapse
-    == slim :layout_nav_base_menu
+    - unless $session_survey && current_user.id != 1
+      == slim :layout_nav_base_menu
+    - else
+      .mx-auto
+        p.py-2.my-0[style="color:white;"] Thank you for participating today. Please answer questions below to finish.

@@ -22,6 +22,12 @@ $last_graph_update = nil
 $generate_graphs = true
 @getting_graph_pictures = false
 
+# Experiment session
+$current_session  = nil
+$day_of_session = 0
+$session_wait = false
+$session_survey = false
+
 # record current BugmTime and SystemTime
 AppHelpers.record_bugm_system_times
 
@@ -32,17 +38,18 @@ AppHelpers.record_bugm_system_times
 # -
 Thread.new do
 
-  # on init:
-  # get list of running simulations
-  sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
-        SELECT uuid
-        FROM subq
-        WHERE status2 = 'true';";
-  active_bots = ActiveRecord::Base.connection.execute(sql).to_a
-  # stop active bots
-  active_bots.each do |k|
-    AppHelpers.bot_stop(Tracker.where(uuid: User.where(uuid: k['uuid']).first.jfields['tracker']).first)
-  end
+# TODO: create setting for whether to set bots to off when starting
+  # # on init:
+  # # get list of running simulations
+  # sql = "WITH subq AS (SELECT users.uuid, users.jfields->'bot'->>'active' as status2 FROM users)
+  #       SELECT uuid
+  #       FROM subq
+  #       WHERE status2 = 'true';";
+  # active_bots = ActiveRecord::Base.connection.execute(sql).to_a
+  # # stop active bots
+  # active_bots.each do |k|
+  #   AppHelpers.bot_stop(Tracker.where(uuid: User.where(uuid: k['uuid']).first.jfields['tracker']).first)
+  # end
 
   # loop to have asynchronous behavior
   sleep(3)
@@ -57,8 +64,21 @@ Thread.new do
     if ((!$run_nightly.nil?) && ($run_nightly < Time.now)) then
       puts "=================== SIMULATE NEXT DAY: #{BugmTime.end_of_day(1).strftime("%Y-%m-%d")} ==================="
       $run_nightly += TS.nightly_scr["seconds_for_day_switching"]
+      # session day counter
+      $day_of_session += 1
+      if !$current_session.nil? && $current_session.days_simulated < $day_of_session
+        # End of session
+        $run_nightly = nil
+        $session_survey = true
+      end
       Thread.new do
         AppHelpers.next_day
+        if !$current_session.nil? && $current_session.bugmtime_start.nil?
+          $current_session.update(bugmtime_start: BugmTime.now)
+        end
+        if !$current_session.nil? && $current_session.days_simulated < $day_of_session
+          $current_session.update(bugmtime_end: BugmTime.now)
+        end
         $generate_graphs = true
         AppHelpers.sim_funders
       end
@@ -88,9 +108,22 @@ helpers AppHelpers
 
 # ----- core app -----
 
-get "/tst" do
-  AppHelpers.sim_funders
-  redirect "/admin"
+get "/wait" do
+  authenticated!
+  consented!
+  slim :wait
+end
+
+get "/questions" do
+  authenticated!
+  consented!
+  slim :survey
+end
+
+get "/giftcard" do
+  authenticated!
+  consented!
+  slim :giftcard
 end
 
 get "/" do
@@ -914,6 +947,10 @@ end
 get "/admin/login_as/:uuid" do
   # admin_only!
   user = User.where(uuid: params['uuid']).first
+  if user.nil?
+    flash[:info] = "Please login"
+    redirect '/login'
+  end
   session[:usermail] = user.email
   session[:consent]  = true
   redirect '/admin'
@@ -1036,6 +1073,7 @@ get "/admin/issue_new/:uuid" do
   flash[:success] = "One issue created for project #{tracker.name}"
   redirect "/admin"
 end
+
 get "/admin/issue_new/:uuid/:count" do
   admin_only!
   tracker = Tracker.where(uuid: params["uuid"]).first
@@ -1045,6 +1083,44 @@ get "/admin/issue_new/:uuid/:count" do
   end
   flash[:success] = "#{count} issues created for project #{tracker.name}"
   redirect "/admin"
+end
+
+post "/admin/session/create" do
+  admin_only!
+  num_days = params['daysinsession'].to_i
+  $current_session = Session.create(days_simulated: num_days, systime_start: Time.now)
+  $day_of_session = 0
+  $session_wait = true
+  redirect '/admin'
+end
+
+get "/admin/session/start" do
+  admin_only!
+  $session_wait = false
+  # $current_session.update(bugmtime_start: BugmTime.now)
+  $run_nightly = Time.now
+  redirect '/admin'
+end
+
+get "/admin/session/survey" do
+  admin_only!
+  redirect '/admin' if $session_survey
+  $run_nightly = nil
+  $current_session.update(bugmtime_end: BugmTime.now)
+  $session_wait = false
+  $session_survey = true
+  redirect '/admin'
+end
+
+get "/admin/session/stop" do
+  admin_only!
+  $run_nightly = nil
+  $session_wait = false
+  $session_survey = false
+  $current_session.update(bugmtime_end: BugmTime.now) if $current_session.bugmtime_end.nil?
+  $current_session.update(systime_end: Time.now)
+  $current_session = nil
+  redirect '/admin'
 end
 
 # get "/admin/sync" do
