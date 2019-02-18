@@ -25,6 +25,7 @@ $generate_graphs = true
 # Experiment session
 $current_session  = nil
 $day_of_session = 0
+$session_configured = false
 $session_wait = false
 $session_survey = false
 
@@ -1091,6 +1092,29 @@ post "/admin/session/create" do
   $current_session = Session.create(days_simulated: num_days, systime_start: Time.now)
   $day_of_session = 0
   $session_wait = true
+  $session_configured = false
+  redirect '/admin'
+end
+
+post "/admin/session/strategy" do
+  admin_only!
+  participants = params['participantcount'].to_i
+  # calculate new values
+  issue_count = (0.75 * participants.to_f).ceil
+  offer_count = (0.5 * participants.to_f).ceil
+  # update bots
+  Tracker.all.each do |tracker|
+    user = User.where("jfields->>'tracker' = '#{tracker.uuid}'").first
+    json = user.jfields["bot"]
+    json["maxissues"] = issue_count
+    json["newissues"] = {"#{issue_count}": 1}
+    json["newoffers"] = {"#{offer_count}": 1}
+    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+    # update json in user
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb #{sql_json}) WHERE id = #{user.id};"
+    ActiveRecord::Base.connection.execute(sql)
+  end
+  $session_configured = true
   redirect '/admin'
 end
 
