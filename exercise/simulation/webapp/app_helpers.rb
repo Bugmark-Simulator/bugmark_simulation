@@ -1651,7 +1651,13 @@ module AppHelpers
         price = difficulty_picker(prices).to_f
         volume = difficulty_picker(volumes).to_i
         maturation = difficulty_picker(maturations).to_i
-        offer_create_bu(user, issue, price, volume, maturation, true)
+        if price * volume.to_f > user.balance.to_f
+          puts "STOPPING BOT (#{user.name}): funds depleted"
+          bot_stop(tracker)
+          return
+        else
+          offer_create_bu(user, issue, price, volume, maturation, true)
+        end
       end
     end
   end
