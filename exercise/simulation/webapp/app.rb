@@ -1133,6 +1133,7 @@ post "/admin/session/create" do
             WHERE exid = '#{issue.exid}';"
     ActiveRecord::Base.connection.execute(issue_update_sql)
   end
+  # TODO: reset funder budgets, to make sure they have deep pockets
   redirect '/admin'
 end
 

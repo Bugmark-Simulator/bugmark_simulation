@@ -1,11 +1,13 @@
-html, body, main, body>div.container-fluid, div.d-flex {
-  margin: 0;
-  padding: 0;
+html, body, main, div.d-flex {
+  /*margin: 0;
+  padding: 0;*/
   height: 100%
 }
 
-body {
+ body>div.container-fluid {
   padding-top: 65px;
+  height: 100%;
+  margin-top: 0;
 }
 iframe {
   width: 100%;
