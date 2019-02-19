@@ -5,7 +5,7 @@ nav.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark
   a.navbar-brand[href="/account"]
     | Bugmark
   .collapse.navbar-collapse
-    - unless $session_survey && current_user.id != 1
+    - unless $session_survey && current_user && current_user.id != 1
       == slim :layout_nav_base_menu
     - else
       .mx-auto
