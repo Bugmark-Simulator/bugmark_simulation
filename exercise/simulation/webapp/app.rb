@@ -87,6 +87,7 @@ Thread.new do
               sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{user.id};"
               ActiveRecord::Base.connection.execute(sql)
             end
+          end
         end
         $generate_graphs = true
         AppHelpers.sim_funders
