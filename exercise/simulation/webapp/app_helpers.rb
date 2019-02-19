@@ -610,6 +610,15 @@ module AppHelpers
     consented!
     wait!
     survey!
+    # update earning in this session
+    if current_user.id > 1 && !$current_session.nil? && !current_user.jfields["sessions"]["s#{$current_session.id}"].nil?
+      # session is ongoing, record this participant
+      json = current_user.balance.to_i - 1000
+      sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+      # update json in user
+      sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{current_user.id};"
+      ActiveRecord::Base.connection.execute(sql)
+    end
   end
 
   def authenticated!

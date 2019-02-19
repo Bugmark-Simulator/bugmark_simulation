@@ -79,6 +79,14 @@ Thread.new do
         end
         if !$current_session.nil? && $current_session.days_simulated < $day_of_session
           $current_session.update(bugmtime_end: BugmTime.now)
+          Users.all.each do |user|
+            if user.id > 1 && !user.jfields["sessions"]["s#{$current_session.id}"].nil?
+              json = user.balance.to_i - 1000
+              sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+              # update json in user
+              sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{user.id};"
+              ActiveRecord::Base.connection.execute(sql)
+            end
         end
         $generate_graphs = true
         AppHelpers.sim_funders
@@ -698,6 +706,17 @@ post "/login" do
   user = User.find_by_email(mail) || User.find_by_name(mail)
   valid_auth    = user && user.valid_password?(pass)
   valid_consent = valid_consent(user)
+  if valid_auth && user.id > 1 && !$current_session.nil? && user.jfields["sessions"]["s#{$current_session.id}"].nil?
+    # session is ongoing, record this participant
+    json = user.jfields["sessions"]
+    json["s#{$current_session.id}"] = {joined: Time.now, earned: 0}
+    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+    # update json in user
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions}', jsonb #{sql_json}) WHERE id = #{user.id};"
+    ActiveRecord::Base.connection.execute(sql)
+    # reset user balance
+    user.update(balance: 1000)
+  end
   case
   when valid_auth && valid_consent
     session[:usermail] = user.email
@@ -871,10 +890,17 @@ post "/admin/users_create" do
     skills = TS.skills["task_skills"].shuffle
     bonus_skills = skills.pop(bonuses)
     malus_skills = skills.pop(maluses)
-    sql = "UPDATE users SET jfields = '{\"skill_bonus\":#{bonus_skills},
-    \"skill_malus\":#{malus_skills},
-    \"password\":\"#{userpassword}\",\"type\":\"#{types[type]}\",
-    \"treatment\":\"#{treatments[treatment]}\",\"tracker\":\"\"}' WHERE id='#{userid}';"
+    json = {}
+    json["skill_bonus"] = bonus_skills
+    json["skill_malus"] = malus_skills
+    json["password"] = userpassword
+    json["type"] = types[type]
+    json["treatment"] = treatments[treatment]
+    json["tracker"] = {}
+    json["sessions"] = {}
+    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+    # update json in user
+    sql = "UPDATE users SET jfields = #{sql_json} WHERE id='#{userid}';"
     ActiveRecord::Base.connection.execute(sql).to_a
 
     # funders get assigned a tracker and simulation bot
@@ -1144,6 +1170,7 @@ get "/admin/session/stop" do
   $current_session.update(bugmtime_end: BugmTime.now) if $current_session.bugmtime_end.nil?
   $current_session.update(systime_end: Time.now)
   $current_session = nil
+  $session_configured = false
   redirect '/admin'
 end
 

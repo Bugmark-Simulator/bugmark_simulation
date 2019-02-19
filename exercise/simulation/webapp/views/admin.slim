@@ -13,7 +13,6 @@
         ' seconds
 
       == btn_start_stop_nightly
-      p Do not use this button in conjunction a sessions
 
       h3 Session Control
 
@@ -23,9 +22,9 @@
             label[for="daysinsession"] Simulate days:
             input.form-control#daysinsession.mx-2[type="number" min="1" value="30" length="2" name="daysinsession"]
           button.btn.btn-primary Start new Session
+        - status = 0
       - else
         /0 = not running
-        - status = 0
         - if $session_wait
           /1 = waiting
           - status = 1
@@ -36,21 +35,21 @@
           /2 = experiment
           - status = 2
 
-        - if status == 1
-          /Configure session: scale bots
-          form.form-inline.my-2[action="/admin/session/strategy" method="post"]
-            .form-group
-              label[for="participantcount"] Number of Participants:
-              input.form-control#participantcount.mx-2[type="number" min="1" value="6" name="participantcount"]
-            button.btn.btn-primary Update Bot Strategies
-            span
-              ' (before starting simulation)
+      - if status == 1
+        /Configure session: scale bots
+        form.form-inline.my-2[action="/admin/session/strategy" method="post"]
+          .form-group
+            label[for="participantcount"] Number of Participants:
+            input.form-control#participantcount.mx-2[type="number" min="1" value="6" name="participantcount"]
+          button.btn.btn-primary Update Bot Strategies
+          span
+            ' (before starting simulation)
 
-        .btn-group.btn-group.toggle
-          a.btn.btn-lg.disabled[href="#" class="#{(status == 1 ? 'btn-success' : 'btn-secondary')}"] 1) Waiting & Setup
-          a.btn.btn-lg[href="/admin/session/start" class="#{(status == 2 ? 'btn-success' : 'btn-secondary')} #{((status > 2 || !$session_configured) ? 'disabled' : '')}"] 2) Simulation
-          a.btn.btn-lg[href="/admin/session/survey" class="#{(status == 3 ? 'btn-success' : 'btn-secondary')}"] 3) Survey
-          a.btn.btn-lg.btn-secondary[href="/admin/session/stop"] 4) End Session
+      .btn-group.btn-group.toggle
+        a.btn.btn-lg.disabled[href="#" class="#{(status == 1 ? 'btn-success' : 'btn-secondary')}"] 1) Waiting & Setup
+        a.btn.btn-lg[href="/admin/session/start" class="#{(status == 2 ? 'btn-success' : 'btn-secondary')} #{((status >= 2 || !$session_configured) ? 'disabled' : '')}"] 2) Simulation
+        a.btn.btn-lg[href="/admin/session/survey" class="#{(status == 3 ? 'btn-success' : 'btn-secondary')} #{(status != 2 ? 'disabled' : '')}"] 3) Survey
+        a.btn.btn-lg.btn-secondary[href="/admin/session/stop" class="#{(status < 1 ? 'disabled' : '')}"] 4) End Session
 
 
 
