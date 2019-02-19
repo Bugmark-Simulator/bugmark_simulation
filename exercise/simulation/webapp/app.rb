@@ -1120,6 +1120,19 @@ post "/admin/session/create" do
   $day_of_session = 0
   $session_wait = true
   $session_configured = false
+  # reset market place
+  advance_days = [(Offer.maximum('expiration').to_i - BugmTime.now.to_i)/60/60/24 +1, 1].max
+  advance_days.times do
+    # by getting the max offer expiration, we also get max contract maturation
+    AppHelpers.next_day
+  end
+  Issue.open.each do |issue|
+    IssueCmd::Sync.new({exid: issue.exid, stm_status: "closed"}).project
+    issue_update_sql = "update issues
+            set jfields = jsonb_set(jfields, '{\"closed_on\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
+            WHERE exid = '#{issue.exid}';"
+    ActiveRecord::Base.connection.execute(issue_update_sql)
+  end
   redirect '/admin'
 end
 
@@ -1147,6 +1160,12 @@ end
 
 get "/admin/session/start" do
   admin_only!
+  # simulate two days before starting
+  days = 2 # TODO: make setting variable
+  days.times do
+    AppHelpers.sim_funders
+    AppHelpers.next_day
+  end
   $session_wait = false
   # $current_session.update(bugmtime_start: BugmTime.now)
   $run_nightly = Time.now
