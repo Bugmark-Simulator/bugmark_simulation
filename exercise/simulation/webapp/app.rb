@@ -1159,6 +1159,7 @@ post "/admin/session/strategy" do
   # update bots
   Tracker.all.each do |tracker|
     user = User.where("jfields->>'tracker' = '#{tracker.uuid}'").first
+    user.update(balance: 999999999999)
     json = user.jfields["bot"]
     json["maxissues"] = issue_count
     json["newissues"] = {"#{issue_count}": 1}
