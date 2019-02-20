@@ -619,6 +619,16 @@ module AppHelpers
       sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{current_user.id};"
       ActiveRecord::Base.connection.execute(sql)
     end
+    # display warning if session is about to end:
+    if (!$current_session.nil? && ($current_session.days_simulated - $day_of_session) == 2)
+      flash[:warning] = "Session ends in two days"
+    end
+    if (!$current_session.nil? && ($current_session.days_simulated - $day_of_session) == 1)
+      flash[:warning] = "Session ends in one day"
+    end
+    if (!$current_session.nil? && ($current_session.days_simulated - $day_of_session) == 0)
+      flash[:danger] = "Session ends at end of this day"
+    end
   end
 
   def authenticated!
@@ -1620,6 +1630,21 @@ module AppHelpers
           FROM subq
           WHERE status2 = 'true';";
     active_bots = ActiveRecord::Base.connection.execute(sql).to_a
+    # at a 17% chance, change the strategy of a bot (every six days)
+    # bots = []
+    # active_bots.each do |k|
+    #   bots.push(User.where(uuid: k['uuid']).first.jfields['bot'])
+    # end
+    # shift_by = rand(1..3)
+    # active_bots.each do |k|
+    #   sql_json = ActiveRecord::Base.connection.quote(JSON.generate(bots[shift_by]))
+    #   # update json in user
+    #   sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb #{sql_json}) WHERE id = #{user.id};"
+    #   ActiveRecord::Base.connection.execute(sql)
+    #   shift_by += 1
+    #   shift_by = 0 if shift_by >= active_bots.count
+    # end
+
     # simulate each bot
     active_bots.each do |k|
       # get user and tracker

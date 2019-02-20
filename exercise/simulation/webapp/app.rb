@@ -492,10 +492,23 @@ get "/offer_accept/:offer_uuid" do
   if current_user.balance.to_i < cost_to_accept.to_i then
     flash[:warning] = "You needed #{cost_to_accept} tokens to accept offer but only have #{current_user.balance.to_i} tokens."
     redirect "/issues/#{offer.stm_issue_uuid}"
+  elsif offer.status == "crossed"
+    flash[:warning] = "Failed because someone else had already accepted that offer"
+    redirect "/issues/#{offer.stm_issue_uuid}"
+  elsif offer.status == "cancelled"
+    flash[:warning] = "Failed because offer was withdrawn"
+    redirect "/issues/#{offer.stm_issue_uuid}"
+  elsif offer.status == "expired"
+    flash[:warning] = "Failed because offer expired"
+    redirect "/issues/#{offer.stm_issue_uuid}"
   else
     counter   = OfferCmd::CreateCounter.new(offer, poolable: false, user_uuid: user_uuid).project.offer
-    contract  = ContractCmd::Cross.new(counter, :expand).project.contract
-    flash[:success] = "You have accepted an offer"
+    contract  = ContractCmd::Cross.new(counter, :expand).project
+    if contract.nil?
+      flash[:warning] = "Could not accept offer"
+    else
+      flash[:success] = "You have accepted an offer"
+    end
     redirect "/issues/#{offer.stm_issue_uuid}"
   end
 end
