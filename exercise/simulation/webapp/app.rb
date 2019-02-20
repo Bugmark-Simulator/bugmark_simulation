@@ -28,6 +28,7 @@ $day_of_session = 0
 $session_configured = false
 $session_wait = false
 $session_survey = false
+$session_swap_strategy = 0
 
 # record current BugmTime and SystemTime
 AppHelpers.record_bugm_system_times
@@ -79,15 +80,6 @@ Thread.new do
         end
         if !$current_session.nil? && $current_session.days_simulated < $day_of_session
           $current_session.update(bugmtime_end: BugmTime.now)
-          Users.all.each do |user|
-            if user.id > 1 && !user.jfields["sessions"]["s#{$current_session.id}"].nil?
-              json = user.balance.to_i - TS.session["worker_balance"]
-              sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
-              # update json in user
-              sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{user.id};"
-              ActiveRecord::Base.connection.execute(sql)
-            end
-          end
         end
         $generate_graphs = true
         AppHelpers.sim_funders
@@ -619,6 +611,15 @@ get "/account" do
   log_sql = "Insert into log (user_uuid, time, page)
     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'account');"
   ActiveRecord::Base.connection.execute(log_sql)
+  # best list
+  unless $current_session.nil?
+    sql = "SELECT name, jfields->'sessions'->'s#{$current_session.id}'->>'earned' as earned FROM users
+    WHERE jfields->'sessions'->'s#{$current_session.id}' IS NOT NULL
+    ORDER by earned DESC
+    LIMIT 10;"
+    @best_list = ActiveRecord::Base.connection.execute(sql).to_a
+  end
+
   slim :account
 end
 
@@ -650,7 +651,7 @@ end
 
 
 post "/set_username" do
-  protected!
+  authenticated!
   user = current_user
   user.name = params["newName"]
   if user.save
@@ -666,7 +667,7 @@ post "/set_username" do
 end
 
 post "/set_password" do
-  protected!
+  authenticated!
   user = current_user
   new_password = ActiveRecord::Base.connection.quote(params['newPassword'])
   user.password = new_password
@@ -716,21 +717,11 @@ get "/login" do
 end
 
 post "/login" do
-  mail, pass = [params["usermail"], params["password"]]
+  mail = params["usermail"]
+  pass = params["password"]
   user = User.find_by_email(mail) || User.find_by_name(mail)
   valid_auth    = user && user.valid_password?(pass)
   valid_consent = valid_consent(user)
-  if valid_auth && user.id > 1 && !$current_session.nil? && user.jfields["sessions"]["s#{$current_session.id}"].nil?
-    # session is ongoing, record this participant
-    json = user.jfields["sessions"]
-    json["s#{$current_session.id}"] = {joined: Time.now, earned: 0}
-    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
-    # update json in user
-    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions}', jsonb #{sql_json}) WHERE id = #{user.id};"
-    ActiveRecord::Base.connection.execute(sql)
-    # reset user balance
-    user.update(balance: TS.session["worker_balance"])
-  end
   case
   when valid_auth && valid_consent
     session[:usermail] = user.email
@@ -1133,6 +1124,7 @@ post "/admin/session/create" do
   $day_of_session = 0
   $session_wait = true
   $session_configured = false
+  $session_swap_strategy = 0
   # reset market place
   advance_days = [(Offer.maximum('expiration').to_i - BugmTime.now.to_i)/60/60/24 +1, 1].max
   advance_days.times do
@@ -1204,6 +1196,16 @@ get "/admin/session/stop" do
   $session_survey = false
   $current_session.update(bugmtime_end: BugmTime.now) if $current_session.bugmtime_end.nil?
   $current_session.update(systime_end: Time.now)
+  # update user balances one last time
+  User.all.each do |user|
+    if user.id > 1 && !user.jfields["sessions"].nil? && !user.jfields["sessions"]["s#{$current_session.id}"].nil?
+      json = user.balance.to_i - TS.session["worker_balance"]
+      sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
+      # update json in user
+      sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{user.id};"
+      ActiveRecord::Base.connection.execute(sql)
+    end
+  end
   $current_session = nil
   $session_configured = false
   redirect '/admin'

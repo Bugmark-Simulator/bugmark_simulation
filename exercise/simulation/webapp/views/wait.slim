@@ -6,8 +6,18 @@ p Please wait for everyone to get ready before we start.
 
 p Thanks, <br />Georg Link
 
-javascript:
-  function reloadpage(){
-
-  }
-  setTimeout(reloadpage, 2000)
+h2 Change name and password (optional)
+p
+  i Note:
+  '
+  ' Your name is visible to other participants.
+p
+  form.form-inline[action="/set_username" method="post"]
+    /label.mr-1[for="newName"] Your public username is:
+    input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new username" value="#{user_name}"]
+    button.btn.btn-primary[type="submit"] Change Name
+p
+  form.form-inline[action="/set_password" method="post"]
+    /label.mr-1[for="newPassword"] Change password:
+    input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
+    button.btn.btn-primary[type="submit"] Change Password
