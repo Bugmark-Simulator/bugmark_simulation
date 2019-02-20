@@ -59,12 +59,12 @@ Dir.glob("#{TS.graph_file_for_webapp_public}*.png").each { |file|
 # create funder projects
 # NOTE: This is important to ensure we have the same project names when we reset
 # we need the project names for the GRAFANA dashboard definitions
-numnew = 4
+numnew = TS.reset_scr["create_projects"]
 treatment = 0
 type = 1
 bonuses = 3
 maluses = 2
-balance = 999999999999
+balance = TS.session["funder_balance"]
 treatments = ["both-metrics", "market-metrics", "health-metrics", "no-metrics"]
 types = ["worker", "funder"]
 user_names = [""]

@@ -81,7 +81,7 @@ Thread.new do
           $current_session.update(bugmtime_end: BugmTime.now)
           Users.all.each do |user|
             if user.id > 1 && !user.jfields["sessions"]["s#{$current_session.id}"].nil?
-              json = user.balance.to_i - 1000
+              json = user.balance.to_i - TS.session["worker_balance"]
               sql_json = ActiveRecord::Base.connection.quote(JSON.generate(json))
               # update json in user
               sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions, s#{$current_session.id}, earned}', jsonb #{sql_json}) WHERE id = #{user.id};"
@@ -729,7 +729,7 @@ post "/login" do
     sql = "UPDATE users SET jfields = jsonb_set(jfields, '{sessions}', jsonb #{sql_json}) WHERE id = #{user.id};"
     ActiveRecord::Base.connection.execute(sql)
     # reset user balance
-    user.update(balance: 1000)
+    user.update(balance: TS.session["worker_balance"])
   end
   case
   when valid_auth && valid_consent
@@ -1159,7 +1159,7 @@ post "/admin/session/strategy" do
   # update bots
   Tracker.all.each do |tracker|
     user = User.where("jfields->>'tracker' = '#{tracker.uuid}'").first
-    user.update(balance: 999999999999)
+    user.update(balance: TS.session["funder_balance"])
     json = user.jfields["bot"]
     json["maxissues"] = issue_count
     json["newissues"] = {"#{issue_count}": 1}
