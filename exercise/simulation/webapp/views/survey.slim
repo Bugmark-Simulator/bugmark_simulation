@@ -1,2 +1,5 @@
 .d-flex.justify-content-center
-  iframe[src="https://docs.google.com/forms/d/e/1FAIpQLSeiaI-L6DfmFPXMH0KAA4yrMIhKo34IFQ0JUC3iyQLOMsjUoQ/viewform?embedded=true&usp=pp_url&entry.366340186=#{current_user.uuid}&entry.407945103=#{$current_session.uuid}" width="640" height="600" frameborder="0"]Loading...
+  - treat = current_user.jfields["treatment"]
+  - sess = current_user.jfields["sessions"]
+  - sess = sess.count unless sess.nil?
+  iframe[src="https://unomaha.az1.qualtrics.com/jfe/form/SV_6h9pBkXm2UEqaih?UserID=#{current_user.uuid}&SessionID=#{$current_session.uuid}&Treatment=#{treat}&SessionNum=#{sess}" width="640" height="600" frameborder="0"]Loading...
