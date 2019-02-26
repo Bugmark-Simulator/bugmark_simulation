@@ -132,7 +132,7 @@ get "/" do
   if logged_in? then
     redirect "/project"
   else
-    slim :home
+    redirect "/login"
   end
 end
 
@@ -709,7 +709,7 @@ end
 
 get "/login" do
   if current_user
-    flash[:danger] = "You are already logged in!"
+    flash[:warning] = "You are already logged in!"
     redirect "/project"
   else
     slim :login

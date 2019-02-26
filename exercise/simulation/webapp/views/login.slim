@@ -1,13 +1,14 @@
 / SPDX-License-Identifier: MPL-2.0
 h2 Login
 .row
-  .col-md-6    p Welcome to Bugmark Simulation Platform
-    p This study is apprgoved under IRB No. -------
+  .col-md-6
+    p Welcome to Bugmark Simulation Platform
+    p This study is approved under IRB No. 658-18-EX
     p To continue with this experiment please login with your provided email address and password.
-    p To get your password, contact Georg Link - glink@unomaha.edu<br/>
+    p To get your password, contact Georg Link - glink@unomaha.edu
   .col-md-6
     .wrapper
-      form.form-signin[method='post']
+      form.form-signin[action='/login' method='post']
         input.form-control[autofocus="" name="usermail" placeholder=("Email Address") required="" type="text"]
         p
         input.form-control[name="password" placeholder="Password" required="" type="password"]
