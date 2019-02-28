@@ -48,18 +48,3 @@ html[lang="en-US"]
                   span#days_in_simulation = $current_session.days_simulated
                   ' .
     == yield_content :page_js
-    - if !$current_session.nil? && !$session_survey && !$session_wait
-      javascript:
-        day_of_simulation = parseInt($('#day_of_session').text())
-        days_in_simulation = parseInt($('#days_in_simulation').text())
-        sec_of_day = parseInt($('.updatecal').attr("seconds_into_day"));
-        sec_per_day = parseInt($('body').attr('seconds_per_day'));
-        random_delay = Math.ceil(Math.random() * 6);
-        reload_in = (days_in_simulation - day_of_simulation) * sec_per_day
-        reload_in += (sec_per_day - sec_of_day + random_delay)
-        reload_in *= 1000;
-        console.log(sec_of_day, sec_per_day, random_delay, reload_in);
-        function reloadpage(){
-          window.location.href = '/';
-        }
-        setTimeout(reloadpage, reload_in);

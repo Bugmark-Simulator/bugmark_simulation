@@ -167,7 +167,7 @@ end
 # ----- issues -----
 
 # Generate Issue
-# get "/issue_generation" do
+# get ue_generation" do
 #   slim :issue_generation
 # end
 
@@ -620,6 +620,9 @@ get "/account" do
     @best_list = ActiveRecord::Base.connection.execute(sql).to_a
   end
 
+  sql = "SELECT issue_uuid, COUNT(*) AS new_messages FROM issue_new_comments WHERE user_uuid = '#{current_user.uuid}' GROUP BY issue_uuid;"
+  @unread_messages = ActiveRecord::Base.connection.execute(sql).to_a
+
   slim :account
 end
 
@@ -669,23 +672,31 @@ end
 post "/set_password" do
   authenticated!
   user = current_user
-  new_password = ActiveRecord::Base.connection.quote(params['newPassword'])
-  user.password = new_password
-  if user.save
-    flash[:success] = "Changed Password, please login again"
-    # update last activity on issue
-    issue_update_sql = "update users
-            set jfields = jsonb_set(jfields, '{\"password\"}', jsonb #{new_password})
-            WHERE uuid = '#{current_user.uuid}';"
-    ActiveRecord::Base.connection.execute(issue_update_sql) unless user.email == "admin@bugmark.net"
-    redirect "logout"
-  else
-    flash[:danger] = user.errors.messages.values.flatten.join(" ")
-  end
   # activity log
   log_sql = "Insert into log (user_uuid, time, page)
     values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'account/set_password');"
   ActiveRecord::Base.connection.execute(log_sql)
+  # test password
+  new_password = params['newPassword']
+  if new_password.length < 3
+    flash[:warning] = "Passwort too short, need at least 4 characters."
+  else
+    # change passwort=d
+    user.password = new_password
+    if user.save
+      flash[:success] = "Changed Password, please login again"
+      # update last activity on issue
+      if user.id != 1
+        issue_update_sql = "update users
+                set jfields = jsonb_set(jfields, '{\"password\"}', jsonb #{new_password})
+                WHERE uuid = '#{current_user.uuid}';"
+        ActiveRecord::Base.connection.execute(issue_update_sql) unless user.email == "admin@bugmark.net"
+      end
+      redirect "logout"
+    else
+      flash[:danger] = user.errors.messages.values.flatten.join(" ")
+    end
+  end
   redirect "/account"
 end
 

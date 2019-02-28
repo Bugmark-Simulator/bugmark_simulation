@@ -41,6 +41,7 @@ sql = "TRUNCATE TABLE
 , positions
 , projections
 , schema_migrations
+, sessions
 , trackers
 , user_groups
 , user_memberships
@@ -54,6 +55,12 @@ BugmHost.reset
 # ----- Delete graph images -----
 Dir.glob("#{TS.graph_file_for_webapp_public}*.png").each { |file|
   File.delete(file)
+}
+
+# get funder strategies
+funder_strategies = []
+Dir.glob("#{TS.bot_strategy_file_for_webapp_public}*.yml").each { |file|
+  funder_strategies.push(YAML::load_file(file))
 }
 
 # create funder projects
@@ -119,8 +126,8 @@ numnew.times do |i|
     }
     tracker = FB.create(:tracker, opts).tracker.uuid
 
-
-    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb '{\"active\":\"false\", \"prices\":{\"0.80\":20, \"0.85\":40, \"0.90\":30, \"0.95\":8, \"1.00\":2}, \"volumes\":{\"70\":10, \"80\":30, \"90\":40, \"100\":20}, \"maxissues\":9, \"newissues\":{\"9\":1, \"1\":0}, \"newoffers\":{\"5\":1}, \"maturations\":{\"1\":20, \"2\":20, \"4\":20, \"6\":20, \"8\":20}}') WHERE id='#{userid}';"
+    sql_json = ActiveRecord::Base.connection.quote(JSON.generate(funder_strategies.pop))
+    sql = "UPDATE users SET jfields = jsonb_set(jfields, '{bot}', jsonb #{sql_json}) WHERE id='#{userid}';"
     ActiveRecord::Base.connection.execute(sql).to_a
     sql = "UPDATE users SET jfields = jsonb_set(jfields, '{tracker}', '\"#{tracker}\"') WHERE id='#{userid}';"
     ActiveRecord::Base.connection.execute(sql).to_a

@@ -96,7 +96,9 @@ module AppHelpers
   def account_lbl(user)
     # count = funding_count(user)
     # warn = funding_hold?(user) ? " / FUNDED #{count} of 5 " : ""
-    "#{user_name(user)} / balance: #{user.token_available.to_i}"
+    sql = "SELECT COUNT(*) AS new_messages FROM issue_new_comments WHERE user_uuid = '#{user.uuid}';"
+    unread_messages = ActiveRecord::Base.connection.execute(sql).to_a[0]["new_messages"]
+    "#{user_name(user)} | balance: #{user.token_available.to_i} | messages: #{unread_messages}"
   end
 
   # def successful_fundings(user)
@@ -841,6 +843,18 @@ module AppHelpers
     end
   end
 
+  def queue_length_dash(user = current_user)
+    # TODO: finish this function
+    result = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").pluck("MAX(completed) AS completein")[0]
+    if result.nil?
+      return "Next task you add will be worked on immediately."
+    else
+      sec = result.to_s.to_datetime.to_i - Time.now.to_i
+      cnt = Work_queue.where(user_uuid: user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count
+      return "Next task you add will begin in <span class='countdown' secs='#{sec}'>#{real_seconds_to_simulated_hours(sec)}</span>."
+    end
+  end
+
   # ------ Delete Comment on an issue----
   def delete_comment(id, user_uuid)
     if user_uuid == current_user.uuid
@@ -890,13 +904,16 @@ module AppHelpers
     end
 
     # Graph data for Offer count and volume
-    sql = "SELECT SUM(volume) AS vol
+    sql = "SELECT
+              SUM(value) AS val
+              , SUM(volume) AS vol
               , COUNT(*) AS total
               FROM offers
               JOIN issues ON offers.stm_issue_uuid=issues.uuid
               WHERE status = 'open'
               AND issues.stm_tracker_uuid = '#{project_uuid}';"
     result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    val = result['val'].to_f
     vol = result['vol'].to_f
     total = result['total'].to_f
     if USE_INFLUX == true
@@ -906,52 +923,15 @@ module AppHelpers
           project: "#{project_uuid}",
           project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
         },
-        values: {offer_volume: vol, offer_count: total},
+        values: {offer_volume: vol, offer_count: total, offer_value: val},
         timestamp: timestamp
       }
       InfluxStats.write_point "GraphData", args
     end
 
-    # Graph data for skills in demand
-    sql = "SELECT count(CASE WHEN jfields->'skill'->>'Python' = '0' THEN 1 END) AS has_python
-          , count(CASE WHEN jfields->'skill'->>'SQL' = '0' THEN 1 END) AS has_sql
-          , count(CASE WHEN jfields->'skill'->>'PHP' = '0' THEN 1 END) AS has_php
-          , count(CASE WHEN jfields->'skill'->>'Java' = '0' THEN 1 END) AS has_java
-          , count(CASE WHEN jfields->'skill'->>'Swift' = '0' THEN 1 END) AS has_swift
-          , count(CASE WHEN jfields->'skill'->>'HTML' = '0' THEN 1 END) AS has_html
-          , count(CASE WHEN jfields->'skill'->>'Ruby' = '0' THEN 1 END) AS has_ruby
-          , count(CASE WHEN jfields->'skill'->>'C++' = '0' THEN 1 END) AS has_cpp
-          FROM issues
-          WHERE stm_tracker_uuid = '#{project_uuid}'
-          AND stm_status = 'open';"
-    result = ActiveRecord::Base.connection.execute(sql).to_a.first
-    skill_demand = Hash.new
-    skill_demand["Python"] = result['has_python'].to_f
-    skill_demand["SQL"] = result['has_sql'].to_f
-    skill_demand["PHP"] = result['has_php'].to_f
-    skill_demand["Java"] = result['has_java'].to_f
-    skill_demand["Swift"] = result['has_swift'].to_f
-    skill_demand["HTML"] = result['has_html'].to_f
-    skill_demand["Ruby"] = result['has_ruby'].to_f
-    skill_demand["C++"] = result['has_cpp'].to_f
-    if USE_INFLUX == true
-      skill_demand.each do |key, value|
-        args = {
-          tags: {
-            graph: "open_issue_skills",
-            project: "#{project_uuid}",
-            project_name: "#{Tracker.where(uuid: project_uuid).first.name}",
-            skill: key
-          },
-          values: {tasks: value},
-          timestamp: timestamp
-        }
-        InfluxStats.write_point "GraphData", args
-      end
-    end
-
-    # Graph data for Offer count and volume
-    sql = "SELECT count(*) AS new_comments FROM issue_comments
+    # New Comments by Project
+    sql= "SELECT count(*) AS new_comments
+          FROM issue_comments
           JOIN issues ON issues.uuid = issue_comments.issue_uuid
           WHERE TO_CHAR(issue_comments.comment_date, 'YYYY-MM-DD') = '#{timeobject.strftime("%Y-%m-%d")}'
           AND issues.stm_tracker_uuid = '#{project_uuid}';"
@@ -969,6 +949,65 @@ module AppHelpers
       }
       InfluxStats.write_point "GraphData", args
     end
+
+    # Issues closed each day by project
+    sql= "SELECT count(*) AS new_closed_issues
+          FROM issues
+          WHERE jfields->>'closed_on' = '#{timeobject.strftime("%Y-%m-%d")}'
+          AND issues.stm_tracker_uuid = '#{project_uuid}'
+          ;"
+    result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    new_closed_issues = result['new_closed_issues'].to_i
+    if USE_INFLUX == true
+      args = {
+        tags: {
+          graph: "new_closed_issues",
+          project: "#{project_uuid}",
+          project_name: "#{Tracker.where(uuid: project_uuid).first.name}"
+        },
+        values: {new_closed_issues: new_closed_issues},
+        timestamp: timestamp
+      }
+      InfluxStats.write_point "GraphData", args
+    end
+
+    # # Graph data for skills in demand
+    # sql = "SELECT count(CASE WHEN jfields->'skill'->>'Python' = '0' THEN 1 END) AS has_python
+    #       , count(CASE WHEN jfields->'skill'->>'SQL' = '0' THEN 1 END) AS has_sql
+    #       , count(CASE WHEN jfields->'skill'->>'PHP' = '0' THEN 1 END) AS has_php
+    #       , count(CASE WHEN jfields->'skill'->>'Java' = '0' THEN 1 END) AS has_java
+    #       , count(CASE WHEN jfields->'skill'->>'Swift' = '0' THEN 1 END) AS has_swift
+    #       , count(CASE WHEN jfields->'skill'->>'HTML' = '0' THEN 1 END) AS has_html
+    #       , count(CASE WHEN jfields->'skill'->>'Ruby' = '0' THEN 1 END) AS has_ruby
+    #       , count(CASE WHEN jfields->'skill'->>'C++' = '0' THEN 1 END) AS has_cpp
+    #       FROM issues
+    #       WHERE stm_tracker_uuid = '#{project_uuid}'
+    #       AND stm_status = 'open';"
+    # result = ActiveRecord::Base.connection.execute(sql).to_a.first
+    # skill_demand = Hash.new
+    # skill_demand["Python"] = result['has_python'].to_f
+    # skill_demand["SQL"] = result['has_sql'].to_f
+    # skill_demand["PHP"] = result['has_php'].to_f
+    # skill_demand["Java"] = result['has_java'].to_f
+    # skill_demand["Swift"] = result['has_swift'].to_f
+    # skill_demand["HTML"] = result['has_html'].to_f
+    # skill_demand["Ruby"] = result['has_ruby'].to_f
+    # skill_demand["C++"] = result['has_cpp'].to_f
+    # if USE_INFLUX == true
+    #   skill_demand.each do |key, value|
+    #     args = {
+    #       tags: {
+    #         graph: "open_issue_skills",
+    #         project: "#{project_uuid}",
+    #         project_name: "#{Tracker.where(uuid: project_uuid).first.name}",
+    #         skill: key
+    #       },
+    #       values: {tasks: value},
+    #       timestamp: timestamp
+    #     }
+    #     InfluxStats.write_point "GraphData", args
+    #   end
+    # end
 
       # # Contract Fix Rate
       # sql = "WITH f_contr AS (
@@ -1390,14 +1429,14 @@ module AppHelpers
 
     # get graphs that compare across projects
     threads = []
-    # Market Metric: open offers across all projects
+    # Market Metric: Value of Offers (Price x Volume) per Project
     threads.push(
       Thread.new do
-        graphid="19"
+        graphid="28"
         open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
-        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_open_offers.png")
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_offer_value.png")
       end
     )
     # Market Metric: price averages of all projects
@@ -1410,14 +1449,14 @@ module AppHelpers
         FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_prices.png")
       end
     )
-    # Health Metric: Skills in demand in all projects
+    # Health Metric: Closed Issues per Day by Project
     threads.push(
       Thread.new do
-        graphid="24"
+        graphid="30"
         open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
           file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
         end
-        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_skills.png")
+        FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_newly_closed_issues.png")
       end
     )
     threads.each(&:join)
@@ -1438,14 +1477,14 @@ module AppHelpers
       project_name = Tracker.where(uuid: project_uuid).first.name
       # get all pictures for this project at the same time
       threads = []
-      # Market Metric: open offer count
+      # Market Metric: Value of Offers for project X
       threads.push(
         Thread.new do
-          graphid="8"
+          graphid="29"
           open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
             file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
           end
-          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offers.png")
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_offer_value.png")
         end
       )
       # Market Metric; price ranges of individual projects
@@ -1461,11 +1500,11 @@ module AppHelpers
       # Health Metric: Skills in demand
       threads.push(
         Thread.new do
-          graphid="23"
+          graphid="31"
           open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
             file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
           end
-          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_skills.png")
+          FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_newly_closed_issues.png")
         end
       )
       # Health Metric: Skills in demand
@@ -1480,6 +1519,47 @@ module AppHelpers
       )
       # wait until pictures for this project are stored before going to the next project
       threads.each(&:join)
+      # # Health Metric: Skills in demand
+      # threads.push(
+      #   Thread.new do
+      #     graphid="23"
+      #     open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_skills.png")
+      #   end
+      # )
+      # # Health Metric: Skills in demand in all projects
+      # threads.push(
+      #   Thread.new do
+      #     graphid="24"
+      #     open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_skills.png")
+      #   end
+      # )
+      # threads.each(&:join)
+      # # Market Metric: open offer count
+      # threads.push(
+      #   Thread.new do
+      #     graphid="8"
+      #     open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&var-project_name=#{project_name}&var-project=#{project_uuid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}#{project_uuid}_open_offers.png")
+      #   end
+      # )
+      # # Market Metric: open offers across all projects
+      # threads.push(
+      #   Thread.new do
+      #     graphid="19"
+      #     open("/tmp/bugm-sim-graph-#{graphid}", 'wb') do |file|
+      #       file << open("http://127.0.0.1:3030/render/d-solo/Ijarcnomz/test-environment?orgId=1&panelId=#{graphid}&from=#{BugmTime.now.to_i - TS.graph_time_window_seconds}000&to=#{BugmTime.now.to_i}000&width=#{@graph_size_width}&height=#{@graph_size_height}&tz=UTC-05%3A00").read
+      #     end
+      #     FileUtils.mv("/tmp/bugm-sim-graph-#{graphid}", "./#{TS.graph_file_for_webapp_public}all_open_offers.png")
+      #   end
+      # )
       # contract fix rate
       # threads.push(
       #   Thread.new do
@@ -1643,7 +1723,7 @@ module AppHelpers
           WHERE status2 = 'true';";
     active_bots = ActiveRecord::Base.connection.execute(sql).to_a
     # funders swap strategy
-    if $session_swap_strategy < ($day_of_session.to_f / ($current_session.days_simulated.to_f / TS.session["funders_swap_strategy_per_session"].to_f)).floor
+    if !$current_session.nil? && $session_swap_strategy < ($day_of_session.to_f / ($current_session.days_simulated.to_f / TS.session["funders_swap_strategy_per_session"].to_f)).floor
       $session_swap_strategy += 1
       puts "----------- FUNDERS SWAP STRATEGIES -----------"
       bots = []

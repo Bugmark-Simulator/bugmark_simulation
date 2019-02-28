@@ -1,80 +1,110 @@
 / SPDX-License-Identifier: MPL-2.0
-h2 Dashboard for #{current_user.name}
+h2 Overview for #{current_user.name}
 hr
 .row.mt-2
-  .col-md-6.d-flex.align-items-start.flex-column
-    h3 Account Settings
-    p
-      form.form-inline[action="/set_username" method="post"]
-        label.mr-1[for="newName"] Your public username is:
-        input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new username" value="#{user_name}"]
-        button.btn.btn-primary[type="submit"] Change
-      div <i>Note:</i> Your username is visible to other participants.
-    p
-      form.form-inline[action="/set_password" method="post"]
-        label.mr-1[for="newPassword"] Change password:
-        input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
-        button.btn.btn-primary[type="submit"] Change
-    - unless $current_session.nil?
-      hr
-      h4 Earnings Leaderboard
+  .col-md-4.d-flex.align-items-start.flex-column
+    h3 Queue
+    .p-2
+
+      table.table.table-sm.table-striped#accountqueue
+        thead
+          tr
+            th.text-center Issue No
+            th.text-center Required Skill
+            th[colspan=2]
+              b Status:
+              '
+              == queue_length_dash(current_user)
+
+        tbody
+          - if @work_queues.count == 0
+            tr
+              td.text-center[colspan="4"]
+                em Go to an issue to add tasks to your Queue
+          - @work_queues.each do |work_queue|
+            tr
+              td.text-center
+                a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
+              td.text-center = work_queue.task
+              td == progress(work_queue.startwork, work_queue.completed)
+              td.text-center
+                form.form-work[method='post']
+                  button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
+      p You can add tasks to your queue. Tasks are completed automatically in order they were added.
+
+  .col-md-2.d-flex.align-items-start.flex-column
+    h3 Unread Messages
+    .p-2
       table.table.table-striped
         thead
           tr
-            th User
-            th Earnings
+            th.text-center Issue
+            th.text-center Unread Messages
         tbody
-          - @best_list.each do |entry|
+          - if @unread_messages.count == 0
             tr
-              td[class="#{(entry["name"] == current_user.name) ? 'mark' : ''}"] =entry["name"]
-              td[class="#{(entry["name"] == current_user.name) ? 'mark' : ''}"] =entry["earned"]
+              td.text-center[colspan=2]
+                em No unread messages
+          - @unread_messages.each do |entry|
+            tr
+              td.text-center
+                a[href="/issues/#{entry["issue_uuid"]}"]
+                  ' Issue
+                  '
+                  span =Issue.where(uuid: entry["issue_uuid"]).first.id
+              td.text-center =entry["new_messages"]
+  .col-md-2.d-flex.align-items-start.flex-column
+    h3 Earnings Leaderboard
+    - if $current_session.nil?
+      .p-2
+        p Only available during session.
+    - else
+      .p-2
+        table.table.table-striped
+          thead
+            tr
+              th.text-center User
+              th.text-center Earnings
+          tbody
+            - @best_list.each do |entry|
+              tr
+                td[class="#{(entry["name"] == current_user.name) ? 'mark' : ''}"] =entry["name"]
+                td.text-center[class="#{(entry["name"] == current_user.name) ? 'mark' : ''}"] =entry["earned"]
 
-  .col-md-6.d-flex.align-items-start.flex-column
-    h4 Skills
+  .col-md-4.d-flex.align-items-start.flex-column
+    h3 Skills
     .p-2
+      table.table.table-striped
+        thead
+          tr
+            th.text-center Skills level
+            th.text-center Skills
+            th.text-center Time to complete tasks
+        tbody
+          tr
+            td.text-center High
+            td.text-center &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
+            td.text-center #{real_seconds_to_simulated_hours(TS.skills['seconds_per_bonus_skill'])}
+          tr
+            td.text-center Normal
+            td.text-center &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"] && (TS.skills['task_skills'] - current_user["jfields"]["skill_bonus"] - current_user["jfields"]["skill_malus"]).join(', ') || TS.skills['task_skills'].join(', ')}
+            td.text-center #{real_seconds_to_simulated_hours(TS.skills['seconds_per_normal_skill'])}
+          tr
+            td.text-center Low
+            td.text-center &nbsp;#{current_user["jfields"]["skill_malus"] && current_user["jfields"]["skill_malus"].join(', ')}
+            td.text-center #{real_seconds_to_simulated_hours(TS.skills['seconds_per_malus_skill'])}
       p As a participant in this experiment you are assigned skills.
         Depending on these skills, you can complete some tasks faster than others.
-
-      table.table.table-striped
-        thead
-          tr
-            th Skills level
-            th Skills
-            th Time to complete tasks
-        tbody
-          tr
-            td High
-            td &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_bonus"].join(', ')}
-            td #{real_seconds_to_simulated_hours(TS.skills['seconds_per_bonus_skill'])}
-          tr
-            td Normal
-            td &nbsp;#{current_user["jfields"]["skill_bonus"] && current_user["jfields"]["skill_malus"] && (TS.skills['task_skills'] - current_user["jfields"]["skill_bonus"] - current_user["jfields"]["skill_malus"]).join(', ') || TS.skills['task_skills'].join(', ')}
-            td #{real_seconds_to_simulated_hours(TS.skills['seconds_per_normal_skill'])}
-          tr
-            td Low
-            td &nbsp;#{current_user["jfields"]["skill_malus"] && current_user["jfields"]["skill_malus"].join(', ')}
-            td #{real_seconds_to_simulated_hours(TS.skills['seconds_per_malus_skill'])}
-    h3 Queue
-    p You can add tasks to your queue. Tasks are completed automatically in order they were added.
-    p
-      == queue_length(current_user)
-    table.table.table-sm.table-striped#accountqueue
-      thead
-        tr
-          th Issue No
-          th Required Skill
-          th Status
-          th
-      tbody
-        - if @work_queues.count == 0
-          tr
-            td[colspan="4"] <em>Info:</em> Go to an issue to add tasks to your Queue
-        - @work_queues.each do |work_queue|
-          tr
-            td
-              a[href='/issues/#{Issue.where(uuid: work_queue.issue_uuid).first.uuid}'] = Issue.where(uuid: work_queue.issue_uuid).first.id
-            td = work_queue.task
-            td == progress(work_queue.startwork, work_queue.completed)
-            td
-              form.form-work[method='post']
-                button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
+    h3 Account Settings
+    .p-2
+      p
+        form.form-inline[action="/set_username" method="post"]
+          label.mr-1[for="newName"] Your public username is:
+          input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new username" value="#{user_name}"]
+          button.btn.btn-primary[type="submit"] Change
+        div <i>Note:</i> Your username is visible to other participants.
+      p
+        form.form-inline[action="/set_password" method="post"]
+          label.mr-1[for="newPassword"] Change password:
+          input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
+          button.btn.btn-primary[type="submit"] Change

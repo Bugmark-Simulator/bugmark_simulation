@@ -36,8 +36,11 @@ hr
       img.mt-1.projgraph[src='/graph/all_prices.png' imgsrc='/graph/projectuuid_prices.png']
       </br>
 
+      /p Open Offer Value (Price x Volume) by project
+      img.mt-1.projgraph[src='/graph/all_offer_value.png' imgsrc='/graph/projectuuid_offer_value.png']
+
       /p Open Offers
-      img.mt-1.projgraph[src='/graph/all_open_offers.png' imgsrc='/graph/projectuuid_open_offers.png']
+      /img.mt-1.projgraph[src='/graph/all_open_offers.png' imgsrc='/graph/projectuuid_open_offers.png']
       /</br>
 
       /p Contract fixed Rate
@@ -64,16 +67,20 @@ hr
 
   - unless @treatment == 'market-metrics' || @treatment == 'no-metrics' || Tracker.count == 0
     .col-md-4
-      p <b>Issue Tracker Metrics</b> for project: <span class="metricprojectname">#{Tracker.first.name}</span>
+      p <b>Issue Tracker Metrics</b> for project: <span class="metricprojectname">All</span>
       /images are created by the nightly script
 
       /p Skills demanded for project
-      img.mt-1.projgraph[src='/graph/all_skills.png' imgsrc='/graph/projectuuid_skills.png']
+      /img.mt-1.projgraph[src='/graph/all_skills.png' imgsrc='/graph/projectuuid_skills.png']
+      /</br>
+
+      /p Issues Closed Each Day by project
+      img.mt-1.projgraph[src='/graph/all_newly_closed_issues.png' imgsrc='/graph/projectuuid_newly_closed_issues.png']
       </br>
 
       /p New messages for project
       img.mt-1.projgraph[src='/graph/all_messages.png' imgsrc='/graph/projectuuid_messages.png']
-      </br>
+      /</br>
 
       /p Open Issues
       /img.mt-1.projgraph[src='/graph/#{Tracker.first.uuid}_open_issues.png' imgsrc='/graph/projectuuid_open_issues.png']
