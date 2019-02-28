@@ -977,7 +977,7 @@ get "/admin/draw_graphs" do
 end
 
 get "/admin/login_as/:uuid" do
-  # admin_only!
+  admin_only!
   user = User.where(uuid: params['uuid']).first
   if user.nil?
     flash[:info] = "Please login"
