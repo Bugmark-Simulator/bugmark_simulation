@@ -38,11 +38,11 @@ hr
         th Issue
         th Value
         th Maturation
-      - if current_user.contracts.count == 0
+      - if current_user.open_contracts.count == 0
         tr
           td.text-center[colspan=3]
             em No outstanding accepted offers.
-      - current_user.contracts.each do |contract|
+      - current_user.open_contracts.each do |contract|
         tr
           td
             a[href='/issues/#{contract.issue.uuid}']

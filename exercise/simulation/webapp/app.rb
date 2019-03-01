@@ -130,7 +130,7 @@ end
 
 get "/" do
   if logged_in? then
-    redirect "/project"
+    redirect "/projects"
   else
     redirect "/login"
   end
@@ -138,6 +138,10 @@ end
 
 # ----- project Page -----
 get "/project" do
+  redirect "/projects"
+end
+
+get "/projects" do
   protected!
   @treatment = current_user["jfields"]["treatment"]
   # activity log
@@ -721,7 +725,7 @@ end
 get "/login" do
   if current_user
     flash[:warning] = "You are already logged in!"
-    redirect "/project"
+    redirect "/projects"
   else
     slim :login
   end
@@ -745,7 +749,7 @@ post "/login" do
       values ('#{current_user.uuid}', '#{BugmTime.now.strftime("%Y-%m-%dT%H:%M:%S")}', 'login');"
     ActiveRecord::Base.connection.execute(log_sql)
     redirect path || "/admin"
-    redirect path || "/project"
+    redirect path || "/projects"
   when ! user
     word = (/@/ =~ params["usermail"]) ? "Email Address" : "Username"
     flash[:danger] = "Unrecognized #{word} (#{params["usermail"]}) please try again or contact Georg Link - glink@unomaha.edu"

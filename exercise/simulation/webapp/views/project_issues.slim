@@ -31,7 +31,7 @@ table.table#xtable
   thead
     tr
       td Issue
-      td Project
+      /td Project
       td Tasks
       td Messages
       /td Title
@@ -43,7 +43,7 @@ table.table#xtable
     - @issues.each do |issue|
       tr
         td == issue_id_link(issue)
-        td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
+        /td == issue.tracker.name.split("/").last.gsub("_", "").capitalize
         td = issue.jfields["skill"].map{|k,v| "#{k}"}.join(', ')
         td
           = Issue_Comment.where(issue_uuid: issue.uuid).count

@@ -477,7 +477,7 @@ module AppHelpers
   end
 
   def current_page(path)
-    request.path_info == path
+    request.path_info.start_with?(path)
   end
 
   def btn_start_stop_nightly

@@ -20,7 +20,7 @@ css:
   .col-md-12
     h2 Issue ##{@issue.id}
 .row
-  .col-md-5
+  .col-md-3
     p
       b Project:<br/>
       == Tracker.where(uuid: @issue.stm_tracker_uuid).first.name
@@ -32,7 +32,7 @@ css:
       b Status:<br/>
       == @issue.stm_status
 
-  .col-md-7
+  .col-md-5
     h2 Tasks required to close issue
     table.table.table-sm[style='margin-top: 5px;']
       thead
@@ -64,6 +64,34 @@ css:
         '
         ' tasks.
       /== queue_length(current_user)
+
+  .col-md-4
+    h2 Messages
+    table.table.table-sm[style='margin-top: 10px;']
+      thead
+        tr
+          th Message
+          th[width="10%"] User
+          th[width="10%"] Posted
+          /th Action
+      tbody
+        - @comments.each do |comment|
+          tr
+            td == comment.comment
+            td == comment.user_name
+            td
+              == BugmTime.now.to_date.mjd - comment.comment_date.strftime("%Y-%m-%d").to_date.mjd
+              '
+              ' days ago
+            /td == delete_comment(comment.id, comment.user_uuid)
+
+    /h3 Comment on issue to coordinate with others to complete the tasks.
+    form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
+    .row
+      .col-md-8
+        textarea.form-control[name="Comments" placeholder="Write your message here to coordinate with others to complete the tasks." required="required"]
+      .col-md-4
+        button.btn.btn-primary[type="Comments"] Post Message
 
 .row[style="background-color:#eee"]
   .row-12.mx-auto.mt-2
@@ -177,40 +205,13 @@ css:
 /                a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
 
 
-.row[style="background-color:#eee"]
-  .row-12.mx-auto.mt-2
-    h2 Messages for this issue
+/.row[style="background-color:#eee"]
+/  .row-12.mx-auto.mt-2
+/    h2 Messages for this issue
 
-.row
-  .col-md-1
-  .col-md-10.mt-2
-    table.table.table-sm[style='margin-top: 10px;']
-      thead
-        tr
-          th Message
-          th[width="10%"] From User
-          th[width="10%"] Posted
-          /th Action
-      tbody
-        - @comments.each do |comment|
-          tr
-            td == comment.comment
-            td == comment.user_name
-            td
-              == BugmTime.now.to_date.mjd - comment.comment_date.strftime("%Y-%m-%d").to_date.mjd
-              '
-              ' days ago
-            /td == delete_comment(comment.id, comment.user_uuid)
-  .col-md-1
+/.row
+/  .col-md-1
 
-/h3 Comment on issue to coordinate with others to complete the tasks.
-form.form-signin[method='post' action='/issue_comments/#{@issue.uuid}']
-  .row
-    .col-md-1
-    .col-md-7
-      textarea.form-control[name="Comments" placeholder="Write your message here to coordinate with others to complete the tasks." required="required"]
-    .col-md-4
-      button.btn.btn-primary[type="Comments"] Post Message
 
 .modal#modalOb
   .modal-dialog.modal-lg

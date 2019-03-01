@@ -1,8 +1,8 @@
 / SPDX-License-Identifier: MPL-2.0
 ul.navbar-nav.mr-auto
   - if logged_in? && consented?
-    == nav_link("Projects Dashbaord" , "/project")
-    == nav_link("Issue Tracker"                    , "/issues")
+    == nav_link("Projects Dashbaord" , "/projects")
+    == nav_link("Issue Tracker"                    , "/project_issues")
     /== nav_link("Accepted Offers"                  , "/contracts")
     - if current_user.id == 1
       == nav_link("RESEARCHER CONTROL PANEL"                 , "/admin")
