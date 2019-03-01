@@ -31,6 +31,28 @@ hr
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
       p You can add tasks to your queue. Tasks are completed automatically in order they were added.
+    hr
+    h3 Accepted Offers
+    table.table.table-sm.table-striped#accountqueue
+      tr
+        th Issue
+        th Value
+        th Maturation
+      - if current_user.contracts.count == 0
+        tr
+          td.text-center[colspan=3]
+            em No outstanding accepted offers.
+      - current_user.contracts.each do |contract|
+        tr
+          td
+            a[href='/issues/#{contract.issue.uuid}']
+              ' Issue
+              '
+              = contract.issue.id
+          td = contract.positions.where(user_uuid: current_user.uuid).sum(:volume)
+          td = offer_maturation_date(contract.positions.first.offer)
+
+
 
   .col-md-2.d-flex.align-items-start.flex-column
     h3 Unread Messages
