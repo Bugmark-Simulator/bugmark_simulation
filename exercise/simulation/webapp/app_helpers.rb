@@ -98,7 +98,7 @@ module AppHelpers
     # warn = funding_hold?(user) ? " / FUNDED #{count} of 5 " : ""
     sql = "SELECT COUNT(*) AS new_messages FROM issue_new_comments WHERE user_uuid = '#{user.uuid}';"
     unread_messages = ActiveRecord::Base.connection.execute(sql).to_a[0]["new_messages"]
-    "#{user_name(user)} | balance: #{user.token_available.to_i} | messages: #{unread_messages}"
+    "<strong>#{user_name(user)}</strong> &bull; balance: #{user.token_available.to_i} &bull; messages: #{unread_messages}"
   end
 
   # def successful_fundings(user)

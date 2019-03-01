@@ -1149,6 +1149,9 @@ post "/admin/session/create" do
             WHERE exid = '#{issue.exid}';"
     ActiveRecord::Base.connection.execute(issue_update_sql)
   end
+  # delete all "unread messages"
+  unread_comments_sql = "DELETE FROM issue_new_comments WHERE issue_uuid <> '0';"
+  ActiveRecord::Base.connection.execute(unread_comments_sql)
   # TODO: reset funder budgets, to make sure they have deep pockets
   redirect '/admin'
 end
