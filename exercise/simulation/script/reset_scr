@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
 # SPDX-License-Identifier: MPL-2.0
 
+# ------ DISABLE WHILE EXPERIMENT IS ONGOING ------
+
+puts "Script is disabled while study is ongoing"
+return
+
+
 # ----- setup -----
 
 Dir.chdir File.expand_path(__dir__)
