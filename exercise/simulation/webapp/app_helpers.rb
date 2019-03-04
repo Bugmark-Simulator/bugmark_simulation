@@ -881,6 +881,7 @@ module AppHelpers
     sql = "SELECT MIN(price) AS minprice
               , MAX(price) AS maxprice
               , AVG(price) AS avgprice
+              , COUNT(*) as numrows
               FROM offers
               JOIN issues ON offers.stm_issue_uuid=issues.uuid
               WHERE status = 'open'
@@ -890,7 +891,8 @@ module AppHelpers
     minprice =result['minprice'].to_f
     maxprice = result['maxprice'].to_f
     avgprice = result['avgprice'].to_f
-    if USE_INFLUX == true
+    numrows = result['numrows'].to_i
+    if USE_INFLUX == true && numrows > 0
       args = {
         tags: {
           graph: "variance_of_price",
@@ -916,7 +918,7 @@ module AppHelpers
     val = result['val'].to_f
     vol = result['vol'].to_f
     total = result['total'].to_f
-    if USE_INFLUX == true
+    if USE_INFLUX == true && total > 0
       args = {
         tags: {
           graph: "open_offer_count_and_volume",
