@@ -499,7 +499,10 @@ get "/offer_accept/:offer_uuid" do
     redirect "/issues/#{offer.stm_issue_uuid}"
   else
     counter   = OfferCmd::CreateCounter.new(offer, poolable: false, user_uuid: user_uuid).project.offer
-    contract  = ContractCmd::Cross.new(counter, :expand).project
+    # old line
+    # contract  = ContractCmd::Cross.new(counter, :expand).project
+    # new line - adds offer as a third param - should force the two offers to cross
+    contract  = ContractCmd::Cross.new(counter, :expand, offer).project
     if contract.nil?
       flash[:warning] = "Could not accept offer"
     else
@@ -617,7 +620,7 @@ get "/account" do
   ActiveRecord::Base.connection.execute(log_sql)
   # best list
   unless $current_session.nil?
-    sql = "SELECT name, jfields->'sessions'->'s#{$current_session.id}'->>'earned' as earned FROM users
+    sql = "SELECT name, CAST(jfields->'sessions'->'s#{$current_session.id}'->>'earned' AS INTEGER) as earned FROM users
     WHERE jfields->'sessions'->'s#{$current_session.id}' IS NOT NULL
     ORDER by earned DESC
     LIMIT 10;"

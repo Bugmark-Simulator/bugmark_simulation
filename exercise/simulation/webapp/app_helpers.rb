@@ -1370,6 +1370,7 @@ module AppHelpers
       # Check all the skills of an issue are worked on and mark it closed
       task_completed = Issue.where(uuid: "#{i["issue_uuid"]}").first.jfields["skill"]
       ex_id = Issue.where(uuid: "#{i["issue_uuid"]}").first.exid
+      i_uuid = Issue.where(uuid: "#{i["issue_uuid"]}").first.uuid
       check = true
       task_completed.each do |key, value|
         if value == 0
@@ -1382,6 +1383,10 @@ module AppHelpers
                 set jfields = jsonb_set(jfields, '{\"closed_on\"}', jsonb '\"#{BugmTime.now.strftime("%Y-%m-%d")}\"')
                 WHERE exid = '#{ex_id}';"
         ActiveRecord::Base.connection.execute(issue_update_sql)
+
+        # mark comments on this issue as read
+        unread_comments_sql = "DELETE FROM issue_new_comments WHERE issue_uuid = '#{i_uuid}';"
+        ActiveRecord::Base.connection.execute(unread_comments_sql)
       end
     end
     # remember that issue was updated

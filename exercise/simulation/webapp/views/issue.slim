@@ -52,9 +52,7 @@ css:
             td #{real_seconds_to_simulated_hours(queue_task_time(task))}
     - if Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count == 0
       p
-        a[href='/account'] Your queue
-        '
-        ' is empty, the next task you add will be worked on immediately.
+        a[href='/account'] Your queue is empty, the next task you add will be worked on immediately.
     - else
       p
         a[href='/account'] Your queue
@@ -63,7 +61,8 @@ css:
         = Work_queue.where(user_uuid: current_user.uuid).where(removed: [nil, ""]).where("completed > localtimestamp").count
         '
         ' tasks.
-      /== queue_length(current_user)
+        '
+        == queue_length_dash(current_user)
 
   .col-md-4
     h2 Messages
@@ -157,6 +156,13 @@ css:
             td
               - if (offer.user.uuid == current_user.uuid) && offer.is_open?
                 a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
+        /tr
+          td Offers in the 'funder' column pay out when issue is <b>open</b> on maturation.
+          td Offers in the 'worker' column pay out when issue is <b>closed</b> on maturation.
+          td [colspan=4]
+    p Offers in the <b>'funder'</b> column pay out when issue is <b>open</b> on maturation.<br/>
+      Offers in the <b>'worker'</b> column pay out when issue is <b>closed</b> on maturation.<br/>
+      Maturation is always at the end of day.
 
 /    h3 Expired or Canceled Offers
 /    table.table.table-sm

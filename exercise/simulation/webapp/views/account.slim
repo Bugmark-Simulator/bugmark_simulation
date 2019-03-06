@@ -11,11 +11,8 @@ hr
           tr
             th.text-center Issue No
             th.text-center Required Skill
-            th[colspan=2]
-              b Status:
-              '
-              == queue_length_dash(current_user)
-
+            th Status
+            th
         tbody
           - if @work_queues.count == 0
             tr
@@ -30,29 +27,33 @@ hr
               td.text-center
                 form.form-work[method='post']
                   button.btn.btn-sm.btn-primary[type="submit" value='#{work_queue.id}' name="Cancel"] Remove from Queue
+          tr
+            td.text-center ---
+            td.text-center ---
+            td[colspan=2] == queue_length_dash(current_user)
       p You can add tasks to your queue. Tasks are completed automatically in order they were added.
     hr
     h3 Accepted Offers
     table.table.table-sm.table-striped#accountqueue
-      tr
-        th Issue
-        th Value
-        th Maturation
-      - if current_user.open_contracts.count == 0
+      thead
         tr
-          td.text-center[colspan=3]
-            em No outstanding accepted offers.
-      - current_user.open_contracts.each do |contract|
-        tr
-          td
-            a[href='/issues/#{contract.issue.uuid}']
-              ' Issue
-              '
-              = contract.issue.id
-          td = contract.positions.where(user_uuid: current_user.uuid).sum(:volume)
-          td = offer_maturation_date(contract.positions.first.offer)
-
-
+          th Issue
+          th Value
+          th Maturation
+        - if current_user.open_contracts.count == 0
+          tr
+            td.text-center[colspan=3]
+              em No outstanding accepted offers.
+      tbody
+        - current_user.open_contracts.each do |contract|
+          tr
+            td
+              a[href='/issues/#{contract.issue.uuid}']
+                ' Issue
+                '
+                = contract.issue.id
+            td = contract.positions.where(user_uuid: current_user.uuid).sum(:volume)
+            td = offer_maturation_date(contract.positions.first.offer)
 
   .col-md-2.d-flex.align-items-start.flex-column
     h3 Unread Messages
@@ -125,7 +126,7 @@ hr
           input.mr-1[type="text" class="form-control" name="newName" length='10' placeholder="enter a new alias" value="#{user_name}"]
           button.btn.btn-primary[type="submit"] Change
         div <i>Note:</i> Your alias is visible to other participants.
-      p
+      /p
         form.form-inline[action="/set_password" method="post"]
           label.mr-1[for="newPassword"] Change password:
           input.mr-1[type="text" class="form-control" name="newPassword" length='10' placeholder="enter a new password"]
