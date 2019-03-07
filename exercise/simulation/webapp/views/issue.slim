@@ -104,11 +104,11 @@ css:
         tr
           th
             ' Funder
-            a.obu.btn.btn-secondary[href="#"] create offer to fund
+            a.obu.btn.btn-secondary[href="#"] create offer as funder
           /th Funder cost
           th
             ' Worker
-            a.obf.btn.btn-secondary[href="#"] create offer to work
+            a.obf.btn.btn-secondary[href="#"] create offer as worker
           /th Worker cost
           th Payout
           th Maturation
@@ -156,12 +156,8 @@ css:
             td
               - if (offer.user.uuid == current_user.uuid) && offer.is_open?
                 a.btn.btn-secondary.cancelOffer[href="/offer_cancel/#{offer.uuid}"] Cancel my offer
-        /tr
-          td Offers in the 'funder' column pay out when issue is <b>open</b> on maturation.
-          td Offers in the 'worker' column pay out when issue is <b>closed</b> on maturation.
-          td [colspan=4]
-    p Offers in the <b>'funder'</b> column pay out when issue is <b>open</b> on maturation.<br/>
-      Offers in the <b>'worker'</b> column pay out when issue is <b>closed</b> on maturation.<br/>
+    p <b>Funder</b> gets payout if issue is <b>open</b> on maturation.<br/>
+      <b>Worker</b> gets payout if issue is <b>closed</b> on maturation.<br/>
       Maturation is always at the end of day.
 
 /    h3 Expired or Canceled Offers
