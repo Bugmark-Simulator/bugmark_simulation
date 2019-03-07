@@ -431,9 +431,14 @@ post "/offer_create/:issue_uuid" do
       stm_tracker_uuid: issue.stm_tracker_uuid
     }
     if issue
-      offer = FB.create(type, opts).project.offer
-      ContractCmd::Cross.new(offer, :expand).project
-      flash[:success] = "You successfully created a new offer"
+      offer = FB.create(type, opts).project
+      if offer
+        offer.offer
+        ContractCmd::Cross.new(offer, :expand).project
+        flash[:success] = "You successfully created a new offer"
+      else
+        flash[:danger] = "Something went wrong"
+      end
     else
       flash[:danger] = "Something went wrong"
     end
