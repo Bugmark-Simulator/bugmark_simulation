@@ -1,9 +1,18 @@
 ---
-webapp_url:   localhost:4567
+webapp_url:   129.93.175.41:4567
 tracker_type: yaml
 tracker_name: /tmp/trader_tracker.yml
 repo_url:     github.com/bugmark-trial/trader1
 start_date:   2018-05-29
 finish_date:  2018-06-01
-graph_time_window_seconds: 433000
+graph_time_window_seconds: 800000
 graph_file_for_webapp_public: "../webapp/public/graph/"
+bot_strategy_file_for_webapp_public: "../webapp/public/bot/"
+session:
+  funder_balance: 999999999999
+  worker_balance: 1000
+  funders_swap_strategy_per_session: 5
+nightly_scr:
+  seconds_for_day_switching: 80
+reset_scr:
+  create_projects: 4

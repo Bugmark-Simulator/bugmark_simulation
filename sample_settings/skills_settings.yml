@@ -11,8 +11,8 @@ skills:
     - "Swift"
     - "PHP"
   skills_bonus_per_user: 3
-  skills_malus_per_user: 3
-  seconds_per_bonus_skill:  60
-  seconds_per_normal_skill: 300
-  seconds_per_malus_skill:  3600
+  skills_malus_per_user: 2
+  seconds_per_bonus_skill:  20
+  seconds_per_normal_skill: 80
+  seconds_per_malus_skill:  160
   number_of_skills_per_issue: 3
