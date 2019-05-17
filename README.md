@@ -185,7 +185,7 @@ Your platform is ready to go. The default admin account is
 
  3. Grafana should be available from a browser `http://<hostname>:3030` with username `admin` and password `admin`
 
- 4. Configure a influxDB connection
+ 4. In Grafana, add a data source for the influxDB connection
    - name: influx
    - type: influxDB
    - URL: http://localhost:8086
@@ -200,8 +200,12 @@ Your platform is ready to go. The default admin account is
  5. Only after you have data in InfluxDB does it make sense to setup a panels because Grafana will only allow you to setup visualizations for existing data.
 
  6. Create PostgreSQL user for grafana. (How to connect to PostgreSQL is described in the helpful commands section below.)
+   - Open PostgreSQL command:
+     1. Logon as user postgres `sudo -u postgres -i`
+     2. Start `psql`
    - `CREATE USER grafana WITH PASSWORD 'grafana';`
    - `GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana;`
+
 
  7. Configure PostgreSQL connection
    - Name: PSQL
