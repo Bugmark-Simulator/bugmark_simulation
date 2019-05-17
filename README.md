@@ -200,14 +200,14 @@ Your platform is ready to go. The default admin account is
  5. Only after you have data in InfluxDB does it make sense to setup a panels because Grafana will only allow you to setup visualizations for existing data.
 
  6. Create PostgreSQL user for grafana. (How to connect to PostgreSQL is described in the helpful commands section below.)
-   - Open PostgreSQL command:
+   - In tmux/bash: Open PostgreSQL command:
      1. Logon as user postgres `sudo -u postgres -i`
      2. Start `psql`
    - `CREATE USER grafana WITH PASSWORD 'grafana';`
    - `GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana;`
 
 
- 7. Configure PostgreSQL connection
+ 7. In Grafana, add new data source: PostgreSQL connection
    - Name: PSQL
    - Type: PostgreSQL
    - Host: localhost:5432
