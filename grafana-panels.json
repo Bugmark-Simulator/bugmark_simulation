@@ -2,7 +2,7 @@
   "annotations": {
     "list": [
       {
-        "$$hashKey": "object:87",
+        "$$hashKey": "object:140",
         "builtIn": 1,
         "datasource": "-- Grafana --",
         "enable": true,
@@ -17,7 +17,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1549563742006,
+  "iteration": 1559164519513,
   "links": [],
   "panels": [
     {
@@ -58,7 +58,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "$$hashKey": "object:203",
           "alias": "Project: $tag_project_name",
           "groupBy": [
             {
@@ -157,6 +156,502 @@
         "w": 12,
         "x": 12,
         "y": 0
+      },
+      "id": 28,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Project: $tag_project_name",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "offer_value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Value of Offers (Price x Volume) by Project",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 10,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 19,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "connected",
+      "percentage": true,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Project: $tag_project_name",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "offer_count"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Open Offers at End of Day by Project",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": "100",
+          "min": "1",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ]
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "description": "",
+      "fill": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 30,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Project: Seckel",
+          "pointradius": 1
+        },
+        {
+          "alias": "Project: Forelle",
+          "pointradius": 2
+        },
+        {
+          "alias": "Project: Bosc",
+          "pointradius": 4
+        },
+        {
+          "alias": "Project: Anjou",
+          "pointradius": 5
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Project: $tag_project_name",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "new_closed_issues"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Issues Closed per Day by Project",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 10,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 24,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "minSpan": 4,
+      "nullPointMode": "connected",
+      "percentage": true,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeatDirection": "v",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Project: $tag_project_name",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "tasks"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Tasks Available by Project",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "cumulative"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": "100",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ]
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "description": "",
+      "fill": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
       },
       "id": 20,
       "legend": {
@@ -379,493 +874,6 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "influx",
-      "fill": 10,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "id": 19,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "hideEmpty": false,
-        "hideZero": false,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "connected",
-      "percentage": true,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "Project: $tag_project_name",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "project_name"
-              ],
-              "type": "tag"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "GraphData",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "offer_count"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "distinct"
-              }
-            ]
-          ],
-          "tags": []
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Open Offers at End of Day by Project",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "transparent": false,
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": "100",
-          "min": "1",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ]
-    },
-    {
-      "aliasColors": {
-        "Volume": "#890f02"
-      },
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "influx",
-      "fill": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "id": 8,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 3,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 3,
-      "points": true,
-      "renderer": "flot",
-      "seriesOverrides": [
-        {
-          "alias": "number of open offers",
-          "color": "#0a50a1"
-        }
-      ],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "number of open offers",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "hide": false,
-          "measurement": "GraphData",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "offer_count"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "distinct"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "project",
-              "operator": "=~",
-              "value": "/^$project$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Open Offers for \"$project_name\"",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "influx",
-      "fill": 10,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 18
-      },
-      "id": 24,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "minSpan": 4,
-      "nullPointMode": "connected",
-      "percentage": true,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "repeatDirection": "v",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "Project: $tag_project_name",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "project_name"
-              ],
-              "type": "tag"
-            }
-          ],
-          "measurement": "GraphData",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "tasks"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "sum"
-              }
-            ]
-          ],
-          "tags": []
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Tasks Available by Project",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "cumulative"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": "100",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ]
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "influx",
-      "fill": 10,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 18
-      },
-      "id": 23,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "minSpan": 4,
-      "nullPointMode": "null",
-      "percentage": true,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "repeat": null,
-      "repeatDirection": "v",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "$tag_skill",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "skill"
-              ],
-              "type": "tag"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "GraphData",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "tasks"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "distinct"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "project_name",
-              "operator": "=~",
-              "value": "/^$project_name$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Skills Demanded for \"$project_name\"",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": "100",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ]
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "influx",
       "fill": 1,
       "gridPos": {
         "h": 9,
@@ -893,7 +901,24 @@
       "pointradius": 5,
       "points": true,
       "renderer": "flot",
-      "seriesOverrides": [],
+      "seriesOverrides": [
+        {
+          "alias": "Project: Seckel",
+          "pointradius": 1
+        },
+        {
+          "alias": "Project: Forelle",
+          "pointradius": 2
+        },
+        {
+          "alias": "Project: Bosc",
+          "pointradius": 4
+        },
+        {
+          "alias": "Project: Anjou",
+          "pointradius": 5
+        }
+      ],
       "spaceLength": 10,
       "stack": true,
       "steppedLine": false,
@@ -980,40 +1005,39 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "influx",
-      "fill": 1,
+      "description": "",
+      "fill": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 27
       },
-      "id": 27,
+      "id": 29,
       "legend": {
-        "alignAsTable": false,
         "avg": false,
         "current": false,
         "max": false,
         "min": false,
-        "rightSide": false,
         "show": true,
         "total": false,
         "values": false
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 3,
       "links": [],
       "nullPointMode": "null",
       "percentage": false,
-      "pointradius": 5,
+      "pointradius": 3,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [
         {
-          "alias": "number of new messages",
+          "alias": "/.*/",
           "color": "#0a50a1"
         }
       ],
@@ -1022,7 +1046,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "number of new messages",
+          "alias": "Value of Offers (Price x Volume)",
           "groupBy": [
             {
               "params": [
@@ -1032,17 +1056,12 @@
             },
             {
               "params": [
-                "project_name"
-              ],
-              "type": "tag"
-            },
-            {
-              "params": [
                 "null"
               ],
               "type": "fill"
             }
           ],
+          "hide": false,
           "measurement": "GraphData",
           "orderByTime": "ASC",
           "policy": "default",
@@ -1052,7 +1071,7 @@
             [
               {
                 "params": [
-                  "new_comments"
+                  "offer_value"
                 ],
                 "type": "field"
               },
@@ -1074,12 +1093,13 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "New Messages for \"$project_name\"",
+      "title": "Value of Offers for \"$project_name\"",
       "tooltip": {
         "shared": true,
         "sort": 0,
         "value_type": "individual"
       },
+      "transparent": false,
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -1093,7 +1113,7 @@
           "format": "short",
           "label": null,
           "logBase": 1,
-          "max": null,
+          "max": "3000",
           "min": "0",
           "show": true
         },
@@ -1103,9 +1123,13 @@
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": false
+          "show": true
         }
-      ]
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     },
     {
       "aliasColors": {},
@@ -1284,7 +1308,9 @@
       }
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "Volume": "#890f02"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
@@ -1296,36 +1322,37 @@
         "x": 12,
         "y": 36
       },
-      "id": 12,
+      "id": 8,
       "legend": {
-        "avg": true,
+        "avg": false,
         "current": false,
-        "max": true,
-        "min": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
         "show": true,
         "total": false,
-        "values": true
+        "values": false
       },
-      "lines": false,
-      "linewidth": 1,
+      "lines": true,
+      "linewidth": 3,
       "links": [],
       "nullPointMode": "null",
       "percentage": false,
-      "pointradius": 5,
+      "pointradius": 3,
       "points": true,
       "renderer": "flot",
       "seriesOverrides": [
         {
-          "alias": "number of open issues",
+          "alias": "number of open offers",
           "color": "#0a50a1"
         }
       ],
       "spaceLength": 10,
       "stack": false,
-      "steppedLine": true,
+      "steppedLine": false,
       "targets": [
         {
-          "alias": "number of open issues",
+          "alias": "number of open offers",
           "groupBy": [
             {
               "params": [
@@ -1340,16 +1367,17 @@
               "type": "fill"
             }
           ],
+          "hide": false,
           "measurement": "GraphData",
           "orderByTime": "ASC",
           "policy": "default",
-          "refId": "A",
+          "refId": "B",
           "resultFormat": "time_series",
           "select": [
             [
               {
                 "params": [
-                  "open_issues"
+                  "offer_count"
                 ],
                 "type": "field"
               },
@@ -1371,7 +1399,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Number of Open Issues at End of Day",
+      "title": "Open Offers for \"$project_name\"",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1391,7 +1419,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1400,7 +1428,7 @@
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": true
+          "show": false
         }
       ],
       "yaxis": {
@@ -1635,49 +1663,53 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "influx",
-      "fill": 1,
+      "fill": 10,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 45
       },
-      "id": 16,
+      "id": 23,
       "legend": {
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": true,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
         "show": true,
         "total": false,
-        "values": true
+        "values": false
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
+      "minSpan": 4,
       "nullPointMode": "null",
-      "percentage": false,
+      "percentage": true,
       "pointradius": 5,
-      "points": true,
+      "points": false,
       "renderer": "flot",
-      "seriesOverrides": [
-        {
-          "alias": "percentage of all open issues",
-          "color": "#0a50a1"
-        }
-      ],
+      "repeat": null,
+      "repeatDirection": "v",
+      "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "stack": true,
       "steppedLine": false,
       "targets": [
         {
-          "alias": "percentage of all open issues",
+          "alias": "$tag_skill",
           "groupBy": [
             {
               "params": [
                 "$__interval"
               ],
               "type": "time"
+            },
+            {
+              "params": [
+                "skill"
+              ],
+              "type": "tag"
             },
             {
               "params": [
@@ -1695,7 +1727,7 @@
             [
               {
                 "params": [
-                  "abandoned_vs_open"
+                  "tasks"
                 ],
                 "type": "field"
               },
@@ -1707,9 +1739,9 @@
           ],
           "tags": [
             {
-              "key": "project",
+              "key": "project_name",
               "operator": "=~",
-              "value": "/^$project$/"
+              "value": "/^$project_name$/"
             }
           ]
         }
@@ -1717,7 +1749,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Percentage of Issues With no Activity in 14 days",
+      "title": "Skills Demanded for \"$project_name\"",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1736,7 +1768,7 @@
           "format": "short",
           "label": null,
           "logBase": 1,
-          "max": "1",
+          "max": "100",
           "min": "0",
           "show": true
         },
@@ -1746,13 +1778,9 @@
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": true
+          "show": false
         }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      ]
     },
     {
       "aliasColors": {},
@@ -1880,6 +1908,612 @@
     },
     {
       "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 54
+      },
+      "id": 27,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 3,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "number of new messages",
+          "color": "#0a50a1"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "number of new messages",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "new_comments"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "project_name",
+              "operator": "=~",
+              "value": "/^$project_name$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "New Messages for \"$project_name\"",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ]
+    },
+    {
+      "columns": [],
+      "datasource": "PSQL",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "id": 10,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": false
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "alias": "",
+          "format": "table",
+          "group": [],
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "metricColumn": "none",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"value\") FROM \"measurement\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "rawSql": "select age(CAST(co.maturation as date), CAST($__timeTo() as date)) as in_days,\r\n(select price from positions\r\njoin amendments\r\non positions.amendment_uuid = amendments.uuid\r\njoin contracts as ci\r\non amendments.contract_uuid = ci.uuid\r\njoin issues\r\non ci.stm_issue_uuid=issues.uuid\r\nwhere positions.side = 'unfixed'\r\nand issues.stm_tracker_uuid = '[[project]]'\r\nand ci.maturation = co.maturation\r\norder by positions.updated_at DESC limit 1) as LastPrice, max(positions.price) as HighPrice, min(positions.price) as LowPrice, sum(positions.volume) as Volume\r\nfrom positions\r\njoin amendments\r\non positions.amendment_uuid = amendments.uuid\r\njoin contracts as co\r\non amendments.contract_uuid = co.uuid\r\njoin issues\r\non co.stm_issue_uuid=issues.uuid\r\nwhere positions.side = 'unfixed'\r\nand issues.stm_tracker_uuid = '[[project]]'\r\nand co.status = 'open'\r\ngroup by co.maturation\r\norder by in_days DESC\r\n;\r\n",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Maturation Days Offer Summary",
+      "transform": "table",
+      "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "id": 31,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 3,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "number of new messages",
+          "color": "#0a50a1"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "Number of Issues Closed Each Day",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "project_name"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "new_closed_issues"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "project_name",
+              "operator": "=~",
+              "value": "/^$project_name$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Closed Issues per Day for \"$project_name\"",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ]
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "id": 12,
+      "legend": {
+        "avg": true,
+        "current": false,
+        "max": true,
+        "min": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "number of open issues",
+          "color": "#0a50a1"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "alias": "number of open issues",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "open_issues"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "project",
+              "operator": "=~",
+              "value": "/^$project$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Number of Open Issues at End of Day",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "influx",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 81
+      },
+      "id": 16,
+      "legend": {
+        "avg": true,
+        "current": true,
+        "max": true,
+        "min": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "percentage of all open issues",
+          "color": "#0a50a1"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "percentage of all open issues",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "GraphData",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "abandoned_vs_open"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "project",
+              "operator": "=~",
+              "value": "/^$project$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Percentage of Issues With no Activity in 14 days",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
@@ -1890,7 +2524,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 54
+        "y": 90
       },
       "id": 15,
       "legend": {
@@ -2005,104 +2639,6 @@
       }
     },
     {
-      "columns": [],
-      "datasource": "PSQL",
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 63
-      },
-      "id": 10,
-      "links": [],
-      "pageSize": null,
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 0,
-        "desc": false
-      },
-      "styles": [
-        {
-          "alias": "Time",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "date"
-        },
-        {
-          "alias": "",
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "alias": "",
-          "format": "table",
-          "group": [],
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "hide": false,
-          "metricColumn": "none",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT mean(\"value\") FROM \"measurement\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
-          "rawQuery": true,
-          "rawSql": "select age(CAST(co.maturation as date), CAST($__timeTo() as date)) as in_days,\r\n(select price from positions\r\njoin amendments\r\non positions.amendment_uuid = amendments.uuid\r\njoin contracts as ci\r\non amendments.contract_uuid = ci.uuid\r\njoin issues\r\non ci.stm_issue_uuid=issues.uuid\r\nwhere positions.side = 'unfixed'\r\nand issues.stm_tracker_uuid = '[[project]]'\r\nand ci.maturation = co.maturation\r\norder by positions.updated_at DESC limit 1) as LastPrice, max(positions.price) as HighPrice, min(positions.price) as LowPrice, sum(positions.volume) as Volume\r\nfrom positions\r\njoin amendments\r\non positions.amendment_uuid = amendments.uuid\r\njoin contracts as co\r\non amendments.contract_uuid = co.uuid\r\njoin issues\r\non co.stm_issue_uuid=issues.uuid\r\nwhere positions.side = 'unfixed'\r\nand issues.stm_tracker_uuid = '[[project]]'\r\nand co.status = 'open'\r\ngroup by co.maturation\r\norder by in_days DESC\r\n;\r\n",
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [],
-          "timeColumn": "time",
-          "where": [
-            {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
-        }
-      ],
-      "title": "Maturation Days Offer Summary",
-      "transform": "table",
-      "type": "table"
-    },
-    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -2113,7 +2649,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 63
+        "y": 99
       },
       "id": 13,
       "legend": {
@@ -2238,7 +2774,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 72
+        "y": 108
       },
       "id": 14,
       "legend": {
@@ -2363,7 +2899,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 81
+        "y": 117
       },
       "id": 17,
       "legend": {
@@ -2482,9 +3018,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "30d332b4-3c4b-4642-88bc-555987e171ea",
-          "value": "30d332b4-3c4b-4642-88bc-555987e171ea"
+          "text": "ff3e9aee-8df0-4d78-b278-c8cc67a4975c",
+          "value": "ff3e9aee-8df0-4d78-b278-c8cc67a4975c"
         },
         "datasource": "PSQL",
         "hide": 0,
@@ -2507,9 +3042,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "Seckel",
-          "value": "Seckel"
+          "text": "Anjou",
+          "value": "Anjou"
         },
         "datasource": "PSQL",
         "hide": 0,
@@ -2531,7 +3065,7 @@
     ]
   },
   "time": {
-    "from": "2019-03-05T17:53:56.000Z",
+    "from": "2019-02-27T17:53:56.000Z",
     "to": "2019-04-23T22:14:05.000Z"
   },
   "timepicker": {
@@ -2562,5 +3096,5 @@
   "timezone": "",
   "title": "Test environment",
   "uid": "Ijarcnomz",
-  "version": 96
+  "version": 103
 }
