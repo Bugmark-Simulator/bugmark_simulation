@@ -171,7 +171,7 @@ Your platform is ready to go. The default admin account is
 
 ### 3.) Setting up Grafana
 
-(_Note:_ Make sure grafana is in version 5.3+)
+(_Note:_ Make sure grafana is in version 5.0+)
 
  1. Enable Grafana for users without requiring signing by editing file `/etc/grafana/grafana.ini` and setting:
 ```
