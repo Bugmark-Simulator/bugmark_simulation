@@ -214,12 +214,22 @@ Your platform is ready to go. The default admin account is
    - Database: bugmark_development
    - User: grafana
    - Password: grafana
+   
+ 8. If Grafana is showing an error that it cannot access the table "trackers",  give permissions  
 
-  8. To setup the panels that display the graphs, go to `http://<ip-address-of-server>:3030/dashboard/import` and either select "Upload .json File" or copy past the content of [grafana-panels.json](./grafana-panels.json)
+```
+sudo -u postgres -i
+
+# then as the postgres user...
+psql -d bugmark_development
+GRANT SELECT ON trackers to grafana
+```
+
+  9. To setup the panels that display the graphs, go to `http://<ip-address-of-server>:3030/dashboard/import` and either select "Upload .json File" or copy past the content of [grafana-panels.json](./grafana-panels.json)
     - Note: Might have to login first at `http://<ip-address-of-server>:3030/login` using username: `admin` and password: `admin`
     - Note: This Grafana dashboard uses Variables. The variables need only be updated if you want to view data from the dashboard.
 
-  9. By default, URLs to view dashboards should not have changed.
+ 10. By default, URLs to view dashboards should not have changed.
     If graphs do not show up in the simulation, try trouble shooting with the AppHelpers function `update_graphs`.
 
 ## Resetting Bugmark Exchange and all the database
