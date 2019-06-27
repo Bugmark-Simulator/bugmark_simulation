@@ -433,7 +433,7 @@ post "/offer_create/:issue_uuid" do
     if issue
       offer = FB.create(type, opts).project
       if offer
-        offer.offer
+        offer = offer.offer
         ContractCmd::Cross.new(offer, :expand).project
         flash[:success] = "You successfully created a new offer"
       else
