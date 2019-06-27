@@ -272,10 +272,9 @@ run a simulation script that executes simple user actions with some randomizatio
 
 1. Install Bugmark Exchange, Simulation Software, Setup Grafana, and configure the software according to the install instructions.
 2. To clean the database, run `~/src/bugmark_simulation/exercise/simulation/script/reset_scr`
-3. Next, create users by running `~/src/bugmark_simulation/exercise/simulation/script/user_gen_scr`
-4. Before we can simulate behavior, we need to generate issues `~/src/bugmark_simulation/exercise/simulation/script/issue_gen_scr`
-5. Now that we have a fully populated simulation setting with users, projects, and issues, we can start the background activity. Do this from the RESEARCHER CONTROL PANEL using the yellow button "Simulation is NOT running".
-6. To simulate the behavior of funders and workers who create offers, do work, and form contracts, run `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder`
+3. Login to the RESEARCHER CONTROL PANEL using the admin account. 
+4. The system should by default be setup with four funders. Next step is to create users.
+5. To simulate the behavior of funders and workers who create offers, do work, and form contracts, run `~/src/bugmark_simulation/exercise/simulation/script/simulate_worker_funder`
 
 ## Helpful Commands
 
