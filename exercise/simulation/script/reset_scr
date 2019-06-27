@@ -111,6 +111,7 @@ numnew.times do |i|
   malus_skills = skills.pop(maluses)
   sql = "UPDATE users SET jfields = '{\"skill_bonus\":#{bonus_skills},
   \"skill_malus\":#{malus_skills},
+  \"sessions\":{},
   \"password\":\"#{userpassword}\",\"type\":\"#{types[type]}\",
   \"treatment\":\"#{treatments[treatment]}\",\"tracker\":\"\"}' WHERE id='#{userid}';"
   ActiveRecord::Base.connection.execute(sql).to_a
